@@ -1,0 +1,1 @@
+export default function TypeClass<T extends { new(...args: any[]): {} }>(constructor: T) { } 
