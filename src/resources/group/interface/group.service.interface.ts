@@ -1,3 +1,4 @@
+import { User } from "@/resources/auth/login/dtos/user.dto";
 import GroupChat from "../dtos/group.dto";
 import LastViewGroup from "../dtos/lastview.dto";
 
@@ -7,5 +8,6 @@ export default interface GroupServiceBehavior {
     getAllGroup(iduser: number): Promise<Array<GroupChat>>
     createGroup(name: string, iduser: number): Promise<boolean>
     getLastViewMember(idgroup: number): Promise<LastViewGroup[]>
-    renameGroup(name: string, iduser: number): Promise<boolean>
+    getOneGroup(idgroup: number): Promise<GroupChat | null>
+    getAllMember(idgroup: number): Promise<User[]>
 }

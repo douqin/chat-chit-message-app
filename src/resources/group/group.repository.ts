@@ -7,6 +7,11 @@ import MyException from "@/utils/exceptions/my.exception";
 export default class GroupRepository implements GroupRepositoryBehavior {
 
     constructor() { }
+    async getAllMember(idgroup: number): Promise<object[]> {
+        let query = "SELECT user.* from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ?"
+        let [rows] = await MySql.excuteQuery(query,[idgroup])
+        return rows as object[]; // FIXME:
+    }
     async leaveGroup(iduser: any, idgroup: number): Promise<boolean> { // FIXME : ADD TRIGGER CHECK ADMIN 
         let isAdmin = iduser == (await MySql.excuteStringQuery(`SELECT groupchat.createby From groupchat where groupchat.idgroup = ${idgroup}`) as any)[0][0].createby
         if (!isAdmin)
@@ -17,10 +22,18 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return true
     }
     async renameGroup(name: string, iduser: number): Promise<boolean> {
-
         return true;
     }
-
+    async getOneGroup(iduser: number): Promise<object | null> {
+        let query = `SELECT groupchat.idgroup, groupchat.name, groupchat.avatar, groupchat.status, groupchat.createby, groupchat.createat FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ${iduser};`
+        let dataRaw: any = await MySql.excuteStringQuery(
+            query
+        )
+        if (dataRaw) {
+            return dataRaw[0]
+        }
+        return null;
+    }
     async getAllGroup(iduser: number): Promise<object[] | undefined> {
         let query = `SELECT groupchat.idgroup, groupchat.name, groupchat.avatar, groupchat.status, groupchat.createby, groupchat.createat FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ${iduser};`
         let dataRaw: any = await MySql.excuteStringQuery(

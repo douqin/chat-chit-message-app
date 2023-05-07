@@ -58,8 +58,19 @@ export default class SocketBuilder {
             }
         });
     }
-    private initalize = (socket: any) => {
-
+    private initalize = async (socket: Socket) => {
+        let token: Token = socket.handshake.auth.token as Token
+        if (typeof socket.handshake.auth.token === 'string' && socket.handshake.auth.token !== null) {
+            token = JSON.parse(socket.handshake.auth.token)
+        }
+        if (token) {
+            if (token.accessToken) {5
+                const jwtPayload = await authHandler.decodeAccessToken(token.accessToken) as JwtPayload;
+                const { iduser } = jwtPayload.payload;
+                socket.join(`${iduser}`)
+                return;
+            }
+        }
     }
 }
 

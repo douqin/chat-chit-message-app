@@ -10,9 +10,10 @@ function errorMiddleware(
 ): void {
     const status = error.status || 500
     const message = error.message || "Something wrong"
+    const success = error.success || false
     res.status(status).send(
         {
-            status,
+            success,
             message
         }
     )

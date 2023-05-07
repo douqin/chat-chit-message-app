@@ -17,7 +17,7 @@
 
 ### `GROUP`
 
-- `[GET] /:` lấy hết danh sách group
+- `[GET] /:` lấy hết danh sách group <a id="a"></a>
 - `[GET] /:id` chỉ lấy 1 group
 - `[POST] /create` tạo 1 group
 - `[PATCH] /:id/avatar` thay avatar
@@ -35,3 +35,6 @@
 ### `USER`
 
 ### `ADMIN`
+
+### `SOCKET IO`
+ 

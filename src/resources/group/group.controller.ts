@@ -10,6 +10,8 @@ import Controller from "@/utils/decorator/decorator";
 import LastViewGroup from "./dtos/lastview.dto";
 import GroupServiceBehavior from "@/resources/group/interface/group.service.interface";
 import MyException from "@/utils/exceptions/my.exception";
+import multer from "multer";
+
 
 @Controller("/group")
 export default class GroupController extends MotherController {
@@ -21,6 +23,7 @@ export default class GroupController extends MotherController {
 
     initRouter(): MotherController {
         this.router.get('/group',
+            multer().none,
             // AuthMiddleware.auth,
             this.getAllGroup
         )
@@ -29,21 +32,24 @@ export default class GroupController extends MotherController {
             this.getOneGroup
         )
         this.router.post('/group/create',
+            multer().none,
             // AuthMiddleware.auth,
             this.createGroup
         )
         this.router.patch("/group/:id/avatar",
+            multer().none,
             // AuthMiddleware.auth,
             this.changeAvatarGroup)
         this.router.post("/group/:id/lastview",
+            multer().none,
             // AuthMiddleware.auth,
             this.getLastViewMember)
         // this.router.patch("/group/:id/notify/:isnotify",
         //     // AuthMiddleware.auth,
         //     this.turnOffOrOn)
-        this.router.get("/group/:id/getallmembers", this.getAllMember)
-        this.router.post("/group/:id/invitemembers", this.inviteMember)
-        this.router.post("/group/:id/members/leave", this.leaveGroup)
+        this.router.get("/group/:id/getallmembers", multer().none, this.getAllMember)
+        this.router.post("/group/:id/invitemembers", multer().none, this.inviteMember)
+        this.router.post("/group/:id/members/leave", multer().none, this.leaveGroup)
         // this.router.post("/group/:id/members/join-from", this.joinfrom)
         return this
     }
@@ -57,14 +63,18 @@ export default class GroupController extends MotherController {
                     const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
                     let data = await this.groupService.getAllGroup(iduser)
-                    res.status(HttpStatus.FOUND).send(data)
+                    res.status(HttpStatus.FOUND).json(new HttpSuccess(
+                        true,
+                        "OK",
+                        data
+                    ))
                     return
                 }
                 else {
                     next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
                 }
             } else {
-                next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
+                next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không ton tai"))
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau "))
         } catch (error: any) {
@@ -82,6 +92,7 @@ export default class GroupController extends MotherController {
                     const { name, type } = req.body
                     if (name) {
                         await this.groupService.createGroup(name, iduser)
+                        // TODO: create group with multi user
                         res.status(HttpStatus.FOUND).send("OKE")
                         return
                     }
@@ -118,8 +129,15 @@ export default class GroupController extends MotherController {
                 if (accesstoken) {
                     const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
-                    let data: LastViewGroup[] = await this.groupService.getLastViewMember(iduser)
-                    res.status(HttpStatus.FOUND).send(data)
+                    const {
+                        id
+                    } = req.params
+                    let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
+                    res.status(HttpStatus.FOUND).json(new HttpSuccess(
+                        true,
+                        "OK",
+                        data
+                    ))
                     return
                 }
             }
@@ -128,33 +146,51 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private getOneGroup = async (req: Request, res: Response, next: NextFunction) => { //FIXME:
+    private getOneGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             let token = req.headers["token"] as string
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
-
+                    const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
+                    const { iduser } = jwtPayload.payload;
+                    const { id } = req.params;
+                    let data = await this.groupService.getOneGroup(Number(id))
+                    res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
+                    return
                 }
+                else {
+                    next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
+                }
+            } else {
+                next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
-        }
-        catch (e: any) {
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Token khong ton tai"))
+        } catch (error: any) {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private getAllMember = async (req: Request, res: Response, next: NextFunction) => { //FIXME:
+    private getAllMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             let token = req.headers["token"] as string
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
-
+                    const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
+                    const { iduser } = jwtPayload.payload;
+                    const { id } = req.params;
+                    let data = await this.groupService.getAllMember(Number(id))
+                    res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
+                    return
                 }
+                else {
+                    next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
+                }
+            } else {
+                next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
-        }
-        catch (e: any) {
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Token khong ton tai"))
+        } catch (error: any) {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
         // FIXME:
@@ -175,7 +211,8 @@ export default class GroupController extends MotherController {
                     } = req.body
                     let isSuccessfully = await this.groupService.inviteMember(iduser, Number(id), userIDs)
                     if (isSuccessfully) {
-                        res.status(HttpStatus.OK).send("OKE")
+                        this.io.emit();
+                        res.status(HttpStatus.OK).send(new HttpSuccess(true,"OK",true))
                         //FIXME : send data to socket
                     }
                     return
@@ -208,8 +245,12 @@ export default class GroupController extends MotherController {
                     } = req.params
                     let isSuccessfully = await this.groupService.leaveGroup(iduser, Number(id))
                     if (isSuccessfully) {
-                        res.status(HttpStatus.OK).send("OKE")
-                        //FIXME : send data to socket
+                        this.io.to(`${id}`).emit("user_leave_group", iduser);
+                        res.status(HttpStatus.OK).send(new HttpSuccess(
+                            true,
+                            "OK",
+                            null
+                        ))
                     }
                     return
                 }

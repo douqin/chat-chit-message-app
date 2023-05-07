@@ -5,5 +5,6 @@ export default interface GroupRepositoryBehavior {
     //  isContainInGroup(iduser: number, idgroup: number) : Promise<void>
     getLastViewMember(idgroup: number): Promise<object[] | undefined>
     renameGroup(name: string, iduser: number): Promise<boolean>
-
+    getOneGroup(iduser: number): Promise<object | null> 
+     getAllMember(idgroup: number): Promise<object[] | null> 
 }
