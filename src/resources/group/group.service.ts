@@ -4,14 +4,21 @@ import LastViewGroup from "./dtos/lastview.dto";
 import GroupServiceBehavior from "@/resources/group/interface/group.service.interface";
 import GroupRepositoryBehavior from "./interface/group.repository.interface";
 import { User } from "../auth/login/dtos/user.dto";
+import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
 
 export default class GroupService implements GroupServiceBehavior {
     private groupRepsitory: GroupRepositoryBehavior
     constructor() {
         this.groupRepsitory = new GroupRepository()
     }
+    async isContainInGroup(iduser: number, idgroup: number): Promise<boolean> {
+        return await this.groupRepsitory.isContainInGroup(iduser, idgroup)
+    }
+    async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<DataFileDrive | null> {
+        return this.groupRepsitory.changeAvatarGroup(iduser, idgroup, file)
+    }
     async getAllMember(idgroup: number): Promise<User[]> {
-        let data =  await this.groupRepsitory.getAllMember(idgroup);
+        let data = await this.groupRepsitory.getAllMember(idgroup);
         if (data) {
             return data.map<User>((value, index, array) => {
                 return User.fromRawData(value)
@@ -20,9 +27,9 @@ export default class GroupService implements GroupServiceBehavior {
         return [];
     }
     async getOneGroup(idgroup: number): Promise<GroupChat | null> {
-        let data =  await this.groupRepsitory.getOneGroup(idgroup);
+        let data = await this.groupRepsitory.getOneGroup(idgroup);
         if (data) {
-            return  GroupChat.fromRawData(data)
+            return GroupChat.fromRawData(data)
         }
         return null;
     }
@@ -47,7 +54,7 @@ export default class GroupService implements GroupServiceBehavior {
         return []
     }
 
-    async createGroup(name: string, iduser: number): Promise<boolean> { // FIXME: 
+    async createGroup(name: string, iduser: number): Promise<boolean> {
         return await this.groupRepsitory.createGroup(name, iduser)
     }
     async isContainMember(iduser: number, idgroup: number) {

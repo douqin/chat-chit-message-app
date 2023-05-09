@@ -9,16 +9,9 @@ export default class LoginService {
         let userRaw = await loginRepository.login(phone, password);
         if (userRaw) {
             const {
-                iduser, name, phone, email, birthday, gender
+                iduser
             } = userRaw[0]
-            let user: User = {
-                iduser: iduser,
-                name: name,
-                phone: phone,
-                email: email,
-                birthday: birthday,
-                gender: gender
-            }
+            let user: User = User.fromRawData(userRaw[0])
             if (user) {
                 let fullToken = await AuthHandler.getFullToken(iduser)
                 if (fullToken) {

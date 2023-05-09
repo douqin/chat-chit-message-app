@@ -11,6 +11,8 @@ import LastViewGroup from "./dtos/lastview.dto";
 import GroupServiceBehavior from "@/resources/group/interface/group.service.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
+import { HttpSuccess } from "@/utils/definition/http.success";
+import { ServiceDrive } from "../../component/cloud/drive.service";
 
 
 @Controller("/group")
@@ -23,7 +25,6 @@ export default class GroupController extends MotherController {
 
     initRouter(): MotherController {
         this.router.get('/group',
-            multer().none,
             // AuthMiddleware.auth,
             this.getAllGroup
         )
@@ -37,7 +38,7 @@ export default class GroupController extends MotherController {
             this.createGroup
         )
         this.router.patch("/group/:id/avatar",
-            multer().none,
+            multer().single("avatar"),
             // AuthMiddleware.auth,
             this.changeAvatarGroup)
         this.router.post("/group/:id/lastview",
@@ -47,7 +48,7 @@ export default class GroupController extends MotherController {
         // this.router.patch("/group/:id/notify/:isnotify",
         //     // AuthMiddleware.auth,
         //     this.turnOffOrOn)
-        this.router.get("/group/:id/getallmembers", multer().none, this.getAllMember)
+        this.router.get("/group/:id/getallmembers", this.getAllMember)
         this.router.post("/group/:id/invitemembers", multer().none, this.inviteMember)
         this.router.post("/group/:id/members/leave", multer().none, this.leaveGroup)
         // this.router.post("/group/:id/members/join-from", this.joinfrom)
@@ -106,18 +107,51 @@ export default class GroupController extends MotherController {
         }
 
     }
-    private changeAvatarGroup = async (req: Request, res: Response, next: NextFunction) => {      // FIXME :
+    private changeAvatarGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             let token = req.headers["token"] as string
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
-
+                    const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
+                    const { iduser } = jwtPayload.payload;
+                    const {
+                        id
+                    } = req.params
+                    if (await this.groupService.isContainInGroup(iduser, Number(id))) {
+                        let file = req.file;
+                        if (file && file.mimetype.startsWith("image/")) {
+                            let data = await this.groupService.changeAvatarGroup(iduser, Number(id), file,)
+                            res.status(HttpStatus.OK).json(new HttpSuccess(
+                                true,
+                                "",
+                                data
+                            ))
+                            return // FIXME: 
+                            //uploadImage("",file.filename,file.buffer)
+                        }
+                        else {
+                            next(new HttpException(HttpStatus.BAD_REQUEST, "Ảnh không hợp lệ"))
+                            return
+                        }
+                    } else {
+                        next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn không có quyền thực hiện hành động này"))
+                        return
+                    }
+                } else {
+                    next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
+                    return
+                }
+            } else {
+                next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
+            }
+        } catch (error: any) {
+            if (error instanceof MyException) {
+                if (error.statusCode == 1) {
+                    next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
                 }
             }
-            next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn không có quyền"))
-        }
-        catch (e: any) {
+            console.info(error)
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
@@ -132,13 +166,19 @@ export default class GroupController extends MotherController {
                     const {
                         id
                     } = req.params
-                    let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
-                    res.status(HttpStatus.FOUND).json(new HttpSuccess(
-                        true,
-                        "OK",
-                        data
-                    ))
-                    return
+                    if (await this.groupService.isContainInGroup(iduser, Number(id))) {
+                        let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
+                        res.status(HttpStatus.FOUND).json(new HttpSuccess(
+                            true,
+                            "OK",
+                            data
+                        ))
+                        return
+                    }
+                    else {
+                        next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn không có quyền thực hiện hành động này"))
+                        return
+                    }
                 }
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
@@ -155,9 +195,16 @@ export default class GroupController extends MotherController {
                     const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
                     const { id } = req.params;
-                    let data = await this.groupService.getOneGroup(Number(id))
-                    res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
-                    return
+                    if (await this.groupService.isContainInGroup(iduser, Number(id))) {
+                        let data = await this.groupService.getOneGroup(Number(id))
+                        res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
+                        return
+                    }
+                    else {
+                        next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn không có quyền thực hiện hành động này"))
+                        return
+                    }
+
                 }
                 else {
                     next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
@@ -179,9 +226,15 @@ export default class GroupController extends MotherController {
                     const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
                     const { id } = req.params;
-                    let data = await this.groupService.getAllMember(Number(id))
-                    res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
-                    return
+                    if (await this.groupService.isContainInGroup(iduser, Number(id))) {
+                        let data = await this.groupService.getAllMember(Number(id))
+                        res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
+                        return
+                    }
+                    else {
+                        next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn không có quyền thực hiện hành động này"))
+                        return
+                    }
                 }
                 else {
                     next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
@@ -191,9 +244,9 @@ export default class GroupController extends MotherController {
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Token khong ton tai"))
         } catch (error: any) {
+            console.info(error);
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
-        // FIXME:
     }
     private inviteMember = async (req: Request, res: Response, next: NextFunction) => { // FIXME:
         try {
@@ -211,8 +264,8 @@ export default class GroupController extends MotherController {
                     } = req.body
                     let isSuccessfully = await this.groupService.inviteMember(iduser, Number(id), userIDs)
                     if (isSuccessfully) {
-                        this.io.emit();
-                        res.status(HttpStatus.OK).send(new HttpSuccess(true,"OK",true))
+
+                        res.status(HttpStatus.OK).send(new HttpSuccess(true, "OK", true))
                         //FIXME : send data to socket
                     }
                     return
@@ -243,16 +296,22 @@ export default class GroupController extends MotherController {
                     const {
                         id
                     } = req.params
-                    let isSuccessfully = await this.groupService.leaveGroup(iduser, Number(id))
-                    if (isSuccessfully) {
-                        this.io.to(`${id}`).emit("user_leave_group", iduser);
-                        res.status(HttpStatus.OK).send(new HttpSuccess(
-                            true,
-                            "OK",
-                            null
-                        ))
+                    if (await this.groupService.isContainInGroup(iduser, Number(id))) {
+                        let isSuccessfully = await this.groupService.leaveGroup(iduser, Number(id))
+                        if (isSuccessfully) {
+                            this.io.to(`${id}`).emit("user_leave_group", iduser);
+                            res.status(HttpStatus.OK).send(new HttpSuccess(
+                                true,
+                                "OK",
+                                null
+                            ))
+                        }
+                        return
                     }
-                    return
+                    else {
+                        next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn không có quyền thực hiện hành động này"))
+                        return
+                    }
                 }
                 else {
                     next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))

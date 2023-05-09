@@ -1,5 +1,5 @@
 
-class HttpSuccess {
+export class HttpSuccess {
     constructor(
         public success: boolean,
         public message: string = "", 

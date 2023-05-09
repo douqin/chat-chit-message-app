@@ -1,16 +1,32 @@
+import { ServiceDrive } from './../../component/cloud/drive.service';
 import { MySql } from "@/config/sql/mysql";
 import GroupRepositoryBehavior from "./interface/group.repository.interface";
 import { GroupType } from "./dtos/group.type.dto";
 import { GroupStatus } from "./dtos/group.status.dto";
 import MyException from "@/utils/exceptions/my.exception";
+import { iDrive } from '../../component/cloud/drive.interface';
 
 export default class GroupRepository implements GroupRepositoryBehavior {
-
-    constructor() { }
+    public drive: iDrive
+    constructor() {
+        this.drive = new ServiceDrive()
+    }
+    async isContainInGroup(iduser: number, idgroup: number): Promise<boolean> {
+        let [data] = await MySql.excuteQuery("SELECT COUNT(*) FROM member WHERE member.iduser = ? AND member.idgroup = ?", [iduser, idgroup]);
+        const [{ 'COUNT(*)': count }] = data as any;
+        if (count == 1) {
+            return true;
+        }
+        return false;
+    }
+    async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File) {
+        return this.drive.uploadImage("", "", file.buffer);
+    }
     async getAllMember(idgroup: number): Promise<object[]> {
         let query = "SELECT user.* from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ?"
-        let [rows] = await MySql.excuteQuery(query,[idgroup])
-        return rows as object[]; // FIXME:
+        let [rows] = await MySql.excuteQuery(query, [idgroup])
+        console.log(rows)
+        return rows as object[];
     }
     async leaveGroup(iduser: any, idgroup: number): Promise<boolean> { // FIXME : ADD TRIGGER CHECK ADMIN 
         let isAdmin = iduser == (await MySql.excuteStringQuery(`SELECT groupchat.createby From groupchat where groupchat.idgroup = ${idgroup}`) as any)[0][0].createby
@@ -50,11 +66,6 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         )
         return true;
     }
-    // private async isContainInGroup(iduser: number, idgroup: number) {
-    //     await MySql.excuteQuery(
-    //         `SELECT * FROM member WHERE member.iduser = ${iduser} AND member.idgroup = ${idgroup}`
-    //     )
-    // }
     async getLastViewMember(idgroup: number): Promise<object[] | undefined> {
         let rawDataSQL: any = await MySql.excuteStringQuery(
             `SELECT user.iduser, user.name, user.avatar, member.lastview FROM (( groupchat JOIN member ON groupchat.idgroup = member.idgroup AND groupchat.idgroup = ${idgroup}) JOIN user ON user.iduser = member.iduser)

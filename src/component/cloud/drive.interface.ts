@@ -1,7 +1,8 @@
+import DataFileDrive from "./dtos/file.drive.dtos";
+
 export interface iDrive {
-     uploadImage(childFolderID : string, nameFile : string, buff : Buffer) : Promise<string | null | undefined>;
+     uploadImage(childFolderID : string, nameFile : string, buff : Buffer) : Promise<DataFileDrive | null>;
      uploadVideo(childFolderID : string, nameFile : string, buff : Buffer) : any;
-     searchIdFile() : any;
      createFolder(nameFolder : string ) : any;
-     getArrayBuffer(parents : string, idFile : string) : any;
+     uploadDocument(childFolderID: string, nameFile: string, buff: Buffer): Promise<DataFileDrive | null>
 }
