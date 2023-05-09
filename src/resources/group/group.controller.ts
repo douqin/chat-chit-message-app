@@ -13,6 +13,7 @@ import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { HttpSuccess } from "@/utils/definition/http.success";
 import { ServiceDrive } from "../../component/cloud/drive.service";
+import AuthMiddleware from "@/middleware/auth.middleware";
 
 
 @Controller("/group")
@@ -33,7 +34,7 @@ export default class GroupController extends MotherController {
             this.getOneGroup
         )
         this.router.post('/group/create',
-            multer().none,
+            multer().none(),
             // AuthMiddleware.auth,
             this.createGroup
         )
@@ -42,15 +43,15 @@ export default class GroupController extends MotherController {
             // AuthMiddleware.auth,
             this.changeAvatarGroup)
         this.router.post("/group/:id/lastview",
-            multer().none,
+            multer().none(),
             // AuthMiddleware.auth,
             this.getLastViewMember)
         // this.router.patch("/group/:id/notify/:isnotify",
         //     // AuthMiddleware.auth,
         //     this.turnOffOrOn)
         this.router.get("/group/:id/getallmembers", this.getAllMember)
-        this.router.post("/group/:id/invitemembers", multer().none, this.inviteMember)
-        this.router.post("/group/:id/members/leave", multer().none, this.leaveGroup)
+        this.router.post("/group/:id/invitemembers", multer().none(), this.inviteMember)
+        this.router.post("/group/:id/members/leave", multer().none(), this.leaveGroup)
         // this.router.post("/group/:id/members/join-from", this.joinfrom)
         return this
     }
@@ -92,14 +93,18 @@ export default class GroupController extends MotherController {
                     const { iduser } = jwtPayload.payload;
                     const { name, type } = req.body
                     if (name) {
-                        await this.groupService.createGroup(name, iduser)
+                        let data = await this.groupService.createGroup(name, iduser)
                         // TODO: create group with multi user
-                        res.status(HttpStatus.FOUND).send("OKE")
+                        res.status(HttpStatus.CREATED).send(new HttpSuccess(
+                            true,
+                            "",
+                            data
+                        ))
                         return
                     }
                 }
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Token không hợp lệ"))
         }
         catch (e: any) {
             console.log(e)

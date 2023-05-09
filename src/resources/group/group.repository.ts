@@ -61,9 +61,16 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return undefined;
     }
     async createGroup(name: string, iduser: number): Promise<boolean> {
-        await MySql.excuteStringQuery(
-            `INSERT INTO groupchat( groupchat.name, groupchat.createby, groupchat.type, groupchat.status, groupchat.createat) VALUES ('${name}', ${iduser}, ${GroupType.COMMUNITY}, ${GroupStatus.DEFAULT},now());`
-        )
+        let id = await this.drive.createFolder(`group_${name}`);
+        try {
+            let query = `INSERT INTO groupchat( groupchat.name, groupchat.createby, groupchat.type, groupchat.status, groupchat.createat, groupchat.id_folder) VALUES (?,?,?,?,now(),?);`
+            await MySql.excuteQuery(
+                query, [name, iduser, GroupType.COMMUNITY, GroupStatus.DEFAULT, id]
+            )
+        }
+        catch (e) {
+            await this.drive.delete(id)
+        }
         return true;
     }
     async getLastViewMember(idgroup: number): Promise<object[] | undefined> {

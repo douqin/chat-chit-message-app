@@ -5,4 +5,5 @@ export interface iDrive {
      uploadVideo(childFolderID : string, nameFile : string, buff : Buffer) : any;
      createFolder(nameFolder : string ) : any;
      uploadDocument(childFolderID: string, nameFile: string, buff: Buffer): Promise<DataFileDrive | null>
+     delete(nameFolder : string ) : Promise<void>;
 }

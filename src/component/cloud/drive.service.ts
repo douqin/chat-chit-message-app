@@ -20,6 +20,11 @@ export class ServiceDrive implements iDrive {
             auth: auth,
         });
     }
+    async delete(id: string): Promise<void> {
+        await this.drive.files.delete({
+            fileId: id
+        })
+    }
     async uploadImage(childFolderID: string, nameFile: string, buff: Buffer): Promise<DataFileDrive | null> {
         try {
             const createFile = await this.drive.files.create({

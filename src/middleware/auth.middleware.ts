@@ -1,7 +1,7 @@
 import { NextFunction, Request, RequestHandler, Response } from "express"
 
 export default class AuthMiddleware {
-    static auth(): RequestHandler {
+    static auth = (): RequestHandler => {
         return async (
             req: Request,
             res: Response,
@@ -11,7 +11,7 @@ export default class AuthMiddleware {
             next()
         };
     }
-    static authAdmin(): RequestHandler {
+    static authAdmin = (): RequestHandler => {
         return async (
             req: Request,
             res: Response,
