@@ -122,13 +122,13 @@ export default class GroupController extends MotherController {
                         let file = req.file;
                         if (file && file.mimetype.startsWith("image/")) {
                             let data = await this.groupService.changeAvatarGroup(iduser, Number(id), file,)
+                            this.io.to(id).emit("avatar_change", data)
                             res.status(HttpStatus.OK).json(new HttpSuccess(
                                 true,
                                 "",
                                 data
                             ))
-                            return // FIXME: 
-                            //uploadImage("",file.filename,file.buffer)
+                            return
                         }
                         else {
                             next(new HttpException(HttpStatus.BAD_REQUEST, "Ảnh không hợp lệ"))
@@ -299,7 +299,7 @@ export default class GroupController extends MotherController {
                     if (await this.groupService.isContainInGroup(iduser, Number(id))) {
                         let isSuccessfully = await this.groupService.leaveGroup(iduser, Number(id))
                         if (isSuccessfully) {
-                            this.io.to(`${id}`).emit("user_leave_group", iduser);
+                            this.io.to(id).emit("user_leave_group", iduser);
                             res.status(HttpStatus.OK).send(new HttpSuccess(
                                 true,
                                 "OK",

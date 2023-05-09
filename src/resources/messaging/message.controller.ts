@@ -40,7 +40,7 @@ export default class MessageController extends MotherController {
         this.router.patch("/messagge/:id/delpin", this.deleteMessagePinned);
         return this;
     }
-    deleteMessagePinned = (req: Request, res: Response, next: NextFunction) => { };
+    private deleteMessagePinned = (req: Request, res: Response, next: NextFunction) => { };
 
     private pinMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -78,7 +78,6 @@ export default class MessageController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, e.toString()));
         }
     };
-
     private getAllMessageFromGroup = async (
         req: Request,
         res: Response,
@@ -160,7 +159,7 @@ export default class MessageController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, e.toString()));
         }
     };
-    sendTextMessage = async (req: Request, res: Response, next: NextFunction) => {
+    private sendTextMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { group } = req.params;
             const { message } = req.body;
@@ -176,7 +175,7 @@ export default class MessageController extends MotherController {
                         const { iduser } = jwtPayload.payload;
                         let isSuccessfully = await this.messageService.sendTextMessage(Number(group), iduser, message)
                         if (isSuccessfully) {
-                            this.io.emit("listening", {
+                            this.io.emit("message", {
                                 group, iduser, message
                             })
                         }
@@ -198,10 +197,10 @@ export default class MessageController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, e.toString()));
         }
     };
-    revokeMessage = async (req: Request, res: Response, next: NextFunction) => {
+    private revokeMessage = async (req: Request, res: Response, next: NextFunction) => {
         next();
     };
-    reactMessage = async (req: Request, res: Response, next: NextFunction) => {
+    private reactMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { group } = req.params;
             const { message } = req.body;
