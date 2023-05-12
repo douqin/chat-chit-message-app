@@ -8,9 +8,11 @@ import MessageService from "./message.service";
 import HttpException from "@/utils/exceptions/http.exeception";
 import { JwtPayload } from "jsonwebtoken";
 import multer from "multer";
+import { HttpSuccess } from "@/utils/definition/http.success";
+import MessageBehavior from "./interface/message.interaface";
 @Controller("/messagge")
 export default class MessageController extends MotherController {
-    private messageService: MessageService;
+    private messageService: MessageBehavior;
     constructor(io: Server) {
         super(io);
         this.messageService = new MessageService();
@@ -41,43 +43,7 @@ export default class MessageController extends MotherController {
         return this;
     }
     private deleteMessagePinned = (req: Request, res: Response, next: NextFunction) => { };
-
-    private pinMessage = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { id } = req.params;
-            const { idgroup } = req.body;
-            console.info(idgroup);
-            if (id) {
-                let token = req.headers["token"] as string;
-                if (token) {
-                    let accesstoken = token.split(" ")[1];
-                    if (accesstoken) {
-                        const jwtPayload = (await authHandler.decodeAccessToken(
-                            accesstoken
-                        )) as JwtPayload;
-                        const { iduser } = jwtPayload.payload;
-                        // let isSuccessfully = await this.messageService.pinMessage(Number(id), iduser, )
-                        // if (isSuccessfully) {
-
-                        // }
-                        res.status(HttpStatus.OK).send("OK");
-                        return;
-                    }
-                }
-            }
-            next(
-                new HttpException(
-                    HttpStatus.BAD_REQUEST,
-                    "Có lỗi xảy ra vui lòng thủ lại sau"
-                )
-            );
-        } catch (e: any) {
-            if (e instanceof multer.MulterError) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, e.message));
-            }
-            next(new HttpException(HttpStatus.BAD_REQUEST, e.toString()));
-        }
-    };
+    private pinMessage = async (req: Request, res: Response, next: NextFunction) => { };
     private getAllMessageFromGroup = async (
         req: Request,
         res: Response,
@@ -122,42 +88,12 @@ export default class MessageController extends MotherController {
             );
         }
     };
-    private sendFileMessage = async ( // FIXME: 
+    private sendFileMessage = async (
         req: Request,
         res: Response,
         next: NextFunction
     ) => {
-        try {
-            const { group } = req.params;
-            const message = req.file;
-            console.info(message);
-            if (group) {
-                let token = req.headers["token"] as string;
-                if (token) {
-                    let accesstoken = token.split(" ")[1];
-                    if (accesstoken) {
-                        const jwtPayload = (await authHandler.decodeAccessToken(
-                            accesstoken
-                        )) as JwtPayload;
-                        const { iduser } = jwtPayload.payload;
-                        // let data = await this.messageService.getAllMessageFromGroup(Number(group), iduser)
-                        res.status(HttpStatus.OK).send("OK");
-                        return;
-                    }
-                }
-            }
-            next(
-                new HttpException(
-                    HttpStatus.BAD_REQUEST,
-                    "Có lỗi xảy ra vui lòng thủ lại sau"
-                )
-            );
-        } catch (e: any) {
-            if (e instanceof multer.MulterError) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, e.message));
-            }
-            next(new HttpException(HttpStatus.BAD_REQUEST, e.toString()));
-        }
+
     };
     private sendTextMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -201,41 +137,6 @@ export default class MessageController extends MotherController {
         next();
     };
     private reactMessage = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { group } = req.params;
-            const { message } = req.body;
-            console.info(message);
-            if (group) {
-                let token = req.headers["token"] as string;
-                if (token) {
-                    let accesstoken = token.split(" ")[1];
-                    if (accesstoken) {
-                        const jwtPayload = (await authHandler.decodeAccessToken(
-                            accesstoken
-                        )) as JwtPayload;
-                        const { iduser } = jwtPayload.payload;
-                        let isSuccessfully = await this.messageService.sendTextMessage(Number(group), iduser, message)
-                        if (isSuccessfully) {
-                            this.io.emit("listening", {
-                                group, iduser, message
-                            })
-                        }
-                        res.status(HttpStatus.OK).send("OK");
-                        return;
-                    }
-                }
-            }
-            next(
-                new HttpException(
-                    HttpStatus.BAD_REQUEST,
-                    "Có lỗi xảy ra vui lòng thủ lại sau"
-                )
-            );
-        } catch (e: any) {
-            if (e instanceof multer.MulterError) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, e.message));
-            }
-            next(new HttpException(HttpStatus.BAD_REQUEST, e.toString()));
-        }
+
     };
 }

@@ -24,7 +24,19 @@ export default class LoginController extends MotherController {
         this.router.post(
             "/login",
             multer().none(),
-            LoginMiddleware.validationMiddleware(),
+            LoginMiddleware.checkAuth(),
+            this.login
+        )
+        this.router.post(
+            "/refreshtoken",
+            multer().none(),
+            LoginMiddleware.checkAuth(),
+            this.login
+        )
+        this.router.post(
+            "/signup",
+            multer().none(),
+            LoginMiddleware.checkAuth(),
             this.login
         )
         return this

@@ -2,16 +2,15 @@ import { HttpStatus } from '@/utils/exceptions/httpstatus.exception';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 
 class LoginMiddleware {
-    static validationMiddleware(): RequestHandler {
+    static checkAuth(): RequestHandler {
         return async (
             req: Request,
             res: Response,
             next: NextFunction
         ): Promise<void> => {
             try {
-                console.info(req.body)
-                console.info(req.headers)
                 const { phone, password } = req.body;
+                //TODO: check user loggedd
                 if (!phone && !password) {
                     res.status(HttpStatus.BAD_REQUEST).send({ errors: "BAD REQUEST" });
                     let contentType = req.headers['content-type']

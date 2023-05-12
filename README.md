@@ -37,4 +37,12 @@
 ### `ADMIN`
 
 ### `SOCKET IO`
- 
+
+-`GROUP`
+
+- ` user_leave_group` : leave group
+- ` avatar_change` : avatar change
+
+-`MESSAGE`
+
+-`ADMIN`
