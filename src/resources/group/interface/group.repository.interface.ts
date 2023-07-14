@@ -9,4 +9,5 @@ export default interface GroupRepositoryBehavior {
     getAllMember(idgroup: number): Promise<object[] | null>
     changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<any>
     isContainInGroup(iduser: number, idgroup: number): Promise<boolean>
+    joinGroup(iduser: number, idgroup: number): Promise<void>
 }

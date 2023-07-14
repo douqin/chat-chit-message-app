@@ -10,7 +10,7 @@ class LoginMiddleware {
         ): Promise<void> => {
             try {
                 const { phone, password } = req.body;
-                //TODO: check user loggedd
+
                 if (!phone && !password) {
                     res.status(HttpStatus.BAD_REQUEST).send({ errors: "BAD REQUEST" });
                     let contentType = req.headers['content-type']
@@ -29,6 +29,16 @@ class LoginMiddleware {
                 res.status(HttpStatus.BAD_REQUEST).send({ errors: errors });
             }
         };
+    }
+    static isLogged() : RequestHandler{
+        return async (
+            req: Request,
+            res: Response,
+            next: NextFunction
+        ): Promise<void> => {
+            //TODO: check user loggedd
+            next();
+        }
     }
 }
 

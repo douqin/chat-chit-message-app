@@ -10,7 +10,11 @@ const REFRESH_TOKEN_DRIVE = process.env.REFRESH_TOKEN_DRIVE;
 
 export class ServiceDrive implements iDrive {
     private drive: drive_v3.Drive;
-    constructor() {
+    private static instance = new ServiceDrive();
+    public static gI(){
+        return ServiceDrive.instance
+    }
+    private constructor() {
         let auth = new google.auth.OAuth2(CLIENT_ID, SECRECT_ID, REDIRECT_URI);
         auth.setCredentials({
             refresh_token: REFRESH_TOKEN_DRIVE,

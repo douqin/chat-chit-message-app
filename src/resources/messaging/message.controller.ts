@@ -8,7 +8,7 @@ import MessageService from "./message.service";
 import HttpException from "@/utils/exceptions/http.exeception";
 import { JwtPayload } from "jsonwebtoken";
 import multer from "multer";
-import { HttpSuccess } from "@/utils/definition/http.success";
+import { ResponseBody } from "@/utils/definition/http.response";
 import MessageBehavior from "./interface/message.interaface";
 @Controller("/messagge")
 export default class MessageController extends MotherController {
@@ -61,11 +61,11 @@ export default class MessageController extends MotherController {
                             accesstoken
                         )) as JwtPayload;
                         const { iduser } = jwtPayload.payload;
-                        let data = await this.messageService.getAllMessageFromGroup(
-                            Number(id),
-                            iduser
-                        );
-                        res.status(HttpStatus.FOUND).send(data);
+                        // let data = await this.messageService.getAllMessageFromGroup(
+                        //     Number(id),
+                        //     iduser
+                        // );
+                        // res.status(HttpStatus.FOUND).send(data);
                         return;
                     }
                 }
@@ -102,22 +102,36 @@ export default class MessageController extends MotherController {
             console.info(message);
             if (group) {
                 let token = req.headers["token"] as string;
+                
                 if (token) {
                     let accesstoken = token.split(" ")[1];
+                    
                     if (accesstoken) {
                         const jwtPayload = (await authHandler.decodeAccessToken(
                             accesstoken
                         )) as JwtPayload;
                         const { iduser } = jwtPayload.payload;
-                        let isSuccessfully = await this.messageService.sendTextMessage(Number(group), iduser, message)
-                        if (isSuccessfully) {
-                            this.io.emit("message", {
-                                group, iduser, message
-                            })
-                        }
-                        res.status(HttpStatus.OK).send("OK");
+                        // let isSuccessfully = await this.messageService.sendTextMessage(Number(group), iduser, message)
+                        // if (isSuccessfully) {
+                        //     this.io.emit("message", {
+                        //         group, iduser, message
+                        //     })
+                        // }
+                        res.status(HttpStatus.OK).send(
+                            new ResponseBody(
+                                true,
+                                "OK",
+                                {}
+                            )
+                        );
                         return;
                     }
+                }
+                else {
+                    new HttpException(
+                        HttpStatus.BAD_REQUEST,
+                        "Ban không có quyền này"
+                    )
                 }
             }
             next(
@@ -130,7 +144,7 @@ export default class MessageController extends MotherController {
             if (e instanceof multer.MulterError) {
                 next(new HttpException(HttpStatus.BAD_REQUEST, e.message));
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, e.toString()));
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"));
         }
     };
     private revokeMessage = async (req: Request, res: Response, next: NextFunction) => {

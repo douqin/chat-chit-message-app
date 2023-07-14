@@ -11,11 +11,7 @@ import LastViewGroup from "./dtos/lastview.dto";
 import GroupServiceBehavior from "@/resources/group/interface/group.service.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
-import { HttpSuccess } from "@/utils/definition/http.success";
-import { ServiceDrive } from "../../component/cloud/drive.service";
-import AuthMiddleware from "@/middleware/auth.middleware";
-
-
+import { ResponseBody } from "@/utils/definition/http.response";
 @Controller("/group")
 export default class GroupController extends MotherController {
     private groupService: GroupServiceBehavior;
@@ -26,6 +22,10 @@ export default class GroupController extends MotherController {
 
     initRouter(): MotherController {
         this.router.get('/group',
+            // AuthMiddleware.auth,
+            this.getAllGroup
+        )
+        this.router.get('/group/:lasttime',
             // AuthMiddleware.auth,
             this.getAllGroup
         )
@@ -62,10 +62,11 @@ export default class GroupController extends MotherController {
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
+                    console.log("ok token: " + accesstoken + " --");
                     const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
                     let data = await this.groupService.getAllGroup(iduser)
-                    res.status(HttpStatus.FOUND).json(new HttpSuccess(
+                    res.status(HttpStatus.OK).json(new ResponseBody(
                         true,
                         "OK",
                         data
@@ -74,12 +75,20 @@ export default class GroupController extends MotherController {
                 }
                 else {
                     next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không hợp lệ"))
+                    return
                 }
             } else {
                 next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Token không ton tai"))
+                return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau "))
         } catch (error: any) {
+            if (error instanceof Object) {
+                if (error.name.includes("JsonWebTokenError")) {
+                    console.log(error)
+                    next(new HttpException(HttpStatus.BAD_REQUEST, "Token không hợp lệ"))
+                    return
+                }
+            }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     };
@@ -95,10 +104,10 @@ export default class GroupController extends MotherController {
                     if (name) {
                         let data = await this.groupService.createGroup(name, iduser)
                         // TODO: create group with multi user
-                        res.status(HttpStatus.CREATED).send(new HttpSuccess(
+                        res.status(HttpStatus.OK).send(new ResponseBody(
                             true,
                             "",
-                            data
+                            {}
                         ))
                         return
                     }
@@ -128,7 +137,7 @@ export default class GroupController extends MotherController {
                         if (file && file.mimetype.startsWith("image/")) {
                             let data = await this.groupService.changeAvatarGroup(iduser, Number(id), file,)
                             this.io.to(id).emit("avatar_change", data)
-                            res.status(HttpStatus.OK).json(new HttpSuccess(
+                            res.status(HttpStatus.OK).json(new ResponseBody(
                                 true,
                                 "",
                                 data
@@ -152,9 +161,7 @@ export default class GroupController extends MotherController {
             }
         } catch (error: any) {
             if (error instanceof MyException) {
-                if (error.statusCode == 1) {
-                    next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
-                }
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
             }
             console.info(error)
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
@@ -173,7 +180,7 @@ export default class GroupController extends MotherController {
                     } = req.params
                     if (await this.groupService.isContainInGroup(iduser, Number(id))) {
                         let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
-                        res.status(HttpStatus.FOUND).json(new HttpSuccess(
+                        res.status(HttpStatus.FOUND).json(new ResponseBody(
                             true,
                             "OK",
                             data
@@ -202,7 +209,7 @@ export default class GroupController extends MotherController {
                     const { id } = req.params;
                     if (await this.groupService.isContainInGroup(iduser, Number(id))) {
                         let data = await this.groupService.getOneGroup(Number(id))
-                        res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
+                        res.status(HttpStatus.FOUND).json(new ResponseBody(true, "OK", data))
                         return
                     }
                     else {
@@ -233,7 +240,7 @@ export default class GroupController extends MotherController {
                     const { id } = req.params;
                     if (await this.groupService.isContainInGroup(iduser, Number(id))) {
                         let data = await this.groupService.getAllMember(Number(id))
-                        res.status(HttpStatus.FOUND).json(new HttpSuccess(true, "OK", data))
+                        res.status(HttpStatus.FOUND).json(new ResponseBody(true, "OK", data))
                         return
                     }
                     else {
@@ -270,7 +277,7 @@ export default class GroupController extends MotherController {
                     let isSuccessfully = await this.groupService.inviteMember(iduser, Number(id), userIDs)
                     if (isSuccessfully) {
 
-                        res.status(HttpStatus.OK).send(new HttpSuccess(true, "OK", true))
+                        res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", true))
                         //FIXME : send data to socket
                     }
                     return
@@ -305,7 +312,7 @@ export default class GroupController extends MotherController {
                         let isSuccessfully = await this.groupService.leaveGroup(iduser, Number(id))
                         if (isSuccessfully) {
                             this.io.to(id).emit("user_leave_group", iduser);
-                            res.status(HttpStatus.OK).send(new HttpSuccess(
+                            res.status(HttpStatus.OK).send(new ResponseBody(
                                 true,
                                 "OK",
                                 null
@@ -328,9 +335,7 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau "))
         } catch (error: any) {
             if (error instanceof MyException) {
-                if (error.statusCode == 1) {
-                    next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
-                }
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }

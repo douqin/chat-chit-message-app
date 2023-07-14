@@ -53,14 +53,9 @@ class AuthHandler {
         )
     };
     private decodeToken = async (token: any, secretKey: any) => {
-        try {
             return jwt.verify(token, secretKey, {
                 ignoreExpiration: true,
             });
-        } catch (error) {
-            console.log(`Error in decode access token: ${error}`);
-            return null;
-        }
     };
     private decodeToken2 = async (token: any, secretKey: any) => {
         try {

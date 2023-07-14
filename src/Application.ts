@@ -13,6 +13,7 @@ import LogoutController from "@/resources/auth/loguot/loguot.controller";
 import GroupController from "@/resources/group/group.controller";
 import LoginController from "./resources/auth/login/login.controller";
 import MessageController from "@/resources/messaging/message.controller";
+import RegisterController from "./resources/auth/register/register.controller";
 class App {
     private server: any
     private io: Server
@@ -37,7 +38,8 @@ class App {
             new LoginController(this.io).initRouter(),
             new LogoutController(this.io).initRouter(),
             new GroupController(this.io).initRouter(),
-            new MessageController(this.io).initRouter()
+            new MessageController(this.io).initRouter(),
+            new RegisterController(this.io).initRouter()
         ]
         this.initaliseController(controller);
         this.initErrorHandler();

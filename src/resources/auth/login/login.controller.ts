@@ -8,7 +8,7 @@ import { stringify } from "querystring";
 import LoginService from "./login.service";
 import Controller from "@/utils/decorator/decorator";
 import multer from "multer";
-import { HttpSuccess } from "@/utils/definition/http.success";
+import { ResponseBody } from "@/utils/definition/http.response";
 @Controller("/login")
 export default class LoginController extends MotherController {
 
@@ -50,13 +50,12 @@ export default class LoginController extends MotherController {
         try {
             const phone = req.body.phone.toString();
             const password = req.body.password.toString();
-
-            // const post = await this.PostService.create(title, body);
             let data = await this.loginService.login(phone, password);
+            console.log("🚀 ~ file: login.controller.ts:54 ~ LoginController ~ data:", data)
             if (data) {
                 res.setHeader("token", "Bearer " + data.token.accessToken)
                 res.cookie("refreshtoken", data.token.refreshToken, { secure: false, httpOnly: true })
-                res.status(HttpStatus.ACCEPTED).send(new HttpSuccess(true, "", data))
+                res.status(HttpStatus.ACCEPTED).send(new ResponseBody(true, "", data))
             }
             else {
                 next(new HttpException(HttpStatus.NOT_FOUND, 'Sai tài khoản hoặc mật khẩu'))

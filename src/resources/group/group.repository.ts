@@ -1,3 +1,4 @@
+import { PositionInGrop } from './dtos/group.position';
 import { ServiceDrive } from './../../component/cloud/drive.service';
 import { MySql } from "@/config/sql/mysql";
 import GroupRepositoryBehavior from "./interface/group.repository.interface";
@@ -5,11 +6,21 @@ import { GroupType } from "./dtos/group.type.dto";
 import { GroupStatus } from "./dtos/group.status.dto";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from '../../component/cloud/drive.interface';
+import { ResultSetHeader } from 'mysql2';
 
 export default class GroupRepository implements GroupRepositoryBehavior {
     public drive: iDrive
     constructor() {
-        this.drive = new ServiceDrive()
+        this.drive = ServiceDrive.gI();
+    }
+    async joinGroup(iduser: number, idgroup: number, positionUser: number = PositionInGrop.MEMBER): Promise<void> {
+        try {
+            let query = "INSERT INTO member(member.idgroup, member.iduser, member.position) VALUES (?, ?, ?) "
+            let [data] = await MySql.excuteQuery(query, [idgroup, iduser, positionUser])
+        }
+        catch (e: any) {
+            throw new MyException("Không thể tham gia group này")
+        }
     }
     async isContainInGroup(iduser: number, idgroup: number): Promise<boolean> {
         let [data] = await MySql.excuteQuery("SELECT COUNT(*) FROM member WHERE member.iduser = ? AND member.idgroup = ?", [iduser, idgroup]);
@@ -34,7 +45,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
             await MySql.excuteStringQuery(
                 `DELETE FROM member WHERE member.iduser = ${iduser} AND member.idgroup = ${idgroup}`
             );
-        else throw new MyException(1, "Admin tạo ra group không thể rời group")
+        else throw new MyException("Admin tạo ra group không thể rời group")
         return true
     }
     async renameGroup(name: string, iduser: number): Promise<boolean> {
@@ -60,16 +71,32 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         }
         return undefined;
     }
-    async createGroup(name: string, iduser: number): Promise<boolean> {
+    async createGroup(name: string, iduser: number, typeGroup: number = GroupType.COMMUNITY): Promise<boolean> {
         let id = await this.drive.createFolder(`group_${name}`);
+        let idgroup = -1;
         try {
-            let query = `INSERT INTO groupchat( groupchat.name, groupchat.createby, groupchat.type, groupchat.status, groupchat.createat, groupchat.id_folder) VALUES (?,?,?,?,now(),?);`
-            await MySql.excuteQuery(
-                query, [name, iduser, GroupType.COMMUNITY, GroupStatus.DEFAULT, id]
-            )
+            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat, groupchat.id_folder) VALUES (?,?,?,now(),?);`
+            let data: [ResultSetHeader, any] = await MySql.excuteQuery(
+                query, [name, typeGroup, GroupStatus.DEFAULT, id]
+            ) as any
+            // query = ' SELECT LAST_INSERT_ID();'
+            idgroup = data[0].insertId
         }
         catch (e) {
             await this.drive.delete(id)
+            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm")
+        }
+        try {
+            if (idgroup != -1) {
+                await this.joinGroup(iduser, idgroup, PositionInGrop.CREATOR)
+            } else
+                throw new Error();
+        }
+        catch (e) {
+            // let query = 'DELETE FROM groupchat WHERE groupchat.idgroup = ?'
+            // MySql.excuteQuery(query, [id]);
+            //TODO: del group
+            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm.")
         }
         return true;
     }
