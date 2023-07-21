@@ -14,6 +14,8 @@ import GroupController from "@/resources/group/group.controller";
 import LoginController from "./resources/auth/login/login.controller";
 import MessageController from "@/resources/messaging/message.controller";
 import RegisterController from "./resources/auth/register/register.controller";
+import AuthMiddleware from "./middleware/auth.middleware";
+import SocketMiddleware from "./middleware/socket.middleware";
 class App {
     private server: any
     private io: Server
@@ -53,6 +55,7 @@ class App {
         });
     }
     private initaliseMiddleware() {
+        this.io.use(SocketMiddleware.validateIncomingConnect)
         this.express.use(helmet());
         this.express.use(cors());
         this.express.use(morgan('dev'));

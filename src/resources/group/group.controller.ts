@@ -1,5 +1,5 @@
 import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/exceptions/httpstatus.exception";
+import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import MotherController from "@/utils/interface/controller.interface";
 import authHandler from "../../component/auth.handler";
 import { NextFunction, Request, Response } from "express";
@@ -62,7 +62,6 @@ export default class GroupController extends MotherController {
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
-                    console.log("ok token: " + accesstoken + " --");
                     const jwtPayload = await authHandler.decodeAccessToken(accesstoken) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
                     let data = await this.groupService.getAllGroup(iduser)
@@ -82,6 +81,8 @@ export default class GroupController extends MotherController {
                 return
             }
         } catch (error: any) {
+            //FIXME: 
+            console.log("🚀 ~ file: group.controller.ts:84 ~ GroupController ~ getAllGroup= ~ error:", error)
             if (error instanceof Object) {
                 if (error.name.includes("JsonWebTokenError")) {
                     console.log(error)

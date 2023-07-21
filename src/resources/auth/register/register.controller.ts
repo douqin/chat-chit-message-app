@@ -5,7 +5,7 @@ import { NextFunction, Response, Request } from "express";
 import { Server } from "socket.io";
 import RegisterService from "./register.service";
 import LoginMiddleware from "../login/login.validation";
-import { HttpStatus } from "@/utils/exceptions/httpstatus.exception";
+import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import HttpException from "@/utils/exceptions/http.exeception";
 import { ResponseBody } from "@/utils/definition/http.response";
 import MyException from "@/utils/exceptions/my.exception";

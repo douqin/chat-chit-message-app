@@ -5,8 +5,8 @@ const DATABASE_USER = process.env.DATABASE_USER;
 const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
 
 class MySql {
-    public static excuteStringQuery: (query: string) => Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
-    public static excuteQuery: (query: string, a: any) => Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
+
+    public static excuteQuery: (query: string, a?: any[]) => Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
 
 }
 class MySqlBuilder {
@@ -19,17 +19,14 @@ class MySqlBuilder {
             database: DATABASE_NAME,
             host: 'localhost',
             user: DATABASE_USER,
-            password: DATABASE_PASSWORD
+            password: DATABASE_PASSWORD,
+            multipleStatements : true
         })
         return this
     }
     build() {
-        MySql.excuteStringQuery = async (query: string) => {
-            return await this.pool.promise().query(
-                query
-            )
-        }
-        MySql.excuteQuery = async (query: string, a: any) => {
+        
+        MySql.excuteQuery = async (query: string, a?: any[]) => {
             return await this.pool.promise().query(
                 query, a
             )

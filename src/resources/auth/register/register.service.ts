@@ -1,4 +1,4 @@
-import RegisterRepository from "./register.repositry";
+import RegisterRepository from "./register.repository";
 
 export default class RegisterService {
     registerRepository: RegisterRepository;

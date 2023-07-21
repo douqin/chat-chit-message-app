@@ -8,7 +8,7 @@ class LoginRepository {
      * number = 1 - > login with mail
      * **/
     async login(phone: string, password: string): Promise<any> {
-        let data: any = await MySql.excuteStringQuery("SELECT iduser,phone,email,name,birthday,gender FROM user WHERE phone ='" +
+        let data: any = await MySql.excuteQuery("SELECT iduser,phone,email,name,birthday,gender FROM user WHERE phone ='" +
             `${phone}` +
             "' AND password ='" +
             `${password}` +

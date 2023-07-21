@@ -75,7 +75,7 @@ class AuthHandler {
     private async getRefreshTokenFromBD(iduser: number): Promise<string | null> {
         let query: string = "SELECT refreshtoken FROM token WHERE iduser ='" + `${iduser}` + "'";
         try {
-            let data2: any = await MySql.excuteStringQuery(query);
+            let data2: any = await MySql.excuteQuery(query);
             if (data2.length === 0) {
                 return null;
             }
@@ -129,7 +129,7 @@ class AuthHandler {
             ",'" + refreshToken + "'" + ",'" + accessToken + "')";
         let result: boolean = true;
         try {
-            let result1 = await MySql.excuteStringQuery(query);
+            let result1 = await MySql.excuteQuery(query);
         }
         catch (err) {
             console.log(err)

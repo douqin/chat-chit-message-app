@@ -7,7 +7,7 @@ export default class AdminRepository implements AdminRepositoryBehavior {
 
     }
     async renameGroup(name: string, idgroup: number): Promise<boolean> {
-        await MySql.excuteStringQuery(
+        await MySql.excuteQuery(
             `UPDATE groupchat
             SET groupchat.name = ${name}
             WHERE groupchat.idgroup =${idgroup}`
@@ -15,13 +15,13 @@ export default class AdminRepository implements AdminRepositoryBehavior {
         return true;
     }
     async deleteMember(idgroup: number): Promise<any> { // FIXME:
-        let data = await MySql.excuteStringQuery(
+        let data = await MySql.excuteQuery(
             `SELECT member.iduser as iduser FROM member WHERE member.idgroup = ${idgroup} AND member.isadmin = 1`
         ) as any
     }
 
     async getListIdAdmin(idgroup: number): Promise<Array<number>> {
-        let data = await MySql.excuteStringQuery(
+        let data = await MySql.excuteQuery(
             `SELECT member.iduser as iduser FROM member WHERE member.idgroup = ${idgroup} AND member.isadmin = 1`
         ) as any
         console.log("getListIdAdmin: " + data)

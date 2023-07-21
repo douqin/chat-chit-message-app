@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "build": "tsc -p .",
-    "start:ts" : "tsc -w",
-    "start:js" : "nodemon dist/server.js",
+    "start:ts": "tsc -w",
+    "start:js": "nodemon dist/server.js",
     "start": "concurrently npm:start:*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

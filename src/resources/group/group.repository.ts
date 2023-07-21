@@ -31,7 +31,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return false;
     }
     async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File) {
-        return this.drive.uploadImage("", "", file.buffer);
+        return this.drive.uploadFile("", "", file.buffer);
     }
     async getAllMember(idgroup: number): Promise<object[]> {
         let query = "SELECT user.* from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ?"
@@ -40,9 +40,9 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return rows as object[];
     }
     async leaveGroup(iduser: any, idgroup: number): Promise<boolean> { // FIXME : ADD TRIGGER CHECK ADMIN 
-        let isAdmin = iduser == (await MySql.excuteStringQuery(`SELECT groupchat.createby From groupchat where groupchat.idgroup = ${idgroup}`) as any)[0][0].createby
+        let isAdmin = iduser == (await MySql.excuteQuery(`SELECT groupchat.createby From groupchat where groupchat.idgroup = ${idgroup}`) as any)[0][0].createby
         if (!isAdmin)
-            await MySql.excuteStringQuery(
+            await MySql.excuteQuery(
                 `DELETE FROM member WHERE member.iduser = ${iduser} AND member.idgroup = ${idgroup}`
             );
         else throw new MyException("Admin tạo ra group không thể rời group")
@@ -53,7 +53,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
     }
     async getOneGroup(iduser: number): Promise<object | null> {
         let query = `SELECT groupchat.idgroup, groupchat.name, groupchat.avatar, groupchat.status, groupchat.createby, groupchat.createat FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ${iduser};`
-        let dataRaw: any = await MySql.excuteStringQuery(
+        let dataRaw: any = await MySql.excuteQuery(
             query
         )
         if (dataRaw) {
@@ -63,7 +63,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
     }
     async getAllGroup(iduser: number): Promise<object[] | undefined> {
         let query = `SELECT groupchat.idgroup, groupchat.name, groupchat.avatar, groupchat.status, groupchat.createby, groupchat.createat FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ${iduser};`
-        let dataRaw: any = await MySql.excuteStringQuery(
+        let dataRaw: any = await MySql.excuteQuery(
             query
         )
         if (dataRaw) {
@@ -101,7 +101,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return true;
     }
     async getLastViewMember(idgroup: number): Promise<object[] | undefined> {
-        let rawDataSQL: any = await MySql.excuteStringQuery(
+        let rawDataSQL: any = await MySql.excuteQuery(
             `SELECT user.iduser, user.name, user.avatar, member.lastview FROM (( groupchat JOIN member ON groupchat.idgroup = member.idgroup AND groupchat.idgroup = ${idgroup}) JOIN user ON user.iduser = member.iduser)
             `
         )

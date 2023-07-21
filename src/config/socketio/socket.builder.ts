@@ -9,7 +9,7 @@ export default class SocketBuilder {
         this.io = io;
     }
     initalizeMiddleware(): SocketBuilder {
-        SocketMiddleware.validateEveryConnection(this.io)
+
         return this
     }
     initalizeServer(): SocketBuilder {

@@ -1,6 +1,6 @@
 import MotherController from "@/utils/interface/controller.interface"
 import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/exceptions/httpstatus.exception";
+import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { NextFunction, Router, Response, Request } from "express";
 import { Server } from "socket.io";
 import LoginMiddleware from "./login.validation";

@@ -1,4 +1,4 @@
-import { HttpStatus } from '@/utils/exceptions/httpstatus.exception';
+import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 
 class LoginMiddleware {

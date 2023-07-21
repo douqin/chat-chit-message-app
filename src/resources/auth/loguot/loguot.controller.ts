@@ -1,5 +1,5 @@
 import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/exceptions/httpstatus.exception";
+import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import MotherController from "@/utils/interface/controller.interface";
 import { Router, Request, Response, NextFunction } from "express";
 import { stringify } from "node:querystring";

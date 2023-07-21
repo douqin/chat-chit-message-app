@@ -29,16 +29,16 @@ export class ServiceDrive implements iDrive {
             fileId: id
         })
     }
-    async uploadImage(childFolderID: string, nameFile: string, buff: Buffer): Promise<DataFileDrive | null> {
+    async uploadFile(childFolderID: string, nameFile: string, buff: Buffer): Promise<DataFileDrive | null> {
         try {
             const createFile = await this.drive.files.create({
                 requestBody: {
                     parents: [childFolderID],
                     name: nameFile,
-                    mimeType: "image/png",
+                    // mimeType: "image/png",
                 },
                 media: {
-                    mimeType: "image/png",
+                    // mimeType: "image/png",
                     body: Readable.from(buff),
                 },
 
@@ -64,25 +64,25 @@ export class ServiceDrive implements iDrive {
             return null;
         }
     }
-    async uploadVideo(childFolderID: string, nameFile: string, buff: Buffer) {
-        try {
-            const createFile = await this.drive.files.create({
-                requestBody: {
-                    parents: [childFolderID],
-                    name: nameFile,
-                    mimeType: "video/mp4"
-                },
-                media: {
-                    mimeType: "video/mp4",
-                    body: Readable.from(buff),
-                },
-            });
-            return createFile.data.id;
-        } catch (err) {
-            console.log(err);
-            return null;
-        }
-    }
+    // async uploadVideo(childFolderID: string, nameFile: string, buff: Buffer) {
+    //     try {
+    //         const createFile = await this.drive.files.create({
+    //             requestBody: {
+    //                 parents: [childFolderID],
+    //                 name: nameFile,
+    //                 mimeType: "video/mp4"
+    //             },
+    //             media: {
+    //                 mimeType: "video/mp4",
+    //                 body: Readable.from(buff),
+    //             },
+    //         });
+    //         return createFile.data.id;
+    //     } catch (err) {
+    //         console.log(err);
+    //         return null;
+    //     }
+    // }
     async createFolder(nameFolder: string): Promise<string | null | undefined> {
         const fileMetadata = {
             'name': nameFolder,
@@ -99,39 +99,5 @@ export class ServiceDrive implements iDrive {
             return null;
         }
     }
-    async uploadDocument(childFolderID: string, nameFile: string, buff: Buffer): Promise<DataFileDrive | null> {
-        try {
-            const createFile = await this.drive.files.create({
-                requestBody: {
-                    parents: [childFolderID],
-                    name: nameFile,
-                    mimeType: "image/png",
-                },
-                media: {
-                    mimeType: "image/png",
-                    body: Readable.from(buff),
-                },
-
-            });
-            if (createFile) {
-                const permissionsResponse = await this.drive.permissions.create({
-                    fileId: createFile.data.id!,
-                    requestBody: {
-                        role: 'writer',
-                        type: 'anyone',
-
-                        // emailAddress : ""
-                    },
-                });
-            }
-            return new DataFileDrive(createFile.data.id!, (await this.drive.files.get({
-                fileId: createFile.data.id!,
-                fields: "webViewLink"
-            }
-            )).data.webViewLink!)
-        } catch (err) {
-            console.log(err);
-            return null;
-        }
-    }
+    
 }

@@ -1,6 +1,6 @@
 import Controller from "@/utils/decorator/decorator";
 import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/exceptions/httpstatus.exception";
+import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import MotherController from "@/utils/interface/controller.interface";
 import authHandler from "component/auth.handler";
 import { NextFunction, Request, Response } from "express";
