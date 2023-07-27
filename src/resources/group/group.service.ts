@@ -39,9 +39,6 @@ export default class GroupService implements GroupServiceBehavior {
     async leaveGroup(iduser: any, idgroup: number): Promise<boolean> {
         return await this.groupRepsitory.leaveGroup(iduser, idgroup)
     }
-    async renameGroup(name: string, iduser: number): Promise<boolean> {
-        return await this.groupRepsitory.renameGroup(name, iduser)
-    }
 
     async getAllGroup(iduser: number): Promise<Array<GroupChat>> {
         let dataRaw = await this.groupRepsitory.getAllGroup(iduser)

@@ -58,7 +58,7 @@ export default class MessageRepository {
         let arrUrlFile: Array<string> = []
         for (let i = 0; i < content.length; i++) {
             try {
-                let inforFile = await this.drive.uploadFile(id_folder, content[i].filename, content[i].buffer)
+                let inforFile = await this.drive.uploadFile(content[i].filename, content[i].buffer)
                 const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
                 const [[{ 'id': idmember }], column1] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
                 const querySaveId = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`

@@ -11,7 +11,7 @@ const REFRESH_TOKEN_DRIVE = process.env.REFRESH_TOKEN_DRIVE;
 export class ServiceDrive implements iDrive {
     private drive: drive_v3.Drive;
     private static instance = new ServiceDrive();
-    public static gI(){
+    public static gI() {
         return ServiceDrive.instance
     }
     private constructor() {
@@ -24,16 +24,24 @@ export class ServiceDrive implements iDrive {
             auth: auth,
         });
     }
-    async delete(id: string): Promise<void> {
-        await this.drive.files.delete({
-            fileId: id
-        })
+    async getUrlFile(idFile: string): Promise<string | null | undefined> {
+        return (await this.drive.files.get(
+            {
+                fileId: idFile,
+                fields: "webViewLink"
+            }
+        )).data.webViewLink
     }
-    async uploadFile(childFolderID: string, nameFile: string, buff: Buffer): Promise<DataFileDrive | null> {
+    async delete(id: string): Promise<void> {
+        let data = (await this.drive.files.delete({
+            fileId: id
+        }))
+        console.log(data)
+    }
+    async uploadFile(nameFile: string, buff: Buffer): Promise<DataFileDrive | null> {
         try {
             const createFile = await this.drive.files.create({
                 requestBody: {
-                    parents: [childFolderID],
                     name: nameFile,
                     // mimeType: "image/png",
                 },
@@ -99,5 +107,5 @@ export class ServiceDrive implements iDrive {
             return null;
         }
     }
-    
+
 }

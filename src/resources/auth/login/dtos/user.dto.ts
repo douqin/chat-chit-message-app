@@ -3,17 +3,20 @@ import Token from "@/utils/definition/token"
 export class User {
     constructor(
         public iduser: number,
-        public name: string,
+        public lastname: string,
+        public firstname: string,
         public phone: string,
         public birthday: Date,
         public gender: number,
         public avatar: string,
-        public email?: string,
+        public bio: string,
+        public username: string,
+        public background: string
     ) { }
     static fromRawData(data: any): User {
-        const { iduser, name, email, phone, birthday, gender, avatar } = data;
+        const { iduser, phone, birthday, gender, avatar, firstname, lastname, bio, username, background } = data;
         return new User(
-            iduser, name, phone, birthday, gender, avatar, email
+            iduser, lastname, firstname, phone, birthday, gender, avatar, bio, username, background
         );
     }
 }

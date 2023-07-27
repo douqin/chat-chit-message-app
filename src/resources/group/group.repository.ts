@@ -7,6 +7,7 @@ import { GroupStatus } from "./dtos/group.status.dto";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from '../../component/cloud/drive.interface';
 import { ResultSetHeader } from 'mysql2';
+import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 
 export default class GroupRepository implements GroupRepositoryBehavior {
     public drive: iDrive
@@ -31,7 +32,15 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return false;
     }
     async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File) {
-        return this.drive.uploadFile("", "", file.buffer);
+        let position = await this.getPosition(idgroup, iduser)
+        if (position == PositionInGrop.CREATOR) {
+            const query = 'SELECT groupchat.avatar FROM groupchat WHERE groupchat.idgroup = ? '
+            const [[{ 'avatar': avatar }], column] = MySql.excuteQuery(query, [idgroup]) as any;
+            if (avatar) {
+                await this.drive.delete(avatar)
+            }
+            return this.drive.uploadFile(file.filename, file.buffer);
+        } else throw new MyException("Bạn không có quyền này").withCode(HttpStatus.FORBIDDEN)
     }
     async getAllMember(idgroup: number): Promise<object[]> {
         let query = "SELECT user.* from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ?"
@@ -39,64 +48,46 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         console.log(rows)
         return rows as object[];
     }
-    async leaveGroup(iduser: any, idgroup: number): Promise<boolean> { // FIXME : ADD TRIGGER CHECK ADMIN 
-        let isAdmin = iduser == (await MySql.excuteQuery(`SELECT groupchat.createby From groupchat where groupchat.idgroup = ${idgroup}`) as any)[0][0].createby
-        if (!isAdmin)
+    async leaveGroup(iduser: any, idgroup: number): Promise<boolean> {
+        let position = await this.getPosition(idgroup, iduser)
+        if (position != PositionInGrop.CREATOR)
             await MySql.excuteQuery(
                 `DELETE FROM member WHERE member.iduser = ${iduser} AND member.idgroup = ${idgroup}`
             );
         else throw new MyException("Admin tạo ra group không thể rời group")
         return true
     }
-    async renameGroup(name: string, iduser: number): Promise<boolean> {
-        return true;
+    async getOneGroup(idgroup: number): Promise<object | null> {
+        let query = `SELECT * FROM groupchat WHERE groupchat.idgroup = ?;`
+        let [dataRaw, col]: any = await MySql.excuteQuery(
+            query, [
+            idgroup
+        ]
+        )
+        return dataRaw[0]
     }
-    async getOneGroup(iduser: number): Promise<object | null> {
-        let query = `SELECT groupchat.idgroup, groupchat.name, groupchat.avatar, groupchat.status, groupchat.createby, groupchat.createat FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ${iduser};`
-        let dataRaw: any = await MySql.excuteQuery(
-            query
+    async getAllGroup(iduser: number): Promise<object[]> {
+        let query = `SELECT * FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ?;`
+        let [dataRaw, inforColimn]: any = await MySql.excuteQuery(
+            query, [iduser]
         )
         if (dataRaw) {
-            return dataRaw[0]
+            return dataRaw;
         }
-        return null;
-    }
-    async getAllGroup(iduser: number): Promise<object[] | undefined> {
-        let query = `SELECT groupchat.idgroup, groupchat.name, groupchat.avatar, groupchat.status, groupchat.createby, groupchat.createat FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ${iduser};`
-        let dataRaw: any = await MySql.excuteQuery(
-            query
-        )
-        if (dataRaw) {
-            return dataRaw[0]
-        }
-        return undefined;
+        return [];
     }
     async createGroup(name: string, iduser: number, typeGroup: number = GroupType.COMMUNITY): Promise<boolean> {
-        let id = await this.drive.createFolder(`group_${name}`);
         let idgroup = -1;
         try {
-            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat, groupchat.id_folder) VALUES (?,?,?,now(),?);`
+            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat) VALUES (?,?,?,now());`
             let data: [ResultSetHeader, any] = await MySql.excuteQuery(
-                query, [name, typeGroup, GroupStatus.DEFAULT, id]
+                query, [name, typeGroup, GroupStatus.DEFAULT]
             ) as any
-            // query = ' SELECT LAST_INSERT_ID();'
             idgroup = data[0].insertId
+            await this.joinGroup(iduser, idgroup, PositionInGrop.CREATOR)
         }
         catch (e) {
-            await this.drive.delete(id)
-            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm")
-        }
-        try {
-            if (idgroup != -1) {
-                await this.joinGroup(iduser, idgroup, PositionInGrop.CREATOR)
-            } else
-                throw new Error();
-        }
-        catch (e) {
-            // let query = 'DELETE FROM groupchat WHERE groupchat.idgroup = ?'
-            // MySql.excuteQuery(query, [id]);
-            //TODO: del group
-            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm.")
+            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm").withCode(HttpStatus.INTERNAL_SERVER_ERROR)
         }
         return true;
     }
@@ -109,5 +100,9 @@ export default class GroupRepository implements GroupRepositoryBehavior {
             return rawDataSQL[0]
         }
         return undefined;
+    }
+    async getPosition(idgroup: Number, iduser: Number) {
+        let [[{ 'position': position }], column] = await MySql.excuteQuery(`SELECT member.position From member where member.idgroup = ? AND member.iduser = ?`, [idgroup, iduser]) as any;
+        return position;
     }
 }

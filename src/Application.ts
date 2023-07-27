@@ -1,3 +1,4 @@
+import { HttpStatus } from './utils/extension/httpstatus.exception';
 import express, { Application } from "express";
 import MotherController from "@/utils/interface/controller.interface";
 import ErrorMiddleware from "@/middleware/error.midleware";
@@ -14,8 +15,9 @@ import GroupController from "@/resources/group/group.controller";
 import LoginController from "./resources/auth/login/login.controller";
 import MessageController from "@/resources/messaging/message.controller";
 import RegisterController from "./resources/auth/register/register.controller";
-import AuthMiddleware from "./middleware/auth.middleware";
 import SocketMiddleware from "./middleware/socket.middleware";
+import { ResponseBody } from './utils/definition/http.response';
+import MeController from '@/resources/me/me.controller';
 class App {
     private server: any
     private io: Server
@@ -41,10 +43,11 @@ class App {
             new LogoutController(this.io).initRouter(),
             new GroupController(this.io).initRouter(),
             new MessageController(this.io).initRouter(),
-            new RegisterController(this.io).initRouter()
+            new RegisterController(this.io).initRouter(),
+            new MeController(this.io).initRouter()
         ]
-        this.initaliseController(controller);
-        this.initErrorHandler();
+        this.initaliseController(controller)
+        this.initErrorHandler()
     }
     private initErrorHandler() {
         this.express.use(ErrorMiddleware);
@@ -53,6 +56,17 @@ class App {
         controllers.forEach((controller: MotherController) => {
             this.express.use('', controller.router);
         });
+        this.express.use((
+            req,
+            res,
+            next
+        ) => {
+            res.status(HttpStatus.NOT_FOUND).send(new ResponseBody(
+                false,
+                "Không tìm thấy trang bạn yêu cầu",
+                {}
+            ))
+        })
     }
     private initaliseMiddleware() {
         this.io.use(SocketMiddleware.validateIncomingConnect)

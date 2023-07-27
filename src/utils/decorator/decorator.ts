@@ -3,5 +3,6 @@ export default function Controller(router: string) {
         new(...args: any[]): {
         }
     }>(constructor: T) {
+
     }
 }
