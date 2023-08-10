@@ -1,16 +1,30 @@
 import { MySql } from "@/config/sql/mysql";
-import { MessageType } from "./dtos/message.type";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from "../../component/cloud/drive.interface";
 import { ServiceDrive } from "../../component/cloud/drive.service";
-import { ReactMessage } from "./dtos/message.react";
-import { MessageStatus } from "./message.status";
+import { ReactMessage } from "./enum/message.react.enum";
+import { MessageRepositoryBehavior } from "./interface/message.repository.interface";
+import { MessageType } from "./enum/message.type.enum";
+import { MessageStatus } from "./enum/message.status.enum";
 
-export default class MessageRepository {
+export default class MessageRepository implements MessageRepositoryBehavior {
 
     public drive: iDrive
     constructor() {
         this.drive = ServiceDrive.gI();
+    }
+    async isMessageOfUser(idmessage: Number, iduser: Number): Promise<boolean> {
+        const quert = 'SELECT COUNT(*) From member JOIN message ON member.id = message.idmember AND message.idmessage = ? AND member.iduser = ?        '
+        const [{ 'COUNT(*)': isExist }] = await MySql.excuteQuery(quert,[idmessage,iduser]) as any
+        return Boolean(isExist)
+    }
+    async updateLastView(iduser: number, idmessgae: number): Promise<boolean> {
+        return true
+    }
+    async isMessageContainInGroup(idmessage: Number, idgroup: Number): Promise<boolean> {
+        const query = 'SELECT COUNT(*) From member JOIN message ON member.id = message.idmember AND message.idmessage = ? AND member.idgroup = ?'
+        let [{ 'COUNT(*)': isExist }] = await MySql.excuteQuery(query, [idmessage, idgroup]) as any
+        return Boolean(isExist);
     }
     async changePinMessage(idmessage: number, iduser: number, isPin: number): Promise<boolean> {
         const query = ` SELECT message.idmember FROM message WHERE message.idmessage = ? LIMIT 1`
@@ -85,23 +99,9 @@ export default class MessageRepository {
     async reactMessage(idmessage: number, react: ReactMessage, iduser: number): Promise<any> {
         return true;
     }
-    async changeStatusMessage(idmessage: number, iduser: number): Promise<boolean> {
-        const query = ` SELECT message.idmember FROM message WHERE message.idmessage = ? LIMIT 1`
-        let [[{ 'idmember': idmember }], data] = await MySql.excuteQuery(query, [idmessage]) as any
-
-        const query2 = `SELECT member.iduser FROM member WHERE member.id = ?`
-
-        let [[{ 'iduser': _iduser }], _data] = await MySql.excuteQuery(query2, [idmember]) as any
-
-        if (iduser === _iduser) {
-            const queryChange = `UPDATE message
-            SET message.status = ?
-            WHERE message.idmessage = ?`
-            console.log(await MySql.excuteQuery(queryChange, [MessageStatus.UNSEND, idmessage]))
-        }
-        else {
-            return false
-        }
+    async changeStatusMessage(idmessage: number, status: MessageStatus): Promise<boolean> {
+        const query = 'UPDATE message SET status = ? WHERE messgae.idmessgae = ?'
+        await MySql.excuteQuery(query, [status, idmessage])
         return true
     }
 }

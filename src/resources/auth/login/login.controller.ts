@@ -61,7 +61,7 @@ export default class LoginController extends MotherController {
                 next(new HttpException(HttpStatus.NOT_FOUND, 'Sai tài khoản hoặc mật khẩu'))
             }
         } catch (error: any) {
-            console.log("Login Controller" + stringify(error))
+            console.log("🚀 ~ file: login.controller.ts:64 ~ LoginController ~ error:", error)
             next(new HttpException(HttpStatus.FORBIDDEN, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     };

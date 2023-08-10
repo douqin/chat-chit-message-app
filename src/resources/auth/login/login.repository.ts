@@ -3,19 +3,10 @@ import { MySql } from '@/config/sql/mysql';
 class LoginRepository {
     static instance = new LoginRepository()
     constructor() { }
-
-    /**number = 0 - > login with phone number 
-     * number = 1 - > login with mail
-     * **/
     async login(phone: string, password: string): Promise<any> {
-        let data: any = await MySql.excuteQuery("SELECT iduser,phone,email,name,birthday,gender FROM user WHERE phone ='" +
-            `${phone}` +
-            "' AND password ='" +
-            `${password}` +
-            "'")
-        if (!data || (data instanceof Error)) {
-            return undefined
-        }
+        const query = `SELECT * FROM user WHERE user.phone = ? AND user.password = ?`
+        let [data] = await MySql.excuteQuery(query, [phone, password]) as any
+        console.log("🚀 ~ file: login.repository.ts:9 ~ LoginRepository ~ login ~ data:", data)
         return data[0];
     }
 }

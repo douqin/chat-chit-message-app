@@ -7,12 +7,12 @@ import MessageService from "./message.service";
 import HttpException from "@/utils/exceptions/http.exeception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
-import MessageBehavior from "./interface/message.interaface";
+import MessageServiceBehavior from "./interface/message.service.interaface";
 import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
 @Controller("/messagge")
 export default class MessageController extends MotherController {
-    private messageService: MessageBehavior;
+    private messageService: MessageServiceBehavior;
     constructor(io: Server) {
         super(io);
         this.messageService = new MessageService();
@@ -21,7 +21,6 @@ export default class MessageController extends MotherController {
     initRouter(): MotherController {
         this.router.get(
             "/messagge/:idgroup",
-            multer().none(),
             AuthMiddleware.auth,
             this.getAllMessageFromGroup
         );
@@ -37,9 +36,11 @@ export default class MessageController extends MotherController {
             AuthMiddleware.auth,
             this.sendFileMessage
         );
-        this.router.patch("/messagge/:id/statusmessage", AuthMiddleware.auth, this.changeStatusMessage);
-        this.router.post("/messagge/:id/react/:type", AuthMiddleware.auth, this.reactMessage);
-        this.router.patch("/messagge/:id/pin/:ispin", AuthMiddleware.auth, this.changePinMessage);
+        this.router.patch("/messagge/:id/statusmessage", multer().none(), AuthMiddleware.auth, this.changeStatusMessage);
+        this.router.post("/messagge/:id/react/:type", multer().none(), AuthMiddleware.auth, this.reactMessage);
+        this.router.patch("/messagge/:id/pin/:ispin", multer().none(), AuthMiddleware.auth, this.changePinMessage);
+        this.router.patch("/messagge/:id/removemessage", multer().none(), AuthMiddleware.auth, this.removeMessage)
+        this.router.patch("/messagge/:id/updatelastview")
         return this;
     }
     private changePinMessage = async (req: Request, res: Response, next: NextFunction) => {
@@ -203,9 +204,9 @@ export default class MessageController extends MotherController {
                 let isOK = await this.messageService.changeStatusMessage(
                     Number(id), Number(iduser)
                 )
-                if (!isOK) {
+                if (isOK) {
                     res.status(HttpStatus.OK).send(new ResponseBody(
-                        true,
+                        isOK,
                         "",
                         {}
                     ));
@@ -280,4 +281,51 @@ export default class MessageController extends MotherController {
             );
         }
     };
+    private removeMessage = async (req: Request, res: Response, next: NextFunction) => { //FIXME: POSTMAN CHECK
+        try {
+            const iduser = Number(req.headers.iduser)
+            const idgroup = Number(req.body.idgroup)
+            const idmessgae = Number(req.params.id)
+            if (iduser && idgroup && idmessgae) {
+                let isOK = await this.messageService.changeStatusMessgae(iduser, idgroup, idmessgae)
+                res.status(HttpStatus.OK).json(new ResponseBody(
+                    isOK,
+                    "",
+                    {}
+                ))
+                return
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        }
+        catch (error) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
+    private updateLastView = async (req: Request, res: Response, next: NextFunction) => {
+
+        try {
+            const iduser = Number(req.headers.iduser)
+            const idmessgae = Number(req.params.id)
+            if (iduser && idmessgae) {
+                let isOK = await this.messageService.updateLastView(iduser, idmessgae)
+                res.status(HttpStatus.OK).json(new ResponseBody(
+                    isOK,
+                    "",
+                    {}
+                ))
+                return
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        }
+        catch (error) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
 }
+

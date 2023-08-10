@@ -1,6 +1,8 @@
-import { ReactMessage } from "../dtos/message.react";
+import { ReactMessage } from "../enum/message.react.enum";
 
-export default interface MessageBehavior {
+export default interface MessageServiceBehavior {
+    updateLastView(iduser: number, idmessgae: number): Promise<boolean>;
+    changeStatusMessgae(iduser: number, idgroup: number, idmessgae: number): Promise<boolean>
     changePinMessage(idmessage: number, iduser: number, isPin : number): Promise<boolean>
     getAllMessageFromGroup(idgroup: number, iduser: number): Promise<any>
     sendFileMessage(idgroup: number, iduser: number, content: {

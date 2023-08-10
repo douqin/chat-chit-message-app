@@ -1,37 +1,95 @@
-import { PositionInGrop } from './dtos/group.position';
+import { PositionInGrop } from './enum/group.position.enum';
 import { ServiceDrive } from './../../component/cloud/drive.service';
 import { MySql } from "@/config/sql/mysql";
-import GroupRepositoryBehavior from "./interface/group.repository.interface";
-import { GroupType } from "./dtos/group.type.dto";
-import { GroupStatus } from "./dtos/group.status.dto";
+import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from '../../component/cloud/drive.interface';
 import { ResultSetHeader } from 'mysql2';
 import { HttpStatus } from '@/utils/extension/httpstatus.exception';
+import { MemberStatus } from './enum/member.status.enum';
+import { GroupStatus } from './enum/group.status.dto.enum';
+import { GroupType } from './enum/group.type.enum';
 
 export default class GroupRepository implements GroupRepositoryBehavior {
     public drive: iDrive
     constructor() {
         this.drive = ServiceDrive.gI();
     }
-    async joinGroup(iduser: number, idgroup: number, positionUser: number = PositionInGrop.MEMBER): Promise<void> {
+    blockMember(iduserAdd: number, idgroup: number): boolean | PromiseLike<boolean> {
+        throw new Error('Method not implemented.');
+    }
+    async changeStatusMember(iduserAdd: number, idgroup: number, status: MemberStatus): Promise<boolean> {
+        const query = `UPDATE member
+        SET status = ?
+        WHERE member.idgroup = ? AND member.iduser = ?;`
+        await MySql.excuteQuery(query, [status, idgroup, iduserAdd])
+        return true
+    }
+    async removeMember(idgroup: number, iduserRemove: number): Promise<boolean> {
+        const query = 'DELETE FROM member WHERE member.iduser == ? AND member.idgroup = ?'
+        await MySql.excuteQuery(query, [iduserRemove, idgroup])
+        return true
+    }
+    async removeManager(idgroup: number, iduserAdd: any): Promise<boolean> {
+        const query = `UPDATE member
+        SET position = ?
+        WHERE member.idgroup = ? AND member.iduser = ?;`
+        await MySql.excuteQuery(query, [PositionInGrop.MEMBER, idgroup, iduserAdd])
+        return true
+    }
+    async addManager(idgroup: number, iduserAdd: number): Promise<boolean> {
+        const query = `UPDATE member
+        SET position = ?
+        WHERE member.idgroup = ? AND member.iduser = ?;`
+        await MySql.excuteQuery(query, [PositionInGrop.ADMIN, idgroup, iduserAdd])
+        return true
+    }
+    async renameGroup(idgroup: number, name: string): Promise<boolean> {
+        const query = `UPDATE groupchat
+        SET name = ?
+        WHERE groupchat.idgroup = ?;`
+        await MySql.excuteQuery(query, [name, idgroup])
+        return true
+    }
+    async checkMemberPermisstion(permisstion: string, iduser: Number, idgroup: Number) {
+        try {
+            let query = 'SELECT ' + permisstion + ' FROM groupchat_member_permission WHERE groupchat_member_permission.idgroup = ? LIMIT 1'
+            const [_permisstion] = await MySql.excuteQuery(query, [idgroup]) as any
+            console.log("🚀 ~ file: group.repository.ts:22 ~ GroupRepository ~ checkMemberPermisstion ~ _permisstion:", _permisstion)
+            let a = Boolean(Number(_permisstion[0].autoapproval))
+            console.log("🚀 ~ file: group.repository.ts:23 ~ GroupRepository ~ checkMemberPermisstion ~ a:", a)
+            return a
+        }
+        catch (e: any) {
+            console.log("🚀 ~ file: group.repository.ts:28 ~ GroupRepository ~ checkMemberPermisstion ~ e:", e)
+            throw new MyException("Không thể tham gia group này").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+    async addUserToApprovalQueue(iduser: number, idgroup: number): Promise<void> {
+        try {
+            let query = "INSERT INTO member(member.idgroup, member.iduser, member.position, member.status) VALUES (?, ?, ?, ?) "
+            let [data] = await MySql.excuteQuery(query, [idgroup, iduser, PositionInGrop.MEMBER, MemberStatus.PENDING])
+        }
+        catch (e: any) {
+            throw new MyException("Không thể tham gia group này").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+    async joinGroup(iduser: number, idgroup: number, positionUser: number = PositionInGrop.MEMBER): Promise<boolean> {
         try {
             let query = "INSERT INTO member(member.idgroup, member.iduser, member.position) VALUES (?, ?, ?) "
             let [data] = await MySql.excuteQuery(query, [idgroup, iduser, positionUser])
+            return true
         }
         catch (e: any) {
             throw new MyException("Không thể tham gia group này")
         }
     }
-    async isContainInGroup(iduser: number, idgroup: number): Promise<boolean> {
-        let [data] = await MySql.excuteQuery("SELECT COUNT(*) FROM member WHERE member.iduser = ? AND member.idgroup = ?", [iduser, idgroup]);
+    async isContainInGroup(iduser: number, idgroup: number, status_check?: MemberStatus): Promise<boolean> {
+        let [data] = await MySql.excuteQuery(`SELECT COUNT(*) FROM member WHERE member.iduser = ? AND member.idgroup = ? ${((status_check) ? 'AND member.status = ?' : '')}`, [iduser, idgroup, status_check]);
         const [{ 'COUNT(*)': count }] = data as any;
-        if (count == 1) {
-            return true;
-        }
-        return false;
+        return Boolean(Number(count) === 1)
     }
-    async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File) {
+    async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File) { //FIXME
         let position = await this.getPosition(idgroup, iduser)
         if (position == PositionInGrop.CREATOR) {
             const query = 'SELECT groupchat.avatar FROM groupchat WHERE groupchat.idgroup = ? '
@@ -40,11 +98,11 @@ export default class GroupRepository implements GroupRepositoryBehavior {
                 await this.drive.delete(avatar)
             }
             return this.drive.uploadFile(file.filename, file.buffer);
-        } else throw new MyException("Bạn không có quyền này").withCode(HttpStatus.FORBIDDEN)
+        } else throw new MyException("Bạn không có quyền này").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async getAllMember(idgroup: number): Promise<object[]> {
-        let query = "SELECT user.* from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ?"
-        let [rows] = await MySql.excuteQuery(query, [idgroup])
+        let query = "SELECT user.* from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ? AND member.status = ?"
+        let [rows] = await MySql.excuteQuery(query, [idgroup, MemberStatus.DEFAULT])
         console.log(rows)
         return rows as object[];
     }
@@ -83,11 +141,13 @@ export default class GroupRepository implements GroupRepositoryBehavior {
             let data: [ResultSetHeader, any] = await MySql.excuteQuery(
                 query, [name, typeGroup, GroupStatus.DEFAULT]
             ) as any
+            console.log("🚀 ~ file: group.repository.ts:117 ~ GroupRepository ~ createGroup ~ data:", data)
             idgroup = data[0].insertId
+            console.log("🚀 ~ file: group.repository.ts:119 ~ GroupRepository ~ createGroup ~ data:", data)
             await this.joinGroup(iduser, idgroup, PositionInGrop.CREATOR)
         }
         catch (e) {
-            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm").withCode(HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
         }
         return true;
     }

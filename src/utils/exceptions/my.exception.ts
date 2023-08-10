@@ -7,7 +7,7 @@ export default class MyException extends Error {
         this.message = message
         this.statusCode = HttpStatus.BAD_REQUEST
     }
-    public withCode(statusCode: HttpStatus) {
+    public withExceptionCode(statusCode: HttpStatus) {
         this.statusCode = statusCode
         return this
     }

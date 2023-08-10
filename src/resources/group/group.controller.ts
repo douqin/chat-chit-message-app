@@ -50,13 +50,61 @@ export default class GroupController extends MotherController {
         this.router.get("/group/:id/getallmembers", AuthMiddleware.auth, this.getAllMember)
         this.router.post("/group/:id/invitemembers", multer().none(), AuthMiddleware.auth, this.inviteMember)
         this.router.post("/group/:id/members/leave", multer().none(), AuthMiddleware.auth, this.leaveGroup)
-        this.router.post("/group/:id/members/join-from", multer().none(), AuthMiddleware.auth, this.joinfrom)
+        this.router.post("/group/:id/members/join-from-link", multer().none(), AuthMiddleware.auth, this.joinfromLink)
+
+        this.router.patch("/group/admin/:id/rename",
+            multer().none(),
+            AuthMiddleware.auth,
+            // AuthMiddleware.authAdmin,
+            this.renameGroup)
+        this.router.delete(
+            '/group/admin/:id/manager',
+            multer().none(),
+            AuthMiddleware.auth,
+            // AuthMiddleware.authAdmin,
+            this.removeManager
+        )
+        this.router.post(
+            '/group/admin/:id/manager',
+            multer().none(),
+            AuthMiddleware.auth,
+            // AuthMiddleware.authAdmin,
+            this.addManager
+        )
+        this.router.delete(
+            '/group/admin/:id/member',
+            multer().none(),
+            AuthMiddleware.auth,
+            // AuthMiddleware.authAdmin,
+            this.removeMember
+        )
         return this
     }
-    private joinfrom = async (req: Request, res: Response, next: NextFunction) => {
-        //TODO:
+    private joinfromLink = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers['iduser'])
+            const idgroup = Number(req.params.id)
+            if (idgroup) {
+                let data = await this.groupService.joinfromLink(iduser, idgroup)
+                res.status(HttpStatus.OK).json(
+                    new ResponseBody(
+                        true,
+                        "",
+                        {}
+                    )
+                )
+                return
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        }
+        catch (error) {
+            console.log("🚀 ~ file: group.controller.ts:74 ~ GroupController ~ joinfromLink= ~ error:", error)
+            if (error instanceof MyException) {
+                next(new HttpException(error.statusCode, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
     }
-
     private getAllGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
@@ -67,10 +115,9 @@ export default class GroupController extends MotherController {
                 data
             ))
         } catch (error: any) {
-            console.log("🚀 ~ file: group.controller.ts:84 ~ GroupController ~ getAllGroup= ~ error:", error)
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
-    };
+    }
     private createGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
@@ -123,7 +170,6 @@ export default class GroupController extends MotherController {
             if (error instanceof MyException) {
                 next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
             }
-            console.info(error)
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
@@ -183,19 +229,11 @@ export default class GroupController extends MotherController {
     }
     private inviteMember = async (req: Request, res: Response, next: NextFunction) => { // FIXME:
         try {
-            const iduser = Number(req.headers['iduser'] as string)
-            const {
-                id
-            } = req.params
-            const {
-                userIDs
-            } = req.body
-            let isSuccessfully = await this.groupService.inviteMember(iduser, Number(id), userIDs)
-            if (isSuccessfully) {
-                res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", {}))
-                return
-            }
-            res.status(HttpStatus.OK).send(new ResponseBody(false, "OK", {}))
+            const iduser = Number(req.headers['iduser'])
+            const idgroup = Number(req.params.id)
+            const idusers: Array<any> = []
+            let isSuccessfully = await this.groupService.inviteMember(iduser, idgroup, idusers)
+            res.status(HttpStatus.OK).send(new ResponseBody(isSuccessfully, "OK", {}))
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
@@ -229,5 +267,146 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    
+    private addManager = async (req: Request, res: Response, next: NextFunction) => { //FIXME: check API POSTMAN
+        try {
+            const iduser = Number(req.headers.iduser)
+            const iduserAdd = Number(req.body.manager)
+            const idgroup = Number(req.query.id)
+            if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                let data = await this.groupService.addManager(iduser, iduserAdd, idgroup)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        data,
+                        "",
+                        {}
+                    )
+                )
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        } catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
+    private removeManager = async (req: Request, res: Response, next: NextFunction) => { //FIXME: check API POSTMAN
+        try {
+            const iduser = Number(req.headers.iduser)
+            const iduserAdd = Number(req.body.manager)
+            const idgroup = Number(req.query.id)
+            if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                let data = await this.groupService.removeManager(iduser, iduserAdd, idgroup)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        data,
+                        "",
+                        {}
+                    )
+                )
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        } catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
+    private removeMember = async ( // FIXME: check OK wirh POSTMAN
+        req: Request, res: Response, next: NextFunction
+    ) => {
+        try {
+            const iduser = Number(req.headers.iduser)
+            const iduserAdd = Number(req.body.manager)
+            const idgroup = Number(req.query.id)
+            if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                let data = await this.groupService.removeMember(iduser, iduserAdd, idgroup)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        data,
+                        "",
+                        {}
+                    )
+                )
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        } catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
+    private renameGroup = async (req: Request, res: Response, next: NextFunction) => { //FIXME:
+        try {
+            const iduser = Number(req.headers['iduser'])
+            const name = req.body['name']
+            const idgroup = Number(req.params.id)
+            if (idgroup) {
+                let isOK = await this.groupService.renameGroup(iduser, idgroup, name)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        isOK,
+                        "",
+                        {}
+                    )
+                )
+                next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
+            }
+        }
+        catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+
+    }
+    private blockMember = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers.iduser)
+            const iduserAdd = Number(req.body.manager)
+            const idgroup = Number(req.query.id)
+            if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                let data = await this.groupService.blockMember(iduser, iduserAdd, idgroup)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        data,
+                        "",
+                        {}
+                    )
+                )
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        } catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    } //FIXME: add check OK with POSTMAN
+    private approvalMember = async (req: Request, res: Response, next: NextFunction) => { //FIXME: check API POSTMAN
+        try {
+            const iduser = Number(req.headers.iduser)
+            const iduserAdd = Number(req.body.manager)
+            const idgroup = Number(req.query.id)
+            if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                let data = await this.groupService.approvalMember(iduser, iduserAdd, idgroup)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        data,
+                        "",
+                        {}
+                    )
+                )
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        } catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
 }

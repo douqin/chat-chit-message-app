@@ -10,8 +10,8 @@ export default class LoginService {
         if (userRaw) {
             const {
                 iduser
-            } = userRaw[0]
-            let user: User = User.fromRawData(userRaw[0])
+            } = userRaw
+            let user: User = User.fromRawData(userRaw)
             if (user) {
                 let fullToken = await AuthHandler.getFullToken(iduser)
                 if (fullToken) {
@@ -22,7 +22,6 @@ export default class LoginService {
                     return response;
                 }
             }
-
         }
         return undefined
     }

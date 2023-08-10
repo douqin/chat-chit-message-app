@@ -1,12 +1,32 @@
-import { ReactMessage } from "./dtos/message.react";
-import MessageBehavior from "./interface/message.interaface";
+import { HttpStatus } from "@/utils/extension/httpstatus.exception";
+import { PositionInGrop } from "../group/enum/group.position.enum";
+import GroupRepository from "../group/group.repository";
+import { MemberInfo } from "../group/interface/group.repository.interface";
+import { ReactMessage } from "./enum/message.react.enum";
+import MessageServiceBehavior from "./interface/message.service.interaface";
 import MessageRepository from "./message.repository";
 import MyException from "@/utils/exceptions/my.exception";
+import { MessageRepositoryBehavior } from "./interface/message.repository.interface";
+import { MessageStatus } from "./enum/message.status.enum";
 
-export default class MessageService implements MessageBehavior {
-    private messageRepository: MessageRepository
+export default class MessageService implements MessageServiceBehavior {
+    private messageRepository: MessageRepositoryBehavior
     constructor() {
         this.messageRepository = new MessageRepository()
+    }
+    async updateLastView(iduser: number, idmessgae: number): Promise<boolean> {
+        return await this.messageRepository.updateLastView(iduser, idmessgae)
+    }
+    async changeStatusMessgae(iduser: number, idgroup: number, idmessgae: number): Promise<boolean> {
+        let memberInfor: MemberInfo = new GroupRepository()
+        if (await this.messageRepository.isMessageContainInGroup(idmessgae, idgroup)) {
+            if (await memberInfor.getPosition(idgroup, iduser) == PositionInGrop.CREATOR || PositionInGrop.ADMIN)
+                return await this.messageRepository.changeStatusMessage(idmessgae, MessageStatus.DEL_BY_ADMIN)
+            else if (await this.messageRepository.isMessageOfUser(idmessgae, iduser)) {
+                return await this.messageRepository.changeStatusMessage(idmessgae, MessageStatus.DEL_BY_OWNER)
+            }
+        }
+        throw new MyException("Bạn không có quyền này").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async changePinMessage(idmessage: number, iduser: number, isPin: number): Promise<boolean> {
         if (0 === isPin || isPin === 1) {
@@ -20,7 +40,7 @@ export default class MessageService implements MessageBehavior {
             idmessage, iduser
         )
     }
-    async reactMessage(idmessage: number, react: ReactMessage, iduser: number): Promise<any> {
+    async reactMessage(idmessage: number, react: ReactMessage, iduser: number): Promise<boolean> {
         return await this.messageRepository.reactMessage(idmessage, react, iduser)
     }
     async sendFileMessage(idgroup: number, iduser: number, content: any): Promise<Array<string>> {
@@ -34,7 +54,7 @@ export default class MessageService implements MessageBehavior {
     async sendTextMessage(idgroup: number, iduser: number, content: string): Promise<boolean> {
         return await this.messageRepository.sendTextMessage(idgroup, iduser, content);
     }
-    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<any> {
+    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<object[] | undefined> {
         return await this.messageRepository.getAllMessageFromGroup(idgroup, iduser)
     }
 }
