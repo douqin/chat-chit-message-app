@@ -10,14 +10,12 @@ import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import SocketBuilder from './config/socketio/socket.builder'
 import { MySqlBuilder } from "@/config/sql/mysql";
-import LogoutController from "@/resources/auth/loguot/loguot.controller";
-import GroupController from "@/resources/group/group.controller";
-import LoginController from "./resources/auth/login/login.controller";
-import MessageController from "@/resources/messaging/message.controller";
-import RegisterController from "./resources/auth/register/register.controller";
 import SocketMiddleware from "./middleware/socket.middleware";
 import { ResponseBody } from './utils/definition/http.response';
-import MeController from '@/resources/me/me.controller';
+import AuthController from 'resources_API/auth/auth.controller';
+import GroupController from 'resources_API/group/group.controller';
+import MeController from 'resources_API/me/me.controller';
+import MessageController from 'resources_API/messaging/message.controller';
 class App {
     private server: any
     private io: Server
@@ -39,11 +37,9 @@ class App {
         this.initaliseDatabase()
         this.initaliseMiddleware()
         let controller: MotherController[] = [
-            new LoginController(this.io).initRouter(),
-            new LogoutController(this.io).initRouter(),
+            new AuthController(this.io).initRouter(),
             new GroupController(this.io).initRouter(),
             new MessageController(this.io).initRouter(),
-            new RegisterController(this.io).initRouter(),
             new MeController(this.io).initRouter()
         ]
         this.initaliseController(controller)

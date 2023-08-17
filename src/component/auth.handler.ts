@@ -69,7 +69,7 @@ class AuthHandler {
     public decodeAccessToken = async (accessToken: any) => {
         return await this.decodeToken(accessToken, accessTokenSecret);
     }
-    private decodeRefreshToken = async (refreshToken: any) => {
+    public decodeRefreshToken = async (refreshToken: any) => {
         return await this.decodeToken(refreshToken, refreshTokenSecret);
     }
     private async getRefreshTokenFromBD(iduser: number): Promise<string | null> {

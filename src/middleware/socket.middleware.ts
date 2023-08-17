@@ -1,12 +1,9 @@
-
-import Token from "@/utils/definition/token";
 import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { Server, Socket } from "socket.io";
 import authHandler from "../component/auth.handler";
 import { JwtPayload } from "jsonwebtoken";
-import { ExtendedError } from "socket.io/dist/namespace";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { Socket } from "socket.io";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         console.log(" user in SocketMiddleware with ID: " + socket.id)
@@ -15,7 +12,9 @@ class SocketMiddleware {
             console.log("🚀 ~ file: socket.middleware.ts:15 ~ SocketMiddleware ~ validateIncomingConnect= ~ token:", token)
             if (token) {
                 if (token) {
-                    await authHandler.decodeAccessToken(token) as JwtPayload;
+                    const jwtPayload = await authHandler.decodeAccessToken(token) as JwtPayload;
+                    const { iduser } = jwtPayload.payload;
+                    socket.handshake.headers.iduser = iduser
                     next()
                     return;
                 }

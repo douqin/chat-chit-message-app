@@ -1,40 +1,36 @@
 import { AndroidConfig, Message, MulticastMessage } from "firebase-admin/lib/messaging/messaging-api";
 import firebase from "../../config/firebase/firebase";
+import { NotificationService } from "./firebase.service.interface";
 
-export default class ServiceFCM {
-    private static instace: ServiceFCM;
+export class ServiceFCM implements NotificationService {
+    async sendMessageToUserOffInGroup(idgroup: number, iduser: number, data: any): Promise<void> {
+        this.firebase.messaging().sendToTopic(`${idgroup}`, { data })
+    }
+    async sendMessageToUser(iduser: number, iuserWantSend: number, data: any): Promise<void> {
+        
+    }
     private firebase: typeof firebase = firebase;
-    public static gI() {
-        if (ServiceFCM.instace == null) {
-            return ServiceFCM.instace = new ServiceFCM();
+
+    private async sendNotification(message: string, token: string) {
+        let data: Message = {
+            data: {
+                message
+            },
+            token: token,
+            android: undefined
         }
-        return ServiceFCM.instace;
+        let response = await this.firebase.messaging().send(data);
     }
-    public sendNotification(message: Message, token: String) {
-        this.firebase.messaging().send(message)
-            .then((response) => {
-                // Response is a message ID string.
-            })
-            .catch((error) => {
-                //return error
-            });
-    }
-    public sendMulticast(data: string, listToken: Array<string>) {
+    private async sendMulticast(data: string, listToken: Array<string>) {
         let androidconfig: AndroidConfig = {
         }
         let message: MulticastMessage = {
             data: {
-                data: data
+                data
             },
             android: androidconfig,
             tokens: listToken
         }
-        this.firebase.messaging().sendMulticast(message)
-            .then((response) => {
-                console.log(" Send Noti successCount:" + response.successCount);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+        let response = await this.firebase.messaging().sendMulticast(message)
     }
 }
