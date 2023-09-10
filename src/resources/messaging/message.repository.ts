@@ -53,17 +53,18 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         const [rows] = await MySql.excuteQuery(sql, values)
         return true;
     }
-    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<object[] | undefined> {
+    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<any[]> {
         const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
         const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
         if (idmember) {
             const query = `
-            SELECT message.idmessage, message.content, message.createat,message.type, message.replyidmessage, message.ispin, member.iduser FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ?)
+            SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ?)
             `
+            //message.idmessage, message.content, message.createat,mess age.type, message.replyidmessage, message.ispin, member.iduser
             const [dataQuery, inforColumn] = await MySql.excuteQuery(
                 query, [idgroup]
             )
-            return dataQuery as object[];
+            return dataQuery as any[];
         } else {
             throw new MyException("Bạn không có quyền truy cập")
         }

@@ -23,7 +23,7 @@ export default class MessageController extends MotherController {
         this.router.get(
             "/messagge/:idgroup",
             AuthMiddleware.auth,
-            this.getAllMessageFromGroup
+            this.getMessageFromGroup
         );
         this.router.post(
             "/messagge/:group/text",
@@ -84,20 +84,32 @@ export default class MessageController extends MotherController {
             );
         }
     };
-    private getAllMessageFromGroup = async (
+    private getMessageFromGroup = async (
         req: Request,
         res: Response,
         next: NextFunction
     ) => {
         try {
             const { idgroup } = req.params;
+            const time = req.query;
+            console.log("🚀 ~ file: message.controller.ts:95 ~ MessageController ~ time:", time)
             if (idgroup) {
                 const iduser = Number(req.headers['iduser'] as string)
+                // if (time) {
+
+                // }
+                // else {
                 let data = await this.messageService.getAllMessageFromGroup(
                     Number(idgroup),
                     iduser
                 );
-                res.status(HttpStatus.FOUND).send(data);
+                console.log("🚀 ~ file: message.controller.ts:106 ~ MessageController ~ data:", data)
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    true,
+                    "",
+                    data
+                ));
+                // }
                 return;
             }
 

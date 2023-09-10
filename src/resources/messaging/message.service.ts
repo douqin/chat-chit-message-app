@@ -8,6 +8,7 @@ import MessageRepository from "./message.repository";
 import MyException from "@/utils/exceptions/my.exception";
 import { MessageRepositoryBehavior } from "./interface/message.repository.interface";
 import { MessageStatus } from "./enum/message.status.enum";
+import Message from "./dtos/message.dto";
 
 export default class MessageService implements MessageServiceBehavior {
     private messageRepository: MessageRepositoryBehavior
@@ -49,7 +50,8 @@ export default class MessageService implements MessageServiceBehavior {
     async sendTextMessage(idgroup: number, iduser: number, content: string): Promise<boolean> {
         return await this.messageRepository.sendTextMessage(idgroup, iduser, content);
     }
-    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<object[] | undefined> {
-        return await this.messageRepository.getAllMessageFromGroup(idgroup, iduser)
+    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<Message[]> {
+        let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser)
+        return Message.fromRawsData(data)
     }
 }

@@ -10,6 +10,7 @@ import { MemberStatus } from './enum/member.status.enum';
 import { PositionInGrop } from './enum/group.position.enum';
 import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import GroupServiceBehavior from './interface/group.service.interface';
+import MemberDTO from './dtos/member.dto';
 
 export default class GroupService implements GroupServiceBehavior {
     private groupRepsitory: GroupRepositoryBehavior
@@ -87,11 +88,11 @@ export default class GroupService implements GroupServiceBehavior {
             throw new MyException("Bạn không có quyền này").withExceptionCode(HttpStatus.FORBIDDEN)
         }
     }
-    async getAllMember(idgroup: number): Promise<User[]> {
+    async getAllMember(idgroup: number): Promise<MemberDTO[]> {
         let data = await this.groupRepsitory.getAllMember(idgroup);
         if (data) {
-            return data.map<User>((value, index, array) => {
-                return User.fromRawData(value)
+            return data.map<MemberDTO>((value, index, array) => {
+                return MemberDTO.fromRawData(value)
             });
         }
         return [];

@@ -1,4 +1,5 @@
-import { User } from "resources_API/auth/dtos/user.dto";
+
+import { User } from "@/resources/auth/dtos/user.dto";
 import { InviteFriend } from "../dto/invite.dto";
 
 export interface RelationServiceBehavior {

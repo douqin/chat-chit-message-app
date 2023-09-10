@@ -12,10 +12,10 @@ import SocketBuilder from './config/socketio/socket.builder'
 import { MySqlBuilder } from "@/config/sql/mysql";
 import SocketMiddleware from "./middleware/socket.middleware";
 import { ResponseBody } from './utils/definition/http.response';
-import AuthController from 'resources_API/auth/auth.controller';
-import GroupController from 'resources_API/group/group.controller';
-import MeController from 'resources_API/me/me.controller';
-import MessageController from 'resources_API/messaging/message.controller';
+import AuthController from './resources/auth/auth.controller';
+import GroupController from './resources/group/group.controller';
+import MeController from './resources/me/me.controller';
+import MessageController from './resources/messaging/message.controller';
 class App {
     private server: any
     private io: Server
@@ -65,7 +65,6 @@ class App {
         })
     }
     private initaliseMiddleware() {
-        this.io.use(SocketMiddleware.validateIncomingConnect)
         this.express.use(helmet());
         this.express.use(cors());
         this.express.use(morgan('dev'));

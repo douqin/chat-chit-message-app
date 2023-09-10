@@ -1,4 +1,5 @@
-import { User } from "resources_API/auth/dtos/user.dto";
+import { User } from "@/resources/auth/dtos/user.dto";
+
 
 export class InviteFriend {
     constructor(public id: number, public user: User) { }

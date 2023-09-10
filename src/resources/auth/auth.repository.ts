@@ -11,7 +11,6 @@ export default class AuthRepository {
     public async login(phone: string, password: string): Promise<any> {
         const query = `SELECT * FROM user WHERE user.phone = ? AND user.password = ?`
         let [data] = await MySql.excuteQuery(query, [phone, password]) as any
-        console.log("🚀 ~ file: login.repository.ts:9 ~ LoginRepository ~ login ~ data:", data)
         return data[0];
     }
     public async registerAccount(name: string, phone: any, password: any) {

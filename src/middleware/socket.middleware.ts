@@ -6,16 +6,16 @@ import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Socket } from "socket.io";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
-        console.log(" user in SocketMiddleware with ID: " + socket.id)
         try {
             let token = (socket.handshake.headers.token as string).split(" ")[1];
-            console.log("🚀 ~ file: socket.middleware.ts:15 ~ SocketMiddleware ~ validateIncomingConnect= ~ token:", token)
             if (token) {
                 if (token) {
                     const jwtPayload = await authHandler.decodeAccessToken(token) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
-                    socket.handshake.headers.iduser = iduser
-                    next()
+                    if (iduser) {
+                        socket.handshake.headers.iduser = iduser
+                        socket.join(`${iduser}_user`)
+                    }
                     return;
                 }
             }
@@ -23,6 +23,7 @@ class SocketMiddleware {
         catch (e: any) {
         }
         next(new HttpException(HttpStatus.NON_AUTHORITATIVE_INFORMATION, "Bạn không có quyền kết nối"))
+        console.log(socket.id + "-> DISCONNECT BY MIDDLEWARE")
     };
 }
 export default SocketMiddleware;

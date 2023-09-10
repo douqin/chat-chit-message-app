@@ -1,9 +1,10 @@
-import { User } from "resources_API/auth/dtos/user.dto"
+
 import { RelationServiceBehavior } from "./interface/relation.service.interface"
 import RelationRepostory from "./relation.repository"
 import { InviteFriend } from "./dto/invite.dto"
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface"
 import { RelationshipUser } from "./enums/relationship.enum"
+import { User } from "../auth/dtos/user.dto"
 
 export default class RelationService implements RelationServiceBehavior {
     async inviteFriend(iduserSend: number, idReceiver: number) {

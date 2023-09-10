@@ -1,4 +1,3 @@
-
 export enum MessageType {
     TEXT = 0,
     IMAGE = 1,

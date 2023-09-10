@@ -2,6 +2,7 @@ import { User } from "@/resources/auth/dtos/user.dto";
 import GroupChat from "../dtos/group.dto";
 import LastViewGroup from "../dtos/lastview.dto";
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
+import MemberDTO from "../dtos/member.dto";
 
 export default interface GroupServiceBehavior {
     blockMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
@@ -16,7 +17,7 @@ export default interface GroupServiceBehavior {
     createGroup(name: string, iduser: number, users : Array<Number>): Promise<boolean>
     getLastViewMember(idgroup: number): Promise<LastViewGroup[]>
     getOneGroup(idgroup: number): Promise<GroupChat | null>
-    getAllMember(idgroup: number): Promise<User[]>
+    getAllMember(idgroup: number): Promise<MemberDTO[]>
     changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<DataFileDrive | null>
     isContainInGroup(iduser: number, idgroup: number): Promise<boolean>
     renameGroup(iduser: number, idgroup: number, name: string): Promise<boolean>

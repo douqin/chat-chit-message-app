@@ -7,7 +7,7 @@ export interface MessageRepositoryBehavior extends MessageInformation, MessageAc
     reactMessage(idmessage: number, react: ReactMessage, iduser: number): boolean | PromiseLike<boolean>;
     sendFileMessage(idgroup: number, iduser: number, content: any): string[] | PromiseLike<string[]>;
     sendTextMessage(idgroup: number, iduser: number, content: string): boolean | PromiseLike<boolean>;
-    getAllMessageFromGroup(idgroup: number, iduser: number): object[] | PromiseLike<object[] | undefined> | undefined;
+    getAllMessageFromGroup(idgroup: number, iduser: number):  Promise<any[]>;
 
 }
 export interface MessageInformation {

@@ -1,4 +1,5 @@
 export default class Message {
+    idmember : string
     content: string
     createat: Date
     idgroup: number
@@ -7,7 +8,6 @@ export default class Message {
     replyidmessage: number
     status: number
     type: number
-    userdelete: number
     constructor(content: string,
         createat: Date,
         idgroup: number,
@@ -16,7 +16,7 @@ export default class Message {
         replyidmessage: number,
         status: number,
         type: number,
-        userdelete: number) {
+        idmember : string) {
         this.content = content
         this.createat = createat
         this.idgroup = idgroup
@@ -25,7 +25,33 @@ export default class Message {
         this.replyidmessage = replyidmessage
         this.status = status
         this.type = type
-        this.userdelete = userdelete
+        this.idmember = idmember
+    }
+    static fromRawsData(raws: any[]): Message[] {
+        let arrMessage: Array<Message> = [];
+        for (let raw of raws) {
+            const { content,
+                createat,
+                idgroup,
+                idmessage,
+                iduser,
+                replyidmessage,
+                status,
+                type,
+                idmember} = raw;
+            arrMessage.push(new Message(
+                content,
+                createat,
+                idgroup,
+                idmessage,
+                iduser,
+                replyidmessage,
+                status,
+                type,
+                idmember
+            ))
+        }
+        return arrMessage
     }
     static fromRawData(object: any): Message {
         const { content,
@@ -36,16 +62,7 @@ export default class Message {
             replyidmessage,
             status,
             type,
-            userdelete } = object;
-        console.info(content,
-            createat,
-            idgroup,
-            idmessage,
-            iduser,
-            replyidmessage,
-            status,
-            type,
-            userdelete);
+            idmember } = object;
         return new Message(
             content,
             createat,
@@ -55,7 +72,7 @@ export default class Message {
             replyidmessage,
             status,
             type,
-            userdelete
+            idmember
         );
     }
 }

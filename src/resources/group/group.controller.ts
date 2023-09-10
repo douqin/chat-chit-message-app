@@ -26,10 +26,6 @@ export default class GroupController extends MotherController {
             AuthMiddleware.auth,
             this.getAllGroup
         )
-        this.router.get('/group/date/:lasttime',
-            AuthMiddleware.auth,
-            this.getAllGroup
-        )
         this.router.get('/group/:id',
             AuthMiddleware.auth,
             this.getOneGroup
@@ -122,6 +118,7 @@ export default class GroupController extends MotherController {
     private getAllGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
+            console.log("🚀 ~ file: group.controller.ts:125 ~ GroupController ~ getAllGroup= ~ iduser:", iduser)
             let data = await this.groupService.getAllGroup(iduser)
             res.status(HttpStatus.OK).json(new ResponseBody(
                 true,
@@ -196,7 +193,7 @@ export default class GroupController extends MotherController {
             } = req.params
             if (await this.groupService.isContainInGroup(iduser, Number(id))) {
                 let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
-                res.status(HttpStatus.FOUND).json(new ResponseBody(
+                res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
                     "OK",
                     data
@@ -230,7 +227,7 @@ export default class GroupController extends MotherController {
             const { id } = req.params;
             if (await this.groupService.isContainInGroup(iduser, Number(id))) {
                 let data = await this.groupService.getAllMember(Number(id))
-                res.status(HttpStatus.FOUND).json(new ResponseBody(true, "OK", data))
+                res.status(HttpStatus.OK).json(new ResponseBody(true, "OK", data))
                 return
             }
             else {
@@ -239,6 +236,7 @@ export default class GroupController extends MotherController {
             }
 
         } catch (error: any) {
+            console.log("🚀 ~ file: group.controller.ts:239 ~ GroupController ~ getAllMember= ~ error:", error)
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }

@@ -33,7 +33,7 @@ export default class AuthController extends MotherController {
             "/auth/refreshtoken",
             multer().none(),
             LoginMiddleware.checkAuth(),
-            this.login
+            this.getNewAccessToken
         )
         this.router.post(
             "/auth/register",

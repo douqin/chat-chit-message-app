@@ -101,7 +101,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         } else throw new MyException("Bạn không có quyền này").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async getAllMember(idgroup: number): Promise<object[]> {
-        let query = "SELECT user.* from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ? AND member.status = ?"
+        let query = "SELECT * from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ? AND member.status = ?"
         let [rows] = await MySql.excuteQuery(query, [idgroup, MemberStatus.DEFAULT])
         console.log(rows)
         return rows as object[];
@@ -125,7 +125,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return dataRaw[0]
     }
     async getAllGroup(iduser: number): Promise<object[]> {
-        let query = `SELECT * FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ?;`
+        let query = `SELECT groupchat.* FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ?;`
         let [dataRaw, inforColimn]: any = await MySql.excuteQuery(
             query, [iduser]
         )
