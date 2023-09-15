@@ -11,7 +11,7 @@ import MessageServiceBehavior from "./interface/message.service.interaface";
 import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import { raw } from "body-parser";
-@Controller("/messagge")
+@Controller("/message")
 export default class MessageController extends MotherController {
     private messageService: MessageServiceBehavior;
     constructor(io: Server) {
@@ -21,26 +21,26 @@ export default class MessageController extends MotherController {
 
     initRouter(): MotherController {
         this.router.get(
-            "/messagge/:idgroup",
+            "/message/:idgroup",
             AuthMiddleware.auth,
             this.getMessageFromGroup
         );
         this.router.post(
-            "/messagge/:group/text",
+            "/message/:group/text",
             multer().none(),
             AuthMiddleware.auth,
             this.sendTextMessage
         );
         this.router.post(
-            "/messagge/:idgroup/file",
+            "/message/:idgroup/file",
             multer().array("files", 12),
             AuthMiddleware.auth,
             this.sendFileMessage
         );
-        this.router.post("/messagge/:id/react/:type", multer().none(), AuthMiddleware.auth, this.reactMessage);
-        this.router.patch("/messagge/:id/pin/:ispin", multer().none(), AuthMiddleware.auth, this.changePinMessage);
-        this.router.patch("/messagge/:id/removemessage", multer().none(), AuthMiddleware.auth, this.removeMessage)
-        this.router.patch("/messagge/:id/ ", multer().none(), AuthMiddleware.auth, this.updateLastView)
+        this.router.post("/message/:id/react/:type", multer().none(), AuthMiddleware.auth, this.reactMessage);
+        this.router.patch("/message/:id/pin/:ispin", multer().none(), AuthMiddleware.auth, this.changePinMessage);
+        this.router.patch("/message/:id/removemessage", multer().none(), AuthMiddleware.auth, this.removeMessage)
+        this.router.patch("/message/:id/ ", multer().none(), AuthMiddleware.auth, this.updateLastView)
         return this;
     }
     private changePinMessage = async (req: Request, res: Response, next: NextFunction) => {
@@ -122,6 +122,7 @@ export default class MessageController extends MotherController {
                     )
                 )
             }
+            console.error(e)
             next(
                 new HttpException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -136,16 +137,17 @@ export default class MessageController extends MotherController {
         next: NextFunction
     ) => {
         try {
+            console.log(req)
             const { idgroup } = req.params;
-
-            if (idgroup && req.files) {
+            if (idgroup != null && req.files != null) {
+                console.log("🚀 ~ file: message.controller.ts:143 ~ MessageController ~ req.files:", req.files)
                 const iduser = Number(req.headers['iduser'] as string)
                 let data = await this.messageService.sendFileMessage(
                     Number(idgroup),
                     iduser,
                     req.files
                 );
-                res.status(HttpStatus.FOUND).send(new ResponseBody(
+                res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "OK",
                     {}
@@ -157,9 +159,13 @@ export default class MessageController extends MotherController {
                         data
                     });
                 return;
-            }
-
-
+            } 
+            next(
+                new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    "File lỗi"
+                )
+            );
         } catch (e: any) {
             console.log("🚀 ~ file: message.controller.ts:131 ~ MessageController ~ e:", e)
             if (e instanceof MyException) {

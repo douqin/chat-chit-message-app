@@ -9,6 +9,8 @@ import MyException from "@/utils/exceptions/my.exception";
 import { MessageRepositoryBehavior } from "./interface/message.repository.interface";
 import { MessageStatus } from "./enum/message.status.enum";
 import Message from "./dtos/message.dto";
+import TransformMessage from "@/utils/transform/message.transform";
+import { ServiceDrive } from "./../../component/cloud/drive.service";
 
 export default class MessageService implements MessageServiceBehavior {
     private messageRepository: MessageRepositoryBehavior
@@ -52,6 +54,8 @@ export default class MessageService implements MessageServiceBehavior {
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<Message[]> {
         let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser)
-        return Message.fromRawsData(data)
+        return TransformMessage.fromRawsData(data, async (id : string) => {
+            return await ServiceDrive.gI().getUrlFile(id);
+        })
     }
 }

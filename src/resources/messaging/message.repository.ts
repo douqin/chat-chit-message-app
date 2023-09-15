@@ -70,8 +70,6 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         }
     }
     async sendFileMessage(idgroup: number, iduser: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE): Promise<Array<string>> {
-        const query = 'SELECT groupchat.id_folder FROM groupchat WHERE groupchat.idgroup = ? LIMIT 1'
-        let [[{ 'id_folder': id_folder }], column] = await MySql.excuteQuery(query, [idgroup]) as any
         let arrUrlFile: Array<string> = []
         for (let i = 0; i < content.length; i++) {
             try {
@@ -106,5 +104,8 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         const query = 'UPDATE message SET status = ? WHERE message.idmessage = ?'
         await MySql.excuteQuery(query, [status, idmessage])
         return true
+    }
+    async getUrlFile(id : string) : Promise<string | null | undefined>{
+        return await this.drive.getUrlFile(id);
     }
 }

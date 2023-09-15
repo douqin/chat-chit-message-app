@@ -25,12 +25,13 @@ export class ServiceDrive implements iDrive {
         });
     }
     async getUrlFile(idFile: string): Promise<string | null | undefined> {
-        return (await this.drive.files.get(
+        let file = (await this.drive.files.get(
             {
                 fileId: idFile,
-                fields: "webViewLink"
+                fields: "webContentLink"
             }
-        )).data.webViewLink
+        ));
+        return file.data.webContentLink 
     }
     async delete(id: string): Promise<void> {
         let data = (await this.drive.files.delete({
