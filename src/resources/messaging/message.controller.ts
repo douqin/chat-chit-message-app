@@ -10,7 +10,8 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import MessageServiceBehavior from "./interface/message.service.interaface";
 import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
-import { raw } from "body-parser";
+import { TokenDb, checkElementsInAnotInB, getAllNotificationTokenFromServer, getAllNotificationTokenFromSockets } from "@/utils/extension/extension.notification.token";
+import { ServiceFCM } from "../../component/firebase/firebase.service";
 @Controller("/message")
 export default class MessageController extends MotherController {
     private messageService: MessageServiceBehavior;
@@ -26,7 +27,7 @@ export default class MessageController extends MotherController {
             this.getMessageFromGroup
         );
         this.router.post(
-            "/message/:group/text",
+            "/message/:idgroup/text",
             multer().none(),
             AuthMiddleware.auth,
             this.sendTextMessage
@@ -138,6 +139,7 @@ export default class MessageController extends MotherController {
                     iduser,
                     req.files
                 );
+
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "OK",
@@ -146,7 +148,7 @@ export default class MessageController extends MotherController {
                 this.io
                     .to(`${idgroup}_group`)
                     .emit("message",
-                         data
+                        data
                     )
                 return;
             }
@@ -176,11 +178,27 @@ export default class MessageController extends MotherController {
     };
     private sendTextMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { group } = req.params;
-            const { message } = req.body;
-            if (group && message) {
+            const idgroup = Number(req.params.idgroup);
+            console.log("🚀 ~ file: message.controller.ts:181 ~ MessageController ~ sendTextMessage= ~ idgroup:", idgroup)
+            const message = String(req.body.message);
+            console.log("🚀 ~ file: message.controller.ts:182 ~ MessageController ~ sendTextMessage= ~ message:", message)
+            if (idgroup && message) {
                 const iduser = Number(req.headers['iduser'] as string)
-                let messageModel = await this.messageService.sendTextMessage(Number(group), iduser, message)
+                let messageModel = await this.messageService.sendTextMessage(idgroup, iduser, message)
+                this.io
+                    .to(`${idgroup}_group`)
+                    .emit("message",
+                        messageModel
+                    )
+                const sockets = await this.io.in(`${idgroup}_group`).fetchSockets();
+                let tokens = getAllNotificationTokenFromSockets(sockets)
+                let tokenSaved = await getAllNotificationTokenFromServer(idgroup)
+                tokens = await checkElementsInAnotInB<string>(tokens, tokenSaved.map<string>((value: TokenDb, index: number, array: TokenDb[]) => {
+                    return value.notificationtoken;
+                }))
+                if (tokens.length != 0) {
+                    await ServiceFCM.gI().sendMulticast(messageModel, tokens)
+                }
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -188,16 +206,12 @@ export default class MessageController extends MotherController {
                         messageModel
                     )
                 );
-                this.io
-                    .to(`${group}_group`)
-                    .emit("message",
-                        messageModel
-                    )
                 return;
             }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
         } catch (e: any) {
-            console.log("🚀 ~ file: message.controller.ts:144 ~ MessageController ~ sendTextMessage= ~ e:", e)
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"));
+            console.log("🚀 ~ file: message.controller.ts:211 ~ MessageController ~ sendTextMessage= ~ e:", e)
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"));
         }
     };
     private reactMessage = async (req: Request, res: Response, next: NextFunction) => {
