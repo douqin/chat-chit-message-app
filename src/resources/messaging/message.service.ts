@@ -41,16 +41,19 @@ export default class MessageService implements MessageServiceBehavior {
     async reactMessage(idmessage: number, react: ReactMessage, iduser: number): Promise<boolean> {
         return await this.messageRepository.reactMessage(idmessage, react, iduser)
     }
-    async sendFileMessage(idgroup: number, iduser: number, content: any): Promise<Array<string>> {
+    async sendFileMessage(idgroup: number, iduser: number, content: any) {
         for (let i = 0; i < content.length; i++) {
             if (!content[i].mimetype.includes('image') && !content[i].mimetype.includes('video')) {
                 throw new MyException("File không hợp lệ")
             }
         }
-        return await this.messageRepository.sendFileMessage(idgroup, iduser, content)
+        return TransformMessage.fromRawsData(await this.messageRepository.sendFileMessage(idgroup, iduser, content), async (id : string) => {
+            return await ServiceDrive.gI().getUrlFile(id);
+        })
     }
-    async sendTextMessage(idgroup: number, iduser: number, content: string): Promise<boolean> {
-        return await this.messageRepository.sendTextMessage(idgroup, iduser, content);
+    async sendTextMessage(idgroup: number, iduser: number, content: string){
+        let raw = await this.messageRepository.sendTextMessage(idgroup, iduser, content)
+        return TransformMessage.fromRawData(raw)
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<Message[]> {
         let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser)

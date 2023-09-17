@@ -13,6 +13,28 @@ export default class MessageRepository implements MessageRepositoryBehavior {
     constructor() {
         this.drive = ServiceDrive.gI();
     }
+    async sendFileMessage(idgroup: number, iduser: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE)  {
+        let array = [];
+        for (let i = 0; i < content.length; i++) {
+            try {
+                let inforFile = await this.drive.uploadFile(content[i].filename, content[i].buffer)
+                const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+                const [[{ 'id': idmember }], column1] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
+                const querySaveId = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`
+                if (inforFile) {
+                    let [data] = await MySql.excuteQuery(querySaveId, [idmember, inforFile?.id, (content[i].mimetype.includes("image")) ? MessageType.IMAGE : MessageType.VIDEO, MessageStatus.DEFAULT]) as any
+                    const [dataQuery, inforColumn] = await MySql.excuteQuery(
+                        "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)", [idgroup, data.insertId, idmember]
+                    ) as any[]
+                    return dataQuery;
+                }
+            }
+            catch (e) {
+                console.log(e)
+            }
+        }
+        return [];
+    }
     async isMessageOfUser(idmessage: Number, iduser: Number): Promise<boolean> {
         const quert = 'SELECT COUNT(*) From member JOIN message ON member.id = message.idmember AND message.idmessage = ? AND member.iduser = ?        '
         const [{ 'COUNT(*)': isExist }] = await MySql.excuteQuery(quert, [idmessage, iduser]) as any
@@ -48,10 +70,14 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         // get idmember
         const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
         const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
-        const sql = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`;
-        const values = [idmember, content, MessageType.TEXT, MessageStatus.DEFAULT]
-        const [rows] = await MySql.excuteQuery(sql, values)
-        return true;
+        let date = new Date();
+        const sql = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, ?, ?, ?)`;
+        const values = [idmember, content, date, MessageType.TEXT, MessageStatus.DEFAULT]
+        const [rows] = await MySql.excuteQuery(sql, values) as any
+        const [dataQuery, inforColumn] = await MySql.excuteQuery(
+            "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)", [idgroup, rows.insertId, idmember]
+        ) as any
+        return dataQuery[0];
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<any[]> {
         const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
@@ -68,25 +94,6 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         } else {
             throw new MyException("Bạn không có quyền truy cập")
         }
-    }
-    async sendFileMessage(idgroup: number, iduser: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE): Promise<Array<string>> {
-        let arrUrlFile: Array<string> = []
-        for (let i = 0; i < content.length; i++) {
-            try {
-                let inforFile = await this.drive.uploadFile(content[i].filename, content[i].buffer)
-                const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
-                const [[{ 'id': idmember }], column1] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
-                const querySaveId = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`
-                if (inforFile) {
-                    let [data, column2] = await MySql.excuteQuery(querySaveId, [idmember, inforFile?.id, (content[i].mimetype.includes("image")) ? MessageType.IMAGE : MessageType.VIDEO, MessageStatus.DEFAULT]) as any
-                    arrUrlFile.push(inforFile.url)
-                }
-            }
-            catch (e) {
-                console.log(e)
-            }
-        }
-        return arrUrlFile;
     }
     async sendGiftMessage(idgroup: number, iduser: number, content: string) {
         // get idmember

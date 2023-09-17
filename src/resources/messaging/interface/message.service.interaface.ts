@@ -1,3 +1,4 @@
+import Message from "../dtos/message.dto";
 import { ReactMessage } from "../enum/message.react.enum";
 
 export default interface MessageServiceBehavior {
@@ -7,7 +8,7 @@ export default interface MessageServiceBehavior {
     getAllMessageFromGroup(idgroup: number, iduser: number): Promise<any>
     sendFileMessage(idgroup: number, iduser: number, content: {
         [fieldname: string]: Express.Multer.File[];
-    } | Express.Multer.File[] | undefined): Promise<Array<string>>
-    sendTextMessage(idgroup: number, iduser: number, content: string): Promise<boolean>
+    } | Express.Multer.File[] | undefined): Promise<Message[]>
+    sendTextMessage(idgroup: number, iduser: number, content: string): Promise<Message>
     reactMessage(idmessage: number, react: ReactMessage, iduser: number): Promise<any>
 }

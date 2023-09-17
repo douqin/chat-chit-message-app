@@ -21,15 +21,15 @@ export default class AuthService {
         this.authRepository = new AuthRepository()
     }
 
-    async login(phone: string, password: string, notificationToken: string = ""): Promise<LoginSuccessfully | undefined> {
-        let userRaw = await this.authRepository.login(phone, password);
+    async login(phone: string, password: string, notificationToken : string): Promise<LoginSuccessfully | undefined> {
+        let userRaw = await this.authRepository.login(phone, password, notificationToken);
         if (userRaw) {
             const {
                 iduser
             } = userRaw
             let user: User = User.fromRawData(userRaw)
             if (user) {
-                let fullToken = await AuthHandler.getFullToken(iduser)
+                let fullToken = await AuthHandler.getFullToken(iduser, notificationToken)
                 if (fullToken) {
                     let response: LoginSuccessfully = {
                         user: user,

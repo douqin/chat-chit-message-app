@@ -5,8 +5,8 @@ export interface MessageRepositoryBehavior extends MessageInformation, MessageAc
     updateLastView(iduser: number, idmessgae: number): boolean | PromiseLike<boolean>;
     changePinMessage(idmessage: number, iduser: number, isPin: number): boolean | PromiseLike<boolean>;
     reactMessage(idmessage: number, react: ReactMessage, iduser: number): boolean | PromiseLike<boolean>;
-    sendFileMessage(idgroup: number, iduser: number, content: any): string[] | PromiseLike<string[]>;
-    sendTextMessage(idgroup: number, iduser: number, content: string): boolean | PromiseLike<boolean>;
+    sendFileMessage(idgroup: number, iduser: number, content: any): string[] | PromiseLike<any[]>;
+    sendTextMessage(idgroup: number, iduser: number, content: string): boolean | PromiseLike<object>;
     getAllMessageFromGroup(idgroup: number, iduser: number):  Promise<any[]>;
 
 }
