@@ -42,7 +42,7 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
-
+.vscode/
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
@@ -79,6 +79,7 @@ web_modules/
 .env.test.local
 .env.production.local
 .env.local
+README_.md
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

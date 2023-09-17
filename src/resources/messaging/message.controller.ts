@@ -46,7 +46,7 @@ export default class MessageController extends MotherController {
     private changePinMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id, ispin, idgroup } = req.params;
-            if (id && idgroup) {
+            if (id && Number(idgroup)) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let isOK = await this.messageService.changePinMessage(Number(id), Number(iduser), Number(ispin))
                 console.log("🚀 ~ file: message.controller.ts:57 ~ MessageController ~ changePinMessage= ~ isOK:", isOK)
@@ -92,24 +92,17 @@ export default class MessageController extends MotherController {
         try {
             const { idgroup } = req.params;
             const time = req.query;
-            console.log("🚀 ~ file: message.controller.ts:95 ~ MessageController ~ time:", time)
-            if (idgroup) {
+            if (Number(idgroup)) {
                 const iduser = Number(req.headers['iduser'] as string)
-                // if (time) {
-
-                // }
-                // else {
                 let data = await this.messageService.getAllMessageFromGroup(
                     Number(idgroup),
                     iduser
                 );
-                console.log("🚀 ~ file: message.controller.ts:106 ~ MessageController ~ data:", data)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
                     data
                 ));
-                // }
                 return;
             }
 
@@ -137,10 +130,8 @@ export default class MessageController extends MotherController {
         next: NextFunction
     ) => {
         try {
-            console.log(req)
             const { idgroup } = req.params;
-            if (idgroup != null && req.files != null) {
-                console.log("🚀 ~ file: message.controller.ts:143 ~ MessageController ~ req.files:", req.files)
+            if (Number(idgroup) && req.files) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let data = await this.messageService.sendFileMessage(
                     Number(idgroup),
@@ -150,16 +141,15 @@ export default class MessageController extends MotherController {
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "OK",
-                    {}
+                    data
                 ));
                 this.io
-                    .to(`${idgroup}`)
-                    .emit("message_file", {
-                        iduser,
-                        data
-                    });
+                    .to(`${idgroup}_group`)
+                    .emit("message",
+                         data
+                    )
                 return;
-            } 
+            }
             next(
                 new HttpException(
                     HttpStatus.BAD_REQUEST,
@@ -190,22 +180,19 @@ export default class MessageController extends MotherController {
             const { message } = req.body;
             if (group && message) {
                 const iduser = Number(req.headers['iduser'] as string)
-
-                let isSuccessfully = await this.messageService.sendTextMessage(Number(group), iduser, message)
-                if (isSuccessfully) {
-                    this.io
-                        .to(`${group}`)
-                        .emit("message_text", {
-                            iduser, message
-                        })
-                    res.status(HttpStatus.OK).send(
-                        new ResponseBody(
-                            true,
-                            "OK",
-                            {}
-                        )
-                    );
-                }
+                let messageModel = await this.messageService.sendTextMessage(Number(group), iduser, message)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        true,
+                        "OK",
+                        messageModel
+                    )
+                );
+                this.io
+                    .to(`${group}_group`)
+                    .emit("message",
+                        messageModel
+                    )
                 return;
             }
         } catch (e: any) {
@@ -216,7 +203,7 @@ export default class MessageController extends MotherController {
     private reactMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id, type, idgroup } = req.params;
-            if (id && type && idgroup) {
+            if (id && Number(type) && Number(idgroup)) {
                 const iduser = Number(req.headers['iduser'] as string)
 
                 let isOK = await this.messageService.reactMessage(

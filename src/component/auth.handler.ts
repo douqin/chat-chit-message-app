@@ -53,9 +53,9 @@ class AuthHandler {
         )
     };
     private decodeToken = async (token: any, secretKey: any) => {
-            return jwt.verify(token, secretKey, {
-                ignoreExpiration: true,
-            });
+        return jwt.verify(token, secretKey, {
+            ignoreExpiration: true,
+        });
     };
     private decodeToken2 = async (token: any, secretKey: any) => {
         try {
@@ -86,7 +86,7 @@ class AuthHandler {
         }
         //	return await JSON.parse(JSON.stringify(data));;
     }
-    public async getFullToken(iduser: number): Promise<Token | undefined> {
+    public async getFullToken(iduser: number, notificationToken: string): Promise<Token | undefined> {
         let accessToken = await this.generateAccessToken(`${iduser}`);
         if (!accessToken) {
             return undefined;
@@ -109,7 +109,7 @@ class AuthHandler {
                 refreshToken: refreshToken,
                 accessToken: accessToken
             }
-            if (await this.saveFullToken(iduser, token)) {
+            if (await this.saveFullToken(iduser, token, notificationToken)) {
                 return token;
             }
         }
@@ -121,15 +121,13 @@ class AuthHandler {
     public checkHSDRefreshToken = async (refreshToken: any) => {
         return await this.decodeToken2(refreshToken, refreshTokenSecret);
     }
-    private async saveFullToken(iduser: number, Token: Token): Promise<boolean> {
+    private async saveFullToken(iduser: number, Token: Token, notificationToken: string): Promise<boolean> {
         let refreshToken = Token.refreshToken
         let accessToken = Token.accessToken
-        let query = 'INSERT INTO token (iduser, refreshtoken, accesstoken) VALUES (' +
-            `${iduser}` +
-            ",'" + refreshToken + "'" + ",'" + accessToken + "')";
+        let query = 'INSERT INTO token (iduser, refreshtoken, accesstoken, notificationtoken) VALUES (?,?,?)';
         let result: boolean = true;
         try {
-            let result1 = await MySql.excuteQuery(query);
+            let result1 = await MySql.excuteQuery(query, [iduser, refreshToken, accessToken, notificationToken]);
         }
         catch (err) {
             console.log(err)

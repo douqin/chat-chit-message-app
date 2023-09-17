@@ -3,7 +3,6 @@ import GroupChat from "./dtos/group.dto";
 import GroupRepository from "./group.repository";
 import LastViewGroup from "./dtos/lastview.dto";
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
-import { User } from "../auth/dtos/user.dto";
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
 import MyException from "@/utils/exceptions/my.exception";
 import { MemberStatus } from './enum/member.status.enum';

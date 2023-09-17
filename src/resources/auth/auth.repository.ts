@@ -8,7 +8,7 @@ export default class AuthRepository {
         return true
     }
     constructor() { }
-    public async login(phone: string, password: string): Promise<any> {
+    public async login(phone: string, password: string, notificationToken : string): Promise<any> {
         const query = `SELECT * FROM user WHERE user.phone = ? AND user.password = ?`
         let [data] = await MySql.excuteQuery(query, [phone, password]) as any
         return data[0];

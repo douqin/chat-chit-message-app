@@ -7,8 +7,9 @@ import { Socket } from "socket.io";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         try {
-            let token = (socket.handshake.headers.token as string).split(" ")[1];
-            if (token) {
+            let token = String((socket.handshake.headers.token as string).split(" ")[1]);
+            let notificationToken = String(socket.handshake.headers.notification)
+            if (token && notificationToken) {
                 if (token) {
                     const jwtPayload = await authHandler.decodeAccessToken(token) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
@@ -16,7 +17,8 @@ class SocketMiddleware {
                         socket.handshake.headers.iduser = iduser
                         socket.join(`${iduser}_user`)
                     }
-                    return;
+                    next()
+                    return
                 }
             }
         }

@@ -58,16 +58,19 @@ export default class AuthController extends MotherController {
         try {
             const phone = req.body.phone.toString();
             const password = req.body.password.toString();
-            let data = await this.authService.login(phone, password);
-            console.log("🚀 ~ file: login.controller.ts:54 ~ LoginController ~ data:", data)
-            if (data) {
-                res.setHeader("token", "Bearer " + data.token.accessToken)
-                res.cookie("refreshtoken", data.token.refreshToken, { secure: false, httpOnly: true })
-                res.status(HttpStatus.ACCEPTED).send(new ResponseBody(true, "", data))
+            const notificationToken = req.body.notification.toString()
+            if ( phone && password && notificationToken) {
+                let data = await this.authService.login(phone, password, notificationToken);
+                if (data) {
+                    res.setHeader("token", "Bearer " + data.token.accessToken)
+                    res.cookie("refreshtoken", data.token.refreshToken, { secure: false, httpOnly: true })
+                    res.status(HttpStatus.ACCEPTED).send(new ResponseBody(true, "OK", data))
+                }
+                else {
+                    next(new HttpException(HttpStatus.NOT_FOUND, 'Sai tài khoản hoặc mật khẩu'))
+                }
             }
-            else {
-                next(new HttpException(HttpStatus.NOT_FOUND, 'Sai tài khoản hoặc mật khẩu'))
-            }
+            else next(new HttpException(HttpStatus.BAD_REQUEST, 'Tham số không hợp lệ'));
         } catch (error: any) {
             console.log("🚀 ~ file: login.controller.ts:64 ~ LoginController ~ error:", error)
             next(new HttpException(HttpStatus.FORBIDDEN, "Có lỗi xảy ra vui lòng thử lại sau"))
@@ -127,7 +130,7 @@ export default class AuthController extends MotherController {
             const refreshToken = String(req.body.refreshtoken)
             let token = req.headers["token"] as string
             if (iduser && refreshToken && token) {
-                let newAccessToken = await this.authService.getNewAccessToken(iduser,token, refreshToken)
+                let newAccessToken = await this.authService.getNewAccessToken(iduser, token, refreshToken)
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
                     "",
