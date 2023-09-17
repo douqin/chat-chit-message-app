@@ -3,6 +3,15 @@ import firebase from "../../config/firebase/firebase";
 import { NotificationService } from "./firebase.service.interface";
 
 export class ServiceFCM implements NotificationService {
+
+    private static instance = new ServiceFCM();
+
+    private constructor(){}
+
+    public static gI(){
+        return ServiceFCM.instance;
+    } 
+
     async sendMessageToUserOffInGroup(idgroup: number, iduser: number, data: any): Promise<void> {
         const message : TopicMessage = {
             data: data,
