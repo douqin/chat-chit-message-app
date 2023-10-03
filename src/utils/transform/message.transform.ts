@@ -64,6 +64,7 @@ export default class TransformMessage {
                 value.content = url
             } else throw new MyException("Lỗi xử lí url ảnh").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
         }
+
         return value
     }
 }

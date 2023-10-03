@@ -124,10 +124,12 @@ class AuthHandler {
     private async saveFullToken(iduser: number, Token: Token, notificationToken: string): Promise<boolean> {
         let refreshToken = Token.refreshToken
         let accessToken = Token.accessToken
-        let query = 'INSERT INTO token (iduser, refreshtoken, accesstoken, notificationtoken) VALUES (?,?,?)';
+        let query = 'INSERT INTO token (iduser, refreshtoken, accesstoken, notificationtoken) VALUES (?,?,?, ?)';
         let result: boolean = true;
         try {
             let result1 = await MySql.excuteQuery(query, [iduser, refreshToken, accessToken, notificationToken]);
+
+            //TODO: FIX empty notificationToken
         }
         catch (err) {
             console.log(err)

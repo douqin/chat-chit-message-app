@@ -1,5 +1,5 @@
 import firebase from 'firebase-admin';
-import serviceAccount from './service-account.json';
+import serviceAccount from './chat-chit-vn-firebase-adminsdk-s5ov2-a6005a3a63.json'
 
 const params = {               //clone json object into new object to make typescript happy
     type: serviceAccount.type,
@@ -13,7 +13,6 @@ const params = {               //clone json object into new object to make types
     authProviderX509CertUrl: serviceAccount.auth_provider_x509_cert_url,
     clientC509CertUrl: serviceAccount.client_x509_cert_url
 }
-
 firebase.initializeApp({
     credential: firebase.credential.cert(params),
 })

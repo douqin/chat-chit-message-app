@@ -13,7 +13,7 @@ export default class MessageRepository implements MessageRepositoryBehavior {
     constructor() {
         this.drive = ServiceDrive.gI();
     }
-    async sendFileMessage(idgroup: number, iduser: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE)  {
+    async sendFileMessage(idgroup: number, iduser: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE) {
         let array = [];
         for (let i = 0; i < content.length; i++) {
             try {
@@ -26,14 +26,14 @@ export default class MessageRepository implements MessageRepositoryBehavior {
                     const [dataQuery, inforColumn] = await MySql.excuteQuery(
                         "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)", [idgroup, data.insertId, idmember]
                     ) as any[]
-                    return dataQuery;
+                    array.push(dataQuery[0]);
                 }
             }
             catch (e) {
                 console.log(e)
             }
         }
-        return [];
+        return array;
     }
     async isMessageOfUser(idmessage: Number, iduser: Number): Promise<boolean> {
         const quert = 'SELECT COUNT(*) From member JOIN message ON member.id = message.idmember AND message.idmessage = ? AND member.iduser = ?        '
@@ -84,9 +84,8 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
         if (idmember) {
             const query = `
-            SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ?)
+            SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ?)
             `
-            //message.idmessage, message.content, message.createat,mess age.type, message.replyidmessage, message.ispin, member.iduser
             const [dataQuery, inforColumn] = await MySql.excuteQuery(
                 query, [idgroup]
             )
@@ -104,15 +103,27 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         const [rows] = await MySql.excuteQuery(sql, values)
         return true;
     }
-    async reactMessage(idmessage: number, react: ReactMessage, iduser: number): Promise<any> {
-        return true;
+    async reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup: number): Promise<any> {
+        const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+        const [[{ 'id': idmember }], column1] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
+        let query = "INSERT INTO reaction(idmessage, type, idmember) VALUE(?,?,?)"
+        let [dataInsert] = await MySql.excuteQuery(query, [idmessage, react, idmember]) as any
+        let qGetEntity = "SELECT * FROM reaction WHERE idreaction = ?"
+        let [data, inforColumn2] = await MySql.excuteQuery(qGetEntity, [dataInsert.insertId]) as any
+        return data[0];
     }
     async changeStatusMessage(idmessage: number, status: MessageStatus): Promise<boolean> {
         const query = 'UPDATE message SET status = ? WHERE message.idmessage = ?'
         await MySql.excuteQuery(query, [status, idmessage])
         return true
     }
-    async getUrlFile(id : string) : Promise<string | null | undefined>{
+    async getUrlFile(id: string): Promise<string | null | undefined> {
         return await this.drive.getUrlFile(id);
+    }
+    async getAllReactFromMessage(idmessage: number): Promise<any[]> {
+        let query = "SELECT * FROM reaction WHERE reaction.idmessage = ?"
+        let [data, inforColumn] = await MySql.excuteQuery(query, [idmessage]) as any
+        console.log("🚀 ~ file: message.repository.ts:126 ~ MessageRepository ~ getAllReactFromMessage ~ data:", data)
+        return data
     }
 }

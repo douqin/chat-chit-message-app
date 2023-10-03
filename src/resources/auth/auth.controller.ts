@@ -56,9 +56,9 @@ export default class AuthController extends MotherController {
         next: NextFunction
     ): Promise<Response | void> => {
         try {
-            const phone = req.body.phone.toString();
-            const password = req.body.password.toString();
-            const notificationToken = req.body.notification.toString()
+            const phone = String(req.body.phone)
+            const password = String(req.body.password)
+            const notificationToken = String(req.body.notification)
             if ( phone && password && notificationToken) {
                 let data = await this.authService.login(phone, password, notificationToken);
                 if (data) {

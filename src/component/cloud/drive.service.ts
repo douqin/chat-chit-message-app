@@ -33,6 +33,7 @@ export class ServiceDrive implements iDrive {
         ));
         return file.data.webContentLink 
     }
+    
     async delete(id: string): Promise<void> {
         let data = (await this.drive.files.delete({
             fileId: id

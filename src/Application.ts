@@ -16,6 +16,8 @@ import AuthController from './resources/auth/auth.controller';
 import GroupController from './resources/group/group.controller';
 import MeController from './resources/me/me.controller';
 import MessageController from './resources/messaging/message.controller';
+import TestController from './resources/test/test.controller';
+import StoryController from './resources/story/story.controller';
 class App {
     private server: any
     private io: Server
@@ -40,9 +42,11 @@ class App {
             new AuthController(this.io).initRouter(),
             new GroupController(this.io).initRouter(),
             new MessageController(this.io).initRouter(),
-            new MeController(this.io).initRouter()
+            new MeController(this.io).initRouter(),
+            new TestController(this.io).initRouter(),
+            new StoryController(this.io).initRouter()
         ]
-        this.initaliseController(controller)
+        this.initaliseController(controller) 
         this.initErrorHandler()
     }
     private initErrorHandler() {
@@ -60,7 +64,9 @@ class App {
             res.status(HttpStatus.NOT_FOUND).send(new ResponseBody(
                 false,
                 "Không tìm thấy trang bạn yêu cầu",
-                {}
+                {
+                    "url" : req.url
+                }
             ))
         })
     }

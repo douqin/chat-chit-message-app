@@ -4,6 +4,5 @@ export enum ReactMessage {
     LOVE = 3,
     WOW = 4,
     ANGRY = 5,
-    LIKE = 6,
-    DISLIKE = 7
+    LIKE = 6
 }

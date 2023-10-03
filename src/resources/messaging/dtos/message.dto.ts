@@ -1,3 +1,5 @@
+import Reaction from "./react.dto"
+
 export default class Message {
     idmember : string
     content: string 
@@ -8,6 +10,7 @@ export default class Message {
     replyidmessage: number
     status: number
     type: number
+    public reacts : Array<Reaction>
     constructor(content: string,
         createat: Date,
         idgroup: number,
@@ -26,5 +29,6 @@ export default class Message {
         this.status = status
         this.type = type
         this.idmember = idmember
+        this.reacts = [];
     }
 }

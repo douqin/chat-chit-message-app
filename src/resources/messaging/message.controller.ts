@@ -12,6 +12,7 @@ import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import { TokenDb, checkElementsInAnotInB, getAllNotificationTokenFromServer, getAllNotificationTokenFromSockets } from "@/utils/extension/extension.notification.token";
 import { ServiceFCM } from "../../component/firebase/firebase.service";
+import { MessageStatus } from "./enum/message.status.enum";
 @Controller("/message")
 export default class MessageController extends MotherController {
     private messageService: MessageServiceBehavior;
@@ -38,7 +39,7 @@ export default class MessageController extends MotherController {
             AuthMiddleware.auth,
             this.sendFileMessage
         );
-        this.router.post("/message/:id/react/:type", multer().none(), AuthMiddleware.auth, this.reactMessage);
+        this.router.post("/message/:id/react", multer().none(), AuthMiddleware.auth, this.reactMessage);
         this.router.patch("/message/:id/pin/:ispin", multer().none(), AuthMiddleware.auth, this.changePinMessage);
         this.router.patch("/message/:id/removemessage", multer().none(), AuthMiddleware.auth, this.removeMessage)
         this.router.patch("/message/:id/ ", multer().none(), AuthMiddleware.auth, this.updateLastView)
@@ -92,7 +93,7 @@ export default class MessageController extends MotherController {
     ) => {
         try {
             const { idgroup } = req.params;
-            const time = req.query;
+            // const time = req.query;
             if (Number(idgroup)) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let data = await this.messageService.getAllMessageFromGroup(
@@ -139,7 +140,6 @@ export default class MessageController extends MotherController {
                     iduser,
                     req.files
                 );
-
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "OK",
@@ -179,26 +179,24 @@ export default class MessageController extends MotherController {
     private sendTextMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const idgroup = Number(req.params.idgroup);
-            console.log("🚀 ~ file: message.controller.ts:181 ~ MessageController ~ sendTextMessage= ~ idgroup:", idgroup)
             const message = String(req.body.message);
-            console.log("🚀 ~ file: message.controller.ts:182 ~ MessageController ~ sendTextMessage= ~ message:", message)
             if (idgroup && message) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let messageModel = await this.messageService.sendTextMessage(idgroup, iduser, message)
                 this.io
                     .to(`${idgroup}_group`)
                     .emit("message",
-                        messageModel
+                        [messageModel]
                     )
-                const sockets = await this.io.in(`${idgroup}_group`).fetchSockets();
-                let tokens = getAllNotificationTokenFromSockets(sockets)
-                let tokenSaved = await getAllNotificationTokenFromServer(idgroup)
-                tokens = await checkElementsInAnotInB<string>(tokens, tokenSaved.map<string>((value: TokenDb, index: number, array: TokenDb[]) => {
-                    return value.notificationtoken;
-                }))
-                if (tokens.length != 0) {
-                    await ServiceFCM.gI().sendMulticast(messageModel, tokens)
-                }
+                // const sockets = await this.io.in(`${idgroup}_group`).fetchSockets();
+                // let tokens = getAllNotificationTokenFromSockets(sockets)
+                // let tokenSaved = await getAllNotificationTokenFromServer(idgroup)
+                // tokens = await checkElementsInAnotInB<string>(tokens, tokenSaved.map<string>((value: TokenDb, index: number, array: TokenDb[]) => {
+                //     return value.notificationtoken;
+                // }))
+                // if (tokens.length != 0) {
+                //     await ServiceFCM.gI().sendMulticast(messageModel, tokens)
+                // }
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -216,34 +214,30 @@ export default class MessageController extends MotherController {
     };
     private reactMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { id, type, idgroup } = req.params;
-            if (id && Number(type) && Number(idgroup)) {
+            const idgroup = Number(req.body.idgroup);
+            const type = Number(req.body.type);
+            const idmessage = Number(req.params.id);
+
+            if (idmessage && type && idgroup) {
                 const iduser = Number(req.headers['iduser'] as string)
 
-                let isOK = await this.messageService.reactMessage(
-                    Number(id), Number(type), iduser
+                let model = await this.messageService.reactMessage(
+                    Number(idmessage), Number(type), iduser, idgroup
                 )
-                if (!isOK) {
-                    next(new HttpException(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"))
-                    return
-                }
+                this.io.to(`${idgroup}_group`).emit('react_message',
+                    model
+                )
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
                         "OK",
-                        {}
+                        model
                     )
                 );
-                this.io.to(`${idgroup}`).emit('react_message', {
-                    iduser,
-                    id,
-                    type
-                })
-                return;
-
-            }
+            } else next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
 
         } catch (e: any) {
+            console.log("🚀 ~ file: message.controller.ts:241 ~ MessageController ~ reactMessage= ~ e:", e)
             if (e instanceof MyException) {
                 next(
                     new HttpException(
@@ -267,6 +261,11 @@ export default class MessageController extends MotherController {
             const idmessgae = Number(req.params.id)
             if (iduser && idgroup && idmessgae) {
                 let isOK = await this.messageService.removeMessage(iduser, idgroup, idmessgae)
+                this.io.to(`${idgroup}_group`).emit('del_message',
+                    iduser,
+                    idmessgae,
+                    MessageStatus.DEL_BY_OWNER
+                )
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     isOK,
                     "",

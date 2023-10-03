@@ -11,6 +11,8 @@ import { MessageStatus } from "./enum/message.status.enum";
 import Message from "./dtos/message.dto";
 import TransformMessage from "@/utils/transform/message.transform";
 import { ServiceDrive } from "./../../component/cloud/drive.service";
+import Reaction from "./dtos/react.dto";
+import TransformReaction from "@/utils/transform/reaction.transform";
 
 export default class MessageService implements MessageServiceBehavior {
     private messageRepository: MessageRepositoryBehavior
@@ -38,8 +40,16 @@ export default class MessageService implements MessageServiceBehavior {
         }
         else throw new MyException("Tham số không hợp lệ")
     }
-    async reactMessage(idmessage: number, react: ReactMessage, iduser: number): Promise<boolean> {
-        return await this.messageRepository.reactMessage(idmessage, react, iduser)
+    async reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup : number): Promise<Reaction> {
+        let memberInfor: MemberInfo = new GroupRepository()
+        if (await this.messageRepository.isMessageContainInGroup(idmessage, idgroup)) {
+            if(await memberInfor.isContainInGroup(iduser,idgroup)){
+                return TransformReaction.rawToModel(
+                    await this.messageRepository.reactMessage(idmessage, react, iduser, idgroup)
+                )
+            }
+        }
+        throw new MyException("User không có quyền này").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async sendFileMessage(idgroup: number, iduser: number, content: any) {
         for (let i = 0; i < content.length; i++) {
@@ -57,8 +67,14 @@ export default class MessageService implements MessageServiceBehavior {
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<Message[]> {
         let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser)
-        return TransformMessage.fromRawsData(data, async (id : string) => {
-            return await ServiceDrive.gI().getUrlFile(id);
+        let messages = await TransformMessage.fromRawsData(data, async (id : string) => {
+            return await ServiceDrive.gI().getUrlFile(id)
         })
+        for(let message of messages){
+            message.reacts = (await this.messageRepository.getAllReactFromMessage(message.idmessage)).map((value: any, index: number, array: any[]) =>{
+                return TransformReaction.rawToModel(value)
+            })
+        }
+        return messages
     }
 }
