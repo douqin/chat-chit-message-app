@@ -3,7 +3,9 @@ export default interface iStoryRepositoryBehavior {
 
     getAllStoryFromFriends(iduser: number) : Promise<any>
 
-    deleteStory() : Promise<any>
+    deleteStory(idstory : number) : Promise<any>
 
-    seeStory() : Promise<any>
+    seeStory(idstory : number, iduser : number) : Promise<any>
+
+    getViewedStory(iduser : number) : Promise<any>
 }

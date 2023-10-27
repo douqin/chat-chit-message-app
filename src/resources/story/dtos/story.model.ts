@@ -4,6 +4,7 @@ export default class Story {
     iduserowner: number
     createat: Date
     content: string
+    viewed : boolean 
 
     constructor(idstory: number,
         iduserowner: number,
@@ -13,6 +14,7 @@ export default class Story {
         this.idstory = idstory
         this.createat = createat
         this.iduserowner = iduserowner
+        this.viewed = false
     }
 
 }

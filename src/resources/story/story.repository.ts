@@ -2,8 +2,6 @@ import { ServiceDrive } from "../../component/cloud/drive.service";
 import { iDrive } from "../../component/cloud/drive.interface";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
 import { MySql } from "@/config/sql/mysql";
-import { ResultSetHeader } from "mysql2";
-import { Readable } from "stream";
 import MyException from "@/utils/exceptions/my.exception";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 
@@ -30,22 +28,36 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
     async getAllStoryFromFriends(iduser: number): Promise<any> {
         //get friend
         let queryGetAllFriend = "SELECT * FROM relationship WHERE (iduser1 = ? || iduser2 = ?) AND relation = ?"
-        let [data] = await MySql.excuteQuery(queryGetAllFriend, [iduser, iduser,  RelationshipUser.FRIEND]) as any
+        let [data] = await MySql.excuteQuery(queryGetAllFriend, [iduser, iduser, RelationshipUser.FRIEND]) as any
         let arr = [];
         for (let element of data) {
             let queryGetStory = "SELECT * FROM story JOIN user ON user.iduser = story.iduserowner AND story.iduserowner = ?"
-            let [story] = await MySql.excuteQuery(queryGetStory, [element]) as any
+            let [story] = await MySql.excuteQuery(queryGetStory, [(element.iduser1 == iduser ? element.iduser2 : element.iduser1)]) as any
+
+            let queryCheckIsViewed = "SELECT COUNT(*) FROM storyview WHERE viewer = ? AND idstory = ?"
+            const [{ 'COUNT(*)': count }] = await MySql.excuteQuery(queryCheckIsViewed, [iduser, story[0].idstory]) as any
+            
+            story[0].viewed = Boolean(Number(count) === 1);
             arr.push(story[0])
         }
         return arr
     }
 
-    deleteStory(): Promise<any> {
-        throw new Error("Method not implemented.");
+    async deleteStory(idstory: number): Promise<any> {
+        let query = "DELETE FROM story WHERE story.iduserowner = ?"
+        await MySql.excuteQuery(query, [idstory])
+        return true;
     }
 
-    seeStory(): Promise<any> {
-        throw new Error("Method not implemented.");
+    async seeStory(idstory: number, iduser : number): Promise<any> {
+        let query = "INSERT INTO storyview (user_id, story_id) VALUES (?, ?);        "
+        await MySql.excuteQuery(query, [idstory, iduser])
+        return true;
     }
 
+    async getViewedStory(iduser: number): Promise<any> {
+        let query = "SELECT * FROM storyview WHERE viewer = ?"
+        let [data] = await MySql.excuteQuery(query, [iduser])
+        return data;
+    }
 }

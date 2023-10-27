@@ -10,9 +10,8 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import MessageServiceBehavior from "./interface/message.service.interaface";
 import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
-import { TokenDb, checkElementsInAnotInB, getAllNotificationTokenFromServer, getAllNotificationTokenFromSockets } from "@/utils/extension/extension.notification.token";
-import { ServiceFCM } from "../../component/firebase/firebase.service";
 import { MessageStatus } from "./enum/message.status.enum";
+import validVariable from "@/utils/extension/vailid_variable";
 @Controller("/message")
 export default class MessageController extends MotherController {
     private messageService: MessageServiceBehavior;
@@ -92,13 +91,14 @@ export default class MessageController extends MotherController {
         next: NextFunction
     ) => {
         try {
-            const { idgroup } = req.params;
-            // const time = req.query;
-            if (Number(idgroup)) {
+            const idgroup = Number(req.params.idgroup)
+            const limit = Number(req.query.limit)
+            const cursor = Number(req.query.cursor)
+            if (validVariable(idgroup)) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let data = await this.messageService.getAllMessageFromGroup(
                     Number(idgroup),
-                    iduser
+                    iduser, cursor, limit
                 );
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -106,7 +106,12 @@ export default class MessageController extends MotherController {
                     data
                 ));
                 return;
-            }
+            } else next(
+                new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    "Error Agurment"
+                )
+            );
 
         } catch (e: any) {
             if (e instanceof MyException) {
@@ -132,8 +137,8 @@ export default class MessageController extends MotherController {
         next: NextFunction
     ) => {
         try {
-            const { idgroup } = req.params;
-            if (Number(idgroup) && req.files) {
+            const idgroup = req.params.idgroup;
+            if ((idgroup) && req.files) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let data = await this.messageService.sendFileMessage(
                     Number(idgroup),

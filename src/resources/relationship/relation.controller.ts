@@ -9,6 +9,8 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { RelationServiceBehavior } from "./interface/relation.service.interface";
+import multer from "multer";
+import validVariable from "@/utils/extension/vailid_variable";
 
 @Controller("/relationship")
 export default class FriendController extends MotherController {
@@ -19,32 +21,13 @@ export default class FriendController extends MotherController {
     }
     initRouter(): MotherController {
         this.router.get("/relationship/friends", AuthMiddleware.auth, this.getAllFriend);
-        this.router.get(
-            "/relationship/invites",
-            AuthMiddleware.auth,
-            this.getAllInvite
-        )
-        this.router.patch("/relationship/unfriend", AuthMiddleware.auth, this.unFriend);
-        this.router.post(
-            "/relationship/invites",
-            AuthMiddleware.auth,
-            this.inviteFriend
-        )
-        this.router.post("/relationship/accept", AuthMiddleware.auth, this.acceptInviteFriend);
-        this.router.delete(
-            "/relationship/me/invites/",
-            AuthMiddleware.auth,
-            this.deleteInvite
-        )
-        this.router.delete(
-            "/relationship/invites",
-            AuthMiddleware.auth,
-            this.deleteMySentInvite
-        )
-        this.router.get(
-            "/relationship/:iduser/relation",
-            this.getRelationship
-        )
+        this.router.get("/relationship/invites", AuthMiddleware.auth, this.getAllInvite)
+        this.router.patch("/relationship/unfriend", AuthMiddleware.auth, multer().none(), this.unFriend);
+        this.router.post("/relationship/invites", AuthMiddleware.auth, multer().none(), this.inviteToBecomeFriend)
+        this.router.post("/relationship/accept", AuthMiddleware.auth, multer().none(), this.acceptInviteFriend);
+        this.router.delete("/relationship/me/invites/", AuthMiddleware.auth, multer().none(), this.deleteInvite)
+        this.router.delete("/relationship/invites", AuthMiddleware.auth, multer().none(), this.deleteMySentInvite)
+        this.router.get("/relationship/:iduser/relation", this.getRelationship)
         return this;
     }
     private getAllFriend = async (
@@ -110,14 +93,46 @@ export default class FriendController extends MotherController {
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     };
-    private inviteFriend = async (
+    private inviteToBecomeFriend = async (
         req: Request,
         res: Response,
         next: NextFunction
     ) => {
-        let iduser = Number(req.headers["iduser"]);
-        let { receiver } = req.body;
-        await this.relationService.inviteFriend(iduser, Number(receiver));
+        try {
+            let iduser = Number(req.headers["iduser"]);
+            console.log("🚀 ~ file: relation.controller.ts:102 ~ FriendController ~ iduser:", iduser)
+            let idreceiver = Number(req.body.receiver)
+            if (idreceiver) {
+                // await this.relationService.inviteToBecomeFriend(iduser, idreceiver);
+                next(new ResponseBody(
+                    true,
+                    "OK",
+                    {}
+                ))
+            } else next(
+                new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    "Error Agurment"
+                )
+            )
+        }
+        catch (e) {
+            console.log("🚀 ~ file: relation.controller.ts:118 ~ FriendController ~ e:", e)
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        HttpStatus.FORBIDDEN,
+                        e.message
+                    )
+                )
+            }
+            next(
+                new HttpException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Có lỗi xảy ra vui lòng thử lại sau"
+                )
+            );
+        }
     };
     private acceptInviteFriend = async (
         req: Request,
@@ -125,20 +140,35 @@ export default class FriendController extends MotherController {
         next: NextFunction
     ) => {
         try {
-            const iduser = Number(req.headers.iduser)
-            const idInvite = Number(req.body.invite)
-            if (idInvite) {
-                const data = await this.relationService.acceptInviteFriend(iduser, idInvite)
-                return new ResponseBody(
-                    data,
+            const iduser: number = Number(req.headers.iduser)
+            const idInvite: number = Number(req.body.idInvite)
+            if (validVariable(idInvite)) {
+                await this.relationService.acceptInviteFriend(iduser, idInvite)
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    true,
                     "",
                     {}
-                )
+                ))
+                return
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
         }
         catch (e) {
-
+            console.log("🚀 ~ file: relation.controller.ts:156 ~ FriendController ~ e:", e)
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        HttpStatus.FORBIDDEN,
+                        e.message
+                    )
+                )
+            }
+            next(
+                new HttpException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Có lỗi xảy ra vui lòng thử lại sau"
+                )
+            );
         }
     };
     private deleteInvite = async (

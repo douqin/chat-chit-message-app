@@ -7,7 +7,7 @@ export interface MessageRepositoryBehavior extends MessageInformation, MessageAc
     reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup : number): boolean | PromiseLike<any>;
     sendFileMessage(idgroup: number, iduser: number, content: any): string[] | PromiseLike<any[]>;
     sendTextMessage(idgroup: number, iduser: number, content: string): boolean | PromiseLike<object>;
-    getAllMessageFromGroup(idgroup: number, iduser: number):  Promise<any[]>;
+    getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number):  Promise<any[]>;
     getAllReactFromMessage(idmessage: number): Promise<any[]>
 }
 export interface MessageInformation {

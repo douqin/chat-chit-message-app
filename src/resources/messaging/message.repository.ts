@@ -6,6 +6,7 @@ import { ReactMessage } from "./enum/message.react.enum";
 import { MessageRepositoryBehavior } from "./interface/message.repository.interface";
 import { MessageType } from "./enum/message.type.enum";
 import { MessageStatus } from "./enum/message.status.enum";
+import validVariable from "@/utils/extension/vailid_variable";
 
 export default class MessageRepository implements MessageRepositoryBehavior {
 
@@ -79,7 +80,20 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         ) as any
         return dataQuery[0];
     }
-    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<any[]> {
+    async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<any[]> {
+        if (validVariable(limit) && validVariable(cursor)) {
+            const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+            const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
+            if (idmember) {
+                const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage > ? ) limit ?`
+                const [dataQuery, inforColumn] = await MySql.excuteQuery(
+                    query, [idgroup, cursor , limit]
+                )
+                return dataQuery as any[];
+            } else {
+                throw new MyException("Bạn không có quyền truy cập")
+            }
+        }
         const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
         const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
         if (idmember) {

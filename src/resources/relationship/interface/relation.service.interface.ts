@@ -8,6 +8,6 @@ export interface RelationServiceBehavior {
     acceptInviteFriend(iduser: number, idInvite: number): Promise<boolean>;
     unFriend(iduser: number, iduserUnFriend: number): Promise<boolean>;
     getAllInvite(iduser: number): Promise<InviteFriend[]>
-    inviteFriend(iduser: number, idReceiver: number): Promise<any>;
+    inviteToBecomeFriend(iduser: number, idReceiver: number): Promise<any>;
     getAllFriend(iduser: number): Promise<User[]>;
 }

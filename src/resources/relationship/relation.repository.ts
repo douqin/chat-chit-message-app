@@ -24,7 +24,7 @@ export default class RelationRepostory implements RelationRepositoryBehavior {
         return true
     }
     async getAllInvite(iduser: number): Promise<any> {
-        const query = 'SELECT user.*, relationship.id FROM relationship JOIN user ON relationship.iduser2 = user.iduser AND relationship.relation = ? AND relationship.iduser1 = ?'
+        const query = 'SELECT user.*, relationship.id, relationship.createat FROM relationship JOIN user ON relationship.iduser2 = user.iduser AND relationship.relation = ? AND relationship.iduser1 = ?'
         let [data, inforC] = await MySql.excuteQuery(query, [RelationshipUser.WAIT_RESPONSE_REQUEST_FRIEND, iduser]) as any
         return data as any[]
     }
@@ -38,7 +38,7 @@ export default class RelationRepostory implements RelationRepositoryBehavior {
         await MySql.excuteQuery(query, [iduser, idInvite])
         return true
     }
-    async inviteFriend(iduserSend: number, idReceiver: number) {
+    async inviteToBecomeFriend(iduserSend: number, idReceiver: number) {
         const insertRequest = 'INSERT INTO relationship(relationship.iduser1, relationship.iduser2, relationship.relation) VALUES (?,?,?)'
         await MySql.excuteQuery(insertRequest, [iduserSend, idReceiver, RelationshipUser.WAIT_RESPONSE_REQUEST_FRIEND])
     }

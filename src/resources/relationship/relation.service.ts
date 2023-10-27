@@ -7,9 +7,9 @@ import { RelationshipUser } from "./enums/relationship.enum"
 import { User } from "../auth/dtos/user.dto"
 
 export default class RelationService implements RelationServiceBehavior {
-    async inviteFriend(iduserSend: number, idReceiver: number) {
-        if (await this.friendRepostory.getRelationship(iduserSend,idReceiver) === RelationshipUser.NO_RELATIONSHIP) {
-            await this.friendRepostory.inviteFriend(iduserSend, idReceiver)
+    async inviteToBecomeFriend(iduserSend: number, idReceiver: number) {
+        if (await this.friendRepostory.getRelationship(iduserSend, idReceiver) === RelationshipUser.NO_RELATIONSHIP) {
+            await this.friendRepostory.inviteToBecomeFriend(iduserSend, idReceiver)
         }
     }
     friendRepostory: RelationRepositoryBehavior
@@ -27,6 +27,7 @@ export default class RelationService implements RelationServiceBehavior {
         let arrUser: Array<InviteFriend> = []
         for (let userRaw of arrRaw) {
             arrUser.push(InviteFriend.fromRawData(userRaw))
+            // add callback get url user
         }
         return arrUser
     }
@@ -44,7 +45,7 @@ export default class RelationService implements RelationServiceBehavior {
         }
         return arrUser
     }
-    async getRelationship(iduser: number, iduserWGet: number){
+    async getRelationship(iduser: number, iduserWGet: number) {
         this.friendRepostory.getRelationship(iduser, iduserWGet)
     }
 }

@@ -23,6 +23,7 @@ export default class StoryController extends MotherController {
         this.router.post("/story/upload", AuthMiddleware.auth, multer().single("story"), this.uploadStory)
         this.router.delete("/story/delete", AuthMiddleware.auth, multer().none(), this.deleteStory)
         this.router.post("/story/see", AuthMiddleware.auth, multer().none(), this.seeStory)
+        this.router.post("/story/getviewedstory", AuthMiddleware.auth, multer().none(), this.getViewedStory)
         return this;
     }
     // upload story
@@ -92,10 +93,99 @@ export default class StoryController extends MotherController {
     }
     // del story
     private deleteStory = async (req: Request, res: Response, next: NextFunction) => {
-
+        try {
+            let idstory = Number(req.body.idstory)
+            const iduser = Number(req.headers['iduser'] as string)
+            let story = await this.storyService.seeStory(iduser, idstory)
+            res.status(HttpStatus.OK).send(new ResponseBody(
+                true,
+                "OK",
+                {}
+            ));
+            return;
+        } catch (e: any) {
+            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.statusCode,
+                        e.message
+                    )
+                )
+            }
+            next(
+                new HttpException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Có lỗi xảy ra vui lòng thử lại sau"
+                )
+            );
+        }
     }
     // seen story
     private seeStory = async (req: Request, res: Response, next: NextFunction) => {
-
+        try {
+            let idstory = Number(req.body.idstory)
+            if (idstory) {
+                const iduser = Number(req.headers['iduser'] as string)
+                let story = await this.storyService.seeStory(iduser, idstory)
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    true,
+                    "OK",
+                    {}
+                ));
+            } else next(
+                new HttpException(
+                    HttpStatus.BAD_REQUEST,
+                    "Argurments are wrong"
+                )
+            );
+            return;
+        } catch (e: any) {
+            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.statusCode,
+                        e.message
+                    )
+                )
+            }
+            next(
+                new HttpException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Có lỗi xảy ra vui lòng thử lại sau"
+                )
+            );
+        }
     }
+
+    private getViewedStory = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers['iduser'] as string)
+            let story = await this.storyService.getViewedStory(iduser)
+            res.status(HttpStatus.OK).send(new ResponseBody(
+                true,
+                "OK",
+                story
+            ));
+            return;
+        } catch (e: any) {
+            console.log("🚀 ~ file: story.controller.ts:121 ~ StoryController ~ getViewedStory=async ~ e:", e)
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.statusCode,
+                        e.message
+                    )
+                )
+            }
+            next(
+                new HttpException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Có lỗi xảy ra vui lòng thử lại sau"
+                )
+            );
+        }
+    }
+    
 }

@@ -18,6 +18,7 @@ import MeController from './resources/me/me.controller';
 import MessageController from './resources/messaging/message.controller';
 import TestController from './resources/test/test.controller';
 import StoryController from './resources/story/story.controller';
+import FriendController from './resources/relationship/relation.controller';
 class App {
     private server: any
     private io: Server
@@ -44,7 +45,8 @@ class App {
             new MessageController(this.io).initRouter(),
             new MeController(this.io).initRouter(),
             new TestController(this.io).initRouter(),
-            new StoryController(this.io).initRouter()
+            new StoryController(this.io).initRouter(),
+            new FriendController(this.io).initRouter()
         ]
         this.initaliseController(controller) 
         this.initErrorHandler()

@@ -9,6 +9,9 @@ export default class StoryService implements iStoryServiceBehavior {
     constructor() {
         this.storyRepository = new StoryRepository();
     }
+    async getViewedStory(iduser: number): Promise<any> {
+        return await this.getViewedStory(iduser)
+    }
     async uploadStory(file: any, iduser : number): Promise<any> {
         if (!file.mimetype.includes('image') && !file.mimetype.includes('video')) {
             throw new MyException("File không hợp lệ").withExceptionCode(HttpStatus.BAD_REQUEST)
@@ -23,10 +26,10 @@ export default class StoryService implements iStoryServiceBehavior {
             return await ServiceDrive.gI().getUrlFile(id);
         })
     }
-    async deleteStory(): Promise<any> {
-        throw new Error("Method not implemented.");
+    async deleteStory(idstory: number): Promise<any> {
+        return await this.storyRepository.deleteStory(idstory)
     }
-    async seeStory(): Promise<any> {
-        throw new Error("Method not implemented.");
+    async seeStory(idstory : number, iduser : number): Promise<any> {
+        return await this.seeStory(idstory, iduser)
     }
 }

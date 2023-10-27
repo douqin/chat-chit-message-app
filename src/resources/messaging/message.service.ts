@@ -65,11 +65,12 @@ export default class MessageService implements MessageServiceBehavior {
         let raw = await this.messageRepository.sendTextMessage(idgroup, iduser, content)
         return TransformMessage.fromRawData(raw)
     }
-    async getAllMessageFromGroup(idgroup: number, iduser: number): Promise<Message[]> {
-        let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser)
+    async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<Message[]> {
+        let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser, cursor, limit)
         let messages = await TransformMessage.fromRawsData(data, async (id : string) => {
             return await ServiceDrive.gI().getUrlFile(id)
         })
+        // join data getAllReactFromMessage
         for(let message of messages){
             message.reacts = (await this.messageRepository.getAllReactFromMessage(message.idmessage)).map((value: any, index: number, array: any[]) =>{
                 return TransformReaction.rawToModel(value)
