@@ -26,20 +26,51 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
     }
 
     async getAllStoryFromFriends(iduser: number): Promise<any> {
-        //get friend
-        let queryGetAllFriend = "SELECT * FROM relationship WHERE (iduser1 = ? || iduser2 = ?) AND relation = ?"
-        let [data] = await MySql.excuteQuery(queryGetAllFriend, [iduser, iduser, RelationshipUser.FRIEND]) as any
-        let arr = [];
-        for (let element of data) {
-            let queryGetStory = "SELECT * FROM story JOIN user ON user.iduser = story.iduserowner AND story.iduserowner = ?"
-            let [story] = await MySql.excuteQuery(queryGetStory, [(element.iduser1 == iduser ? element.iduser2 : element.iduser1)]) as any
-
-            let queryCheckIsViewed = "SELECT COUNT(*) FROM storyview WHERE viewer = ? AND idstory = ?"
-            const [{ 'COUNT(*)': count }] = await MySql.excuteQuery(queryCheckIsViewed, [iduser, story[0].idstory]) as any
-            
-            story[0].viewed = Boolean(Number(count) === 1);
-            arr.push(story[0])
-        }
+        let query = `SELECT
+        USER.*,
+        story.*,
+        (
+        SELECT
+            COUNT(CTEE.viewer)
+        FROM
+            (
+            SELECT
+                a.idstory ,
+                iduserowner,
+                viewer
+            FROM
+                story AS a
+            JOIN storyview AS aa
+            ON
+                a.idstory = aa.idstory
+        ) AS CTEE
+    WHERE
+        CTEE.viewer = ? AND CTEE.idstory = story.idstory
+    ) as viewed
+    FROM
+        relationship
+    JOIN USER ON(
+            relationship.iduser1 = USER.iduser AND relationship.iduser2 = ?
+        ) OR(
+            relationship.iduser2 = USER.iduser AND relationship.iduser1 = ?
+        )
+    JOIN story ON story.iduserowner = USER.iduser
+    LEFT JOIN storyview ON story.idstory = storyview.idstory
+    WHERE relation = ?`
+        // let queryGetAllFriend = "SELECT * FROM relationship WHERE (iduser1 = ? || iduser2 = ?) AND relation = ?"
+        // let [data] = await MySql.excuteQuery(queryGetAllFriend, [iduser, iduser, RelationshipUser.FRIEND]) as any
+        // let arr = [];
+        // for (let element of data) {
+        //     let queryGetStory = "SELECT * FROM story JOIN user ON user.iduser = story.iduserowner AND story.iduserowner = ?"
+        //     let [story] = await MySql.excuteQuery(queryGetStory, [(element.iduser1 == iduser ? element.iduser2 : element.iduser1)]) as any
+        //     console.log("🚀 ~ file: story.repository.ts:36 ~ StoryRepository ~ getAllStoryFromFriends ~ story:", story)
+        //     let queryCheckIsViewed = "SELECT COUNT(*) FROM storyview WHERE viewer = ? AND idstory = ?"
+        //     const [{ 'COUNT(*)': count }] = await MySql.excuteQuery(queryCheckIsViewed, [iduser, story[0].idstory]) as any
+        //     story[0].viewed = Boolean(Number(count) === 1);
+        //     arr.push(story[0])
+        // }
+        let [arr] = await MySql.excuteQuery(query, [iduser, iduser, iduser, RelationshipUser.FRIEND]) as any
+        console.log("🚀 ~ file: story.repository.ts:73 ~ StoryRepository ~ getAllStoryFromFriends ~ arr:", arr)
         return arr
     }
 
@@ -49,7 +80,7 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         return true;
     }
 
-    async seeStory(idstory: number, iduser : number): Promise<any> {
+    async seeStory(idstory: number, iduser: number): Promise<any> {
         let query = "INSERT INTO storyview (user_id, story_id) VALUES (?, ?);        "
         await MySql.excuteQuery(query, [idstory, iduser])
         return true;

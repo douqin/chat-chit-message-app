@@ -10,7 +10,6 @@ import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import SocketBuilder from './config/socketio/socket.builder'
 import { MySqlBuilder } from "@/config/sql/mysql";
-import SocketMiddleware from "./middleware/socket.middleware";
 import { ResponseBody } from './utils/definition/http.response';
 import AuthController from './resources/auth/auth.controller';
 import GroupController from './resources/group/group.controller';
