@@ -1,10 +1,11 @@
 
 import { RelationServiceBehavior } from "./interface/relation.service.interface"
 import RelationRepostory from "./relation.repository"
-import { InviteFriend } from "./dto/invite.dto"
+import { InviteFriend, InviteFriendDTO } from "./dto/invite.dto"
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface"
 import { RelationshipUser } from "./enums/relationship.enum"
 import { User } from "../auth/dtos/user.dto"
+import { ListFriendDTO } from "./dto/friends.dto"
 
 export default class RelationService implements RelationServiceBehavior {
     async inviteToBecomeFriend(iduserSend: number, idReceiver: number) {
@@ -22,14 +23,9 @@ export default class RelationService implements RelationServiceBehavior {
     async deleteMySentInvite(iduser: number, idInvite: number): Promise<boolean> {
         return await this.friendRepostory.deleteMySentInvite(iduser, idInvite)
     }
-    async getAllInvite(iduser: number): Promise<InviteFriend[]> {
-        let arrRaw = (await this.friendRepostory.getAllInvite(iduser))
-        let arrUser: Array<InviteFriend> = []
-        for (let userRaw of arrRaw) {
-            arrUser.push(InviteFriend.fromRawData(userRaw))
-            // add callback get url user
-        }
-        return arrUser
+    async getAllInvite(iduser: number, cursor : number, limit : number): Promise<InviteFriendDTO> {
+        let arrRaw = (await this.friendRepostory.getAllInvite(iduser, cursor, limit))
+        return InviteFriendDTO.rawToDTO(arrRaw);
     }
     async acceptInviteFriend(iduser: number, idInvite: number): Promise<boolean> {
         return await this.friendRepostory.acceptInviteFriend(iduser, idInvite)
@@ -37,13 +33,9 @@ export default class RelationService implements RelationServiceBehavior {
     async unFriend(iduser: number, iduserUnFriend: number): Promise<boolean> {
         return await this.friendRepostory.unFriend(iduser, iduserUnFriend)
     }
-    async getAllFriend(iduser: number): Promise<User[]> {
-        let arrRaw = (await this.friendRepostory.getAllFriend(iduser))
-        let arrUser: Array<User> = []
-        for (let userRaw of arrRaw) {
-            arrUser.push(User.fromRawData(userRaw))
-        }
-        return arrUser
+    async getAllFriend(iduser: number, cursor : number, limit : number): Promise<ListFriendDTO> {
+        let arrRaw = (await this.friendRepostory.getAllFriend(iduser, cursor, limit))
+        return ListFriendDTO.rawToDTO(arrRaw);
     }
     async getRelationship(iduser: number, iduserWGet: number) {
         this.friendRepostory.getRelationship(iduser, iduserWGet)

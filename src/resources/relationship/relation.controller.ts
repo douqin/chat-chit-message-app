@@ -37,18 +37,28 @@ export default class FriendController extends MotherController {
     ) => {
         try {
             const iduser = Number(req.headers.iduser)
-            let data = await this.relationService.getAllFriend(iduser)
-            res.status(HttpStatus.OK).send(
+            const cursor = Number(req.query.cursor)
+            const limit = Number(req.query.limit)
+            if (validVariable(cursor) && validVariable(limit)) {
+                let data = await this.relationService.getAllFriend(iduser, cursor, limit)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        true,
+                        "",
+                        data
+                    )
+                )
+            } else res.status(HttpStatus.OK).send(
                 new ResponseBody(
                     true,
                     "",
-                    data
+                    []
                 )
             )
         } catch (error: any) {
             console.log("🚀 ~ file: relation.controller.ts:49 ~ FriendController ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
@@ -59,8 +69,10 @@ export default class FriendController extends MotherController {
         next: NextFunction
     ) => {
         try {
+            const cursor = Number(req.query.cursor)
+            const limit = Number(req.query.limit)
             const iduser = Number(req.headers.iduser)
-            let data = await this.relationService.getAllInvite(iduser)
+            let data = await this.relationService.getAllInvite(iduser, cursor, limit)
             res.status(HttpStatus.OK).send(
                 new ResponseBody(
                     true,
