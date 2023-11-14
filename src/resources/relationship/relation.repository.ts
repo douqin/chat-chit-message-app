@@ -1,6 +1,7 @@
 import { RelationshipUser } from './enums/relationship.enum';
 import { MySql } from "@/config/sql/mysql";
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface";
+import validVariable from '@/utils/extension/vailid_variable';
 
 export default class RelationRepostory implements RelationRepositoryBehavior {
     async deleteMySentInvite(iduser: number, idInvite: number): Promise<boolean> {
@@ -23,14 +24,14 @@ export default class RelationRepostory implements RelationRepositoryBehavior {
         await MySql.excuteQuery(query, [iduser, iduserUnFriend])
         return true
     }
-    async getAllInvite(iduser: number): Promise<any> {
-        const query = 'SELECT user.*, relationship.id, relationship.createat FROM relationship JOIN user ON relationship.addresseeid = user.iduser AND relationship.relation = ? AND relationship.requesterid = ?'
-        let [data, inforC] = await MySql.excuteQuery(query, [RelationshipUser.WAIT_RESPONSE_REQUEST_FRIEND, iduser]) as any
+    async getAllInvite(iduser: number, cursor : number, limit : number): Promise<any> {
+        const query = 'SELECT user.*, relationship.id, relationship.createat FROM relationship JOIN user ON relationship.requesterid= user.iduser WHERE relationship.relation = ? AND relationship.addresseeid = ? AND relationship.id > ? ORDER BY relationship.id LIMIT ?;'
+        let [data, inforC] = await MySql.excuteQuery(query, [RelationshipUser.WAIT_RESPONSE_REQUEST_FRIEND, iduser, cursor, limit]) as any
         return data as any[]
     }
-    async getAllFriend(iduser: number): Promise<any[]> {
-        let query = 'SELECT * FROM relationship JOIN user ON relationship.addresseeid = user.iduser OR relationship.requesterid = user.iduser WHERE relationship.relation = ? AND user.iduser != ?'
-        let [data, inforC] = await MySql.excuteQuery(query, [RelationshipUser.FRIEND, iduser]) as any
+    async getAllFriend(iduser: number, cursor: number, limit: number): Promise<any[]> {
+        let query = 'SELECT * FROM relationship JOIN user ON relationship.addresseeid = user.iduser OR relationship.requesterid = user.iduser WHERE relationship.relation = ? AND user.iduser != ? AND user.iduser > ? ORDER BY user.iduser LIMIT ?'
+        let [data, inforC] = await MySql.excuteQuery(query, [RelationshipUser.FRIEND, iduser, cursor, limit]) as any
         return data as any[]
     }
     async acceptInviteFriend(iduser: number, idInvite: number): Promise<boolean> {

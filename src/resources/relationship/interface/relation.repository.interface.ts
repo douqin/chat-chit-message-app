@@ -6,7 +6,7 @@ export interface RelationRepositoryBehavior {
     getRelationship(iduser: number, iduserWGet: number): Promise<number>;
     acceptInviteFriend(iduser: number, idInvite: number): Promise<boolean >;
     unFriend(iduser: number, iduserUnFriend: number): Promise<boolean>;
-    getAllInvite(iduser: number): Promise<InviteFriend[]>;
+    getAllInvite(iduser: number, cursor : number, limit : number): Promise<any[]>;
     inviteToBecomeFriend(iduser: number, idReceiver: number): Promise<any>;
-    getAllFriend(iduser: number): Promise<any>;
+    getAllFriend(iduser: number, cursor : number, limit : number): Promise<any>;
 }

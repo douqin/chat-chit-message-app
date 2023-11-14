@@ -16,5 +16,5 @@ for (let index = 0; index < 200; index++) {
     const randomNumber2 = Math.floor(Math.random() * (max - min + 1)) + min;
     if(randomNumber === randomNumber2) continue
     const insertRequest = 'INSERT INTO relationship(relationship.requesterid, relationship.addresseeid, relationship.relation) VALUES (?,?,?)'
-    connection.query(insertRequest, [randomNumber, randomNumber2, 0])
+    connection.query(insertRequest, [randomNumber, 1, 0])
 }
