@@ -27,7 +27,7 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
 
     async getAllStoryFromFriends(iduser: number): Promise<any> {
         let query = `SELECT
-        USER.*,
+        user.*,
         story.*,
         (
         SELECT
@@ -49,20 +49,20 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
     ) as viewed
     FROM
         relationship
-    JOIN USER ON(
-            relationship.iduser1 = USER.iduser AND relationship.iduser2 = ?
+    JOIN user ON(
+            relationship.requesterid = user.iduser AND relationship.addresseeid = ?
         ) OR(
-            relationship.iduser2 = USER.iduser AND relationship.iduser1 = ?
+            relationship.addresseeid = user.iduser AND relationship.requesterid = ?
         )
-    JOIN story ON story.iduserowner = USER.iduser
+    JOIN story ON story.iduserowner = user.iduser
     LEFT JOIN storyview ON story.idstory = storyview.idstory
     WHERE relation = ?`
-        // let queryGetAllFriend = "SELECT * FROM relationship WHERE (iduser1 = ? || iduser2 = ?) AND relation = ?"
-        // let [data] = await MySql.excuteQuery(queryGetAllFriend, [iduser, iduser, RelationshipUser.FRIEND]) as any
+        // let queryGetAllFriend = "SELECT * FROM relationship WHERE (requesterid = ? || addresseeid = ?) AND relation = ?"
+        // let [data] = await MySql.excuteQuery(queryGetAllFriend, [iduser, iduser, Relationshipuser.FRIEND]) as any
         // let arr = [];
         // for (let element of data) {
         //     let queryGetStory = "SELECT * FROM story JOIN user ON user.iduser = story.iduserowner AND story.iduserowner = ?"
-        //     let [story] = await MySql.excuteQuery(queryGetStory, [(element.iduser1 == iduser ? element.iduser2 : element.iduser1)]) as any
+        //     let [story] = await MySql.excuteQuery(queryGetStory, [(element.requesterid == iduser ? element.addresseeid : element.requesterid)]) as any
         //     console.log("🚀 ~ file: story.repository.ts:36 ~ StoryRepository ~ getAllStoryFromFriends ~ story:", story)
         //     let queryCheckIsViewed = "SELECT COUNT(*) FROM storyview WHERE viewer = ? AND idstory = ?"
         //     const [{ 'COUNT(*)': count }] = await MySql.excuteQuery(queryCheckIsViewed, [iduser, story[0].idstory]) as any

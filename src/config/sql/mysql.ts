@@ -20,7 +20,7 @@ class MySqlBuilder {
             host: 'localhost',
             user: DATABASE_USER,
             password: DATABASE_PASSWORD,
-            multipleStatements : true
+            multipleStatements : false
         })
         return this
     }

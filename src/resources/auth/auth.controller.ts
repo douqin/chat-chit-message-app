@@ -59,7 +59,7 @@ export default class AuthController extends MotherController {
             const phone = String(req.body.phone)
             const password = String(req.body.password)
             const notificationToken = String(req.body.notification)
-            if ( phone && password && notificationToken) {
+            if (phone && password && notificationToken) {
                 let data = await this.authService.login(phone, password, notificationToken);
                 if (data) {
                     res.setHeader("token", "Bearer " + data.token.accessToken)

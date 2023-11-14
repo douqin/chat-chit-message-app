@@ -2,7 +2,7 @@ import SocketMiddleware from '@/middleware/socket.middleware';
 import GroupChat from '@/resources/group/dtos/group.dto';
 import GroupRepository from '@/resources/group/group.repository';
 import GroupService from '@/resources/group/group.service';
-import { GroupActions } from '@/resources/group/interface/group.service.interface';
+import { iGroupActions } from '@/resources/group/interface/group.service.interface';
 import { Server, Socket } from 'socket.io';
 export default class SocketBuilder {
     private io: Server;
@@ -21,7 +21,7 @@ export default class SocketBuilder {
         return this.io
     }
     async joinGroup(iduser: number, socket: Socket): Promise<void> {
-        let serivce: GroupActions = new GroupService();
+        let serivce: iGroupActions = new GroupService();
         let groups = await serivce.getAllGroup(iduser);
         for (let group of groups) {
             socket.join(`${group.idgroup}_group`);

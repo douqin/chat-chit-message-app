@@ -132,7 +132,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         if (dataRaw) {
             return dataRaw;
         }
-        return [];
+        return [];this
     }
     async createGroup(name: string, iduser: number, users: Array<number>, typeGroup: number = GroupType.COMMUNITY): Promise<boolean> {
         let idgroup = -1;

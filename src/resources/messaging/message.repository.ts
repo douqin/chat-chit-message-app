@@ -81,32 +81,29 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         return dataQuery[0];
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<any[]> {
-        if (validVariable(limit) && validVariable(cursor)) {
+        if (validVariable(limit) && cursor === null) {
             const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
-            const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
-            if (idmember) {
-                const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage > ? ) limit ?`
-                const [dataQuery, inforColumn] = await MySql.excuteQuery(
-                    query, [idgroup, cursor , limit]
-                )
-                return dataQuery as any[];
-            } else {
-                throw new MyException("Bạn không có quyền truy cập")
-            }
-        }
-        const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
-        const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
-        if (idmember) {
-            const query = `
-            SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ?)
-            `
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? ) ORDER BY message.createat DESC limit ?`
             const [dataQuery, inforColumn] = await MySql.excuteQuery(
-                query, [idgroup]
+                query, [idgroup, cursor, limit]
             )
             return dataQuery as any[];
-        } else {
-            throw new MyException("Bạn không có quyền truy cập")
         }
+        else if (validVariable(limit) && validVariable(cursor)) {
+            const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember) WHERE member.idgroup = ?  AND message.idmessage < ? ORDER BY message.createat DESC limit ?`
+            const [dataQuery, inforColumn] = await MySql.excuteQuery(
+                query, [idgroup, cursor, limit]
+            )
+            return dataQuery as any[];
+        }
+        const query = `
+            SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ?)
+             ORDER BY message.createat DESC`
+        const [dataQuery, inforColumn] = await MySql.excuteQuery(
+            query, [idgroup]
+        )
+        return dataQuery as any[];
     }
     async sendGiftMessage(idgroup: number, iduser: number, content: string) {
         // get idmember

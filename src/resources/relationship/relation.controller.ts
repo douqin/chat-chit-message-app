@@ -46,6 +46,7 @@ export default class FriendController extends MotherController {
                 )
             )
         } catch (error: any) {
+            console.log("🚀 ~ file: relation.controller.ts:49 ~ FriendController ~ error:", error)
             if (error instanceof MyException) {
                 next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
             }

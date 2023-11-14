@@ -4,8 +4,8 @@ import LastViewGroup from "../dtos/lastview.dto";
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
 import MemberDTO from "../dtos/member.dto";
 
-export default interface GroupServiceBehavior extends MemberActions, GroupActions {}
-export interface MemberActions {
+export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions {}
+export interface iMemberActions {
     blockMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
     approvalMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
     removeMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
@@ -17,7 +17,7 @@ export interface MemberActions {
     getLastViewMember(idgroup: number): Promise<LastViewGroup[]>;
   }
   
-  export interface GroupActions {
+  export interface iGroupActions {
     getAllGroup(iduser: number): Promise<Array<GroupChat>>;
     createGroup(name: string, iduser: number, users: Array<number>): Promise<boolean>;
     getOneGroup(idgroup: number): Promise<GroupChat | null>;

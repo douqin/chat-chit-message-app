@@ -8,10 +8,10 @@ import MyException from "@/utils/exceptions/my.exception";
 import { MemberStatus } from './enum/member.status.enum';
 import { PositionInGrop } from './enum/group.position.enum';
 import { HttpStatus } from '@/utils/extension/httpstatus.exception';
-import GroupServiceBehavior from './interface/group.service.interface';
+import iGroupServiceBehavior from './interface/group.service.interface';
 import MemberDTO from './dtos/member.dto';
 
-export default class GroupService implements GroupServiceBehavior {
+export default class GroupService implements iGroupServiceBehavior {
     private groupRepsitory: GroupRepositoryBehavior
     constructor() {
         this.groupRepsitory = new GroupRepository()

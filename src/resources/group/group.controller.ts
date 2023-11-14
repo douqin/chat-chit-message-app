@@ -8,14 +8,14 @@ import { JwtPayload } from "jsonwebtoken";
 import GroupService from "@/resources/group/group.service";
 import Controller from "@/utils/decorator/decorator";
 import LastViewGroup from "./dtos/lastview.dto";
-import GroupServiceBehavior from "@/resources/group/interface/group.service.interface";
+import iGroupServiceBehavior from "@/resources/group/interface/group.service.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import AuthMiddleware from "@/middleware/auth.middleware";
 @Controller("/group")
 export default class GroupController extends MotherController {
-    private groupService: GroupServiceBehavior;
+    private groupService: iGroupServiceBehavior;
     constructor(io: Server) {
         super(io)
         this.groupService = new GroupService()
