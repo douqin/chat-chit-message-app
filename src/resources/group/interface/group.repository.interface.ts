@@ -28,7 +28,7 @@ export interface GroupManagement {
     removeMember(idgroup: number, iduserRemove: number): boolean | PromiseLike<boolean>;
     removeManager(idgroup: number, iduserAdd: any): boolean | PromiseLike<boolean>;
     addManager(idgroup: number, iduserAdd: number): Promise<boolean>;
-    createGroup(name: string, iduser: number, users: Array<Number>): Promise<boolean>;
+    createGroup(name: string, iduser: number, users: Array<Number>): Promise<any>;
     renameGroup(idgroup: number, name: string): Promise<boolean>;
 }
 
@@ -40,6 +40,7 @@ export interface GroupActionMember {
 }
 
 export interface GroupInfo {
+    getSomeGroup(iduser: number, cursor : Date, limit : number): Promise<Array<any>>;
     getAllGroup(iduser: number): Promise<object[] | undefined>;
     getLastViewMember(idgroup: number): Promise<object[] | undefined>;
     getOneGroup(idgroup: number): Promise<object | null>;

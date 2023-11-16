@@ -15,7 +15,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
     constructor() {
         this.drive = ServiceDrive.gI();
     }
-    blockMember(iduserAdd: number, idgroup: number): boolean | PromiseLike<boolean> {
+    async blockMember(iduserAdd: number, idgroup: number): Promise<boolean> {
         throw new Error('Method not implemented.');
     }
     async changeStatusMember(iduserAdd: number, idgroup: number, status: MemberStatus): Promise<boolean> {
@@ -125,34 +125,71 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return dataRaw[0]
     }
     async getAllGroup(iduser: number): Promise<object[]> {
-        let query = `SELECT groupchat.* FROM ((user INNER JOIN member ON user.iduser = member.iduser) JOIN groupchat ON member.idgroup = groupchat.idgroup) WHERE user.iduser = ?;`
+        let query = `SELECT groupchat.* FROM 
+        user INNER JOIN member ON user.iduser = member.iduser 
+        JOIN groupchat ON member.idgroup = groupchat.idgroup
+        WHERE user.iduser = ?;`
         let [dataRaw, inforColimn]: any = await MySql.excuteQuery(
             query, [iduser]
         )
         if (dataRaw) {
             return dataRaw;
         }
-        return [];this
+        return []; this
     }
-    async createGroup(name: string, iduser: number, users: Array<number>, typeGroup: number = GroupType.COMMUNITY): Promise<boolean> {
+    async getSomeGroup(iduser: number, cursor: Date, limit: number): Promise<object[]> {
+        cursor = new Date()
+        let query = `
+        SELECT *
+FROM (
+    SELECT groupchat.*, 
+    (
+        SELECT MAX(message.createat) 
+        FROM message 
+        JOIN member AS MEM ON MEM.id = message.idmember 
+        WHERE MEM.idgroup = groupchat.idgroup
+    ) AS time 
+    FROM user
+    INNER JOIN member ON user.iduser = member.iduser 
+    JOIN groupchat ON member.idgroup = groupchat.idgroup
+    WHERE user.iduser = ?
+    ) AS sub
+    WHERE sub.time < ?
+    ORDER BY 
+    CASE 
+        WHEN time IS NULL THEN 1 
+        ELSE 0 
+    END,
+    ISNULL(time),
+    COALESCE(time, sub.createat) DESC LIMIT ?`
+        let [dataRaw, inforColimn]: any = await MySql.excuteQuery(
+            query, [iduser, cursor, limit]
+        )
+        if (dataRaw) {
+            return dataRaw;
+        }
+        return []
+    }
+    async createGroup(name: string, iduser: number, users: Array<number>, typeGroup: number = GroupType.COMMUNITY): Promise<any> {
         let idgroup = -1;
+        let group = null;
         try {
-            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat) VALUES (?,?,?,now());`
+            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat) VALUES ( ?, ?, ?, now());`
             let data: [ResultSetHeader, any] = await MySql.excuteQuery(
                 query, [name, typeGroup, GroupStatus.DEFAULT]
             ) as any
-            console.log("🚀 ~ file: group.repository.ts:117 ~ GroupRepository ~ createGroup ~ data:", data)
             idgroup = data[0].insertId
-            console.log("🚀 ~ file: group.repository.ts:119 ~ GroupRepository ~ createGroup ~ data:", data)
             await this.joinGroup(iduser, idgroup, PositionInGrop.CREATOR)
-            for (let e of users) {
-                await this.joinGroup(e, idgroup, PositionInGrop.MEMBER)
+            for (let iduserMember of users) {
+                await this.joinGroup(iduserMember, idgroup, PositionInGrop.MEMBER)
             }
+            group = await this.getOneGroup(idgroup);
         }
         catch (e) {
+            console.log("🚀 ~ file: group.repository.ts:163 ~ GroupRepository ~ createGroup ~ e:", e)
             throw new MyException("Có lỗi xảy ra, không thể tạo nhóm").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
         }
-        return true;
+        return group;
     }
     async getLastViewMember(idgroup: number): Promise<object[] | undefined> {
         let rawDataSQL: any = await MySql.excuteQuery(

@@ -44,19 +44,19 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
             ON
                 a.idstory = aa.idstory
         ) AS CTEE
-    WHERE
-        CTEE.viewer = ? AND CTEE.idstory = story.idstory
-    ) as viewed
-    FROM
-        relationship
-    JOIN user ON(
+        WHERE
+            CTEE.viewer = ? AND CTEE.idstory = story.idstory
+        ) as viewed
+        FROM
+            relationship
+        JOIN user ON(
             relationship.requesterid = user.iduser AND relationship.addresseeid = ?
         ) OR(
             relationship.addresseeid = user.iduser AND relationship.requesterid = ?
         )
-    JOIN story ON story.iduserowner = user.iduser
-    LEFT JOIN storyview ON story.idstory = storyview.idstory
-    WHERE relation = ?`
+        JOIN story ON story.iduserowner = user.iduser
+        LEFT JOIN storyview ON story.idstory = storyview.idstory
+        WHERE relation = ?`
         // let queryGetAllFriend = "SELECT * FROM relationship WHERE (requesterid = ? || addresseeid = ?) AND relation = ?"
         // let [data] = await MySql.excuteQuery(queryGetAllFriend, [iduser, iduser, Relationshipuser.FRIEND]) as any
         // let arr = [];

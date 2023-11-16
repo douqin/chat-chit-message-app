@@ -81,6 +81,7 @@ export default class FriendController extends MotherController {
                 )
             )
         } catch (error: any) {
+            console.log(error)
             if (error instanceof MyException) {
                 next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
             }
