@@ -3,6 +3,7 @@ import GroupChat from "../dtos/group.dto";
 import LastViewGroup from "../dtos/lastview.dto";
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
 import MemberDTO from "../dtos/member.dto";
+import { ListGroupDTO } from "../dtos/response.lisgroup.dto";
 
 export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions {}
 export interface iMemberActions {
@@ -19,7 +20,8 @@ export interface iMemberActions {
   
   export interface iGroupActions {
     getAllGroup(iduser: number): Promise<Array<GroupChat>>;
-    createGroup(name: string, iduser: number, users: Array<number>): Promise<boolean>;
+    getSomeGroup(iduser: number, cursor : Date, limit : number): Promise<ListGroupDTO>;
+    createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat>;
     getOneGroup(idgroup: number): Promise<GroupChat | null>;
     getAllMember(idgroup: number): Promise<MemberDTO[]>;
     changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<DataFileDrive | null>;

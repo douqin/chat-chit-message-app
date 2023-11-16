@@ -117,15 +117,17 @@ export default class GroupController extends MotherController {
     }
     private getAllGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const limit = Number(req.query.limit)
+            const cursor = new Date(req.query.cursor as string)
             const iduser = Number(req.headers['iduser'] as string)
-            console.log("🚀 ~ file: group.controller.ts:125 ~ GroupController ~ getAllGroup= ~ iduser:", iduser)
-            let data = await this.groupService.getAllGroup(iduser)
+            let data = await this.groupService.getSomeGroup(iduser, cursor, limit)
             res.status(HttpStatus.OK).json(new ResponseBody(
                 true,
                 "OK",
                 data
             ))
         } catch (error: any) {
+            console.log("🚀 ~ file: group.controller.ts:130 ~ GroupController ~ getAllGroup= ~ error:", error)
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
@@ -137,10 +139,11 @@ export default class GroupController extends MotherController {
             if (name) {
                 let data = await this.groupService.createGroup(name, iduser, users)
                 // TODO: create group with multi user
+                // FIXME: add socket broad to user
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
-                    {}
+                    data
                 ))
                 return
             }

@@ -81,11 +81,10 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         return dataQuery[0];
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<any[]> {
-        if (validVariable(limit) && cursor === null) {
-            const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+        if (validVariable(limit) && Number.isNaN(cursor)) {
             const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? ) ORDER BY message.createat DESC limit ?`
             const [dataQuery, inforColumn] = await MySql.excuteQuery(
-                query, [idgroup, cursor, limit]
+                query, [idgroup, limit]
             )
             return dataQuery as any[];
         }

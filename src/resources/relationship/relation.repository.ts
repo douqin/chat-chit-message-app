@@ -30,7 +30,7 @@ export default class RelationRepostory implements RelationRepositoryBehavior {
         return data as any[]
     }
     async getAllFriend(iduser: number, cursor: number, limit: number): Promise<any[]> {
-        let query = 'SELECT * FROM relationship JOIN user ON relationship.addresseeid = user.iduser OR relationship.requesterid = user.iduser WHERE relationship.relation = ? AND user.iduser != ? AND user.iduser > ? ORDER BY user.iduser LIMIT ?'
+        let query = 'SELECT * FROM relationship JOIN user ON relationship.addresseeid = user.iduser OR relationship.requesterid = user.iduser WHERE relationship.relation = ? AND user.iduser != ? AND user.iduser > ? ORDER BY relationship.id LIMIT ?'
         let [data, inforC] = await MySql.excuteQuery(query, [RelationshipUser.FRIEND, iduser, cursor, limit]) as any
         return data as any[]
     }

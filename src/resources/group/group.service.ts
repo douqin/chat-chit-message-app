@@ -10,11 +10,19 @@ import { PositionInGrop } from './enum/group.position.enum';
 import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import iGroupServiceBehavior from './interface/group.service.interface';
 import MemberDTO from './dtos/member.dto';
+import { ListGroupDTO } from './dtos/response.lisgroup.dto';
 
 export default class GroupService implements iGroupServiceBehavior {
     private groupRepsitory: GroupRepositoryBehavior
     constructor() {
         this.groupRepsitory = new GroupRepository()
+    }
+    async getSomeGroup(iduser: number, cursor: Date, limit: number): Promise<ListGroupDTO> {
+        let dataRaw = await this.groupRepsitory.getSomeGroup(iduser, cursor, limit)
+        if (dataRaw) {
+            return ListGroupDTO.rawToDTO(dataRaw)
+        }
+        return new ListGroupDTO([], null)
     }
     async blockMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean> {
         if (await this.groupRepsitory.isContainInGroup(iduserAdd, idgroup, MemberStatus.DEFAULT) && await this.groupRepsitory.getPosition(idgroup, iduser) == PositionInGrop.CREATOR || PositionInGrop.ADMIN) {
@@ -117,13 +125,12 @@ export default class GroupService implements iGroupServiceBehavior {
                 return GroupChat.fromRawData(value)
             });
         }
-        console.log(dataRaw)
         return []
     }
 
-    async createGroup(name: string, iduser: number, users: Array<number>): Promise<boolean> {
+    async createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat> {
         // TODO: check list user contain in list friend 
-        return await this.groupRepsitory.createGroup(name, iduser, users)
+        return GroupChat.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users)) 
     }
     async isContainMember(iduser: number, idgroup: number) {
 
