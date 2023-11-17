@@ -11,6 +11,8 @@ import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import iGroupServiceBehavior from './interface/group.service.interface';
 import MemberDTO from './dtos/member.dto';
 import { ListGroupDTO } from './dtos/response.lisgroup.dto';
+import MessageService from '../messaging/message.service';
+import { MessageAction as MessageActionService } from '../messaging/interface/message.service.interaface';
 
 export default class GroupService implements iGroupServiceBehavior {
     private groupRepsitory: GroupRepositoryBehavior
@@ -130,7 +132,17 @@ export default class GroupService implements iGroupServiceBehavior {
 
     async createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat> {
         // TODO: check list user contain in list friend 
-        return GroupChat.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users)) 
+        let group = GroupChat.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users))
+        let messageBehavior: MessageActionService = new MessageService()
+        await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, "created group", [])
+        if (users.length > 0) {
+            let strMessage = "added member"
+            for (let i = 0; i < users.length; i++) {
+                strMessage += " @"
+            }
+            await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, strMessage, users)
+        }
+        return group;
     }
     async isContainMember(iduser: number, idgroup: number) {
 
