@@ -134,12 +134,12 @@ export default class GroupController extends MotherController {
     private createGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
-            const { name } = req.body
-            const users: Array<number> = []
+            const name = String(req.body.name)
+            const users : Array<number> = req.body.users
             if (name) {
                 let data = await this.groupService.createGroup(name, iduser, users)
-                // TODO: create group with multi user
-                // FIXME: add socket broad to user
+                // TODO: create group with multi user 
+                // TODO: add socket broad to user
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",

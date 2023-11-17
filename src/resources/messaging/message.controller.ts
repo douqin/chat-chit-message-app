@@ -183,9 +183,11 @@ export default class MessageController extends MotherController {
     };
     private sendTextMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const idgroup = Number(req.params.idgroup);
-            const message = String(req.body.message);
-            if (idgroup && message) {
+            const idgroup = Number(req.params.idgroup)
+            const message = String(req.body.message)
+            const tag : Array<number> = JSON.parse(req.body.tags)
+            // TODO: add feature tags 
+            if (validVariable(idgroup) && message) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let messageModel = await this.messageService.sendTextMessage(idgroup, iduser, message)
                 this.io
@@ -209,7 +211,7 @@ export default class MessageController extends MotherController {
                         messageModel
                     )
                 );
-                return;
+                return
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
         } catch (e: any) {

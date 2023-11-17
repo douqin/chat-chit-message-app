@@ -11,4 +11,4 @@ import App from "./src/main.application";
 import validateEnv from "./src/utils/validateEnv";
 require('dotenv').config()
 validateEnv();
-new App(Number(process.env.PORT) || 3000).listen();
+App.gI().listen();

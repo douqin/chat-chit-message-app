@@ -10,7 +10,7 @@ export class ListGroupDTO{
         for (let userRaw of raw) {
             let gr = GroupChat.fromRawData(userRaw);
             dto.listGroup.push(gr)
-            dto.nextCursor = userRaw.time
+            dto.nextCursor = userRaw._cursor
         }
         return dto
     }

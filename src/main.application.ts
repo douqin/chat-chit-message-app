@@ -23,9 +23,10 @@ class App {
     private io: Server
     private express: Application
     private port: number
-    constructor(port: number) {
+    private static _instance = new App();
+    private constructor() {
         this.express = express()
-        this.port = port
+        this.port = Number(process.env.PORT) || 3000
         this.server = require("http").createServer(this.express);
         this.io = new SocketBuilder(require("socket.io")(this.server, {
             cors: {
@@ -87,6 +88,9 @@ class App {
         this.server.listen(this.port, () => {
             console.log(`Server listening on port ${this.port}`)
         });
+    }
+    public static gI() {
+        return App._instance;
     }
 }
 export default App;

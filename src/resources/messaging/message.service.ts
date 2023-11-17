@@ -21,6 +21,9 @@ export default class MessageService implements MessageServiceBehavior {
     constructor() {
         this.messageRepository = new MessageRepository()
     }
+    async sendNotitfyMessage(idgroup: number, iduser: number, content: string, manipulates : Array<number>): Promise<Message> {
+        return this.messageRepository.sendNotitfyMessage(idgroup, iduser, content, manipulates)
+    }
     async updateLastView(iduser: number, idmessgae: number): Promise<boolean> {
         return await this.messageRepository.updateLastView(iduser, idmessgae)
     }

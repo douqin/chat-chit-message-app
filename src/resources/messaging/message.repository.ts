@@ -14,6 +14,26 @@ export default class MessageRepository implements MessageRepositoryBehavior {
     constructor() {
         this.drive = ServiceDrive.gI();
     }
+    async sendNotitfyMessage(idgroup: number, iduser: number, content: string, manipulates: number[]): Promise<any> {
+        const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+        const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
+        let date = new Date();
+        const sql = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, ?, ?, ?)`;
+        const values = [idmember, content, date, MessageType.NOTIFY, MessageStatus.DEFAULT]
+        const [rows] = await MySql.excuteQuery(sql, values) as any
+        const [dataQuery, inforColumn] = await MySql.excuteQuery(
+            "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)", [idgroup, rows.insertId, idmember]
+        ) as any
+        const queryInsertMan = `
+            INSERT INTO manipulate_user (idmessage, iduser) VALUE(
+                ?, ?
+            )
+        `
+        for (let iduserMani of manipulates) {
+            await MySql.excuteQuery(queryInsertMan, [dataQuery[0].idmessage, iduserMani])
+        }
+        return dataQuery[0];
+    }
     async sendFileMessage(idgroup: number, iduser: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE) {
         let array = [];
         for (let i = 0; i < content.length; i++) {

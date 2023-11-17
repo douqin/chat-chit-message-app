@@ -1,3 +1,4 @@
+import { User } from "@/resources/auth/dtos/user.dto"
 import Reaction from "./react.dto"
 
 export default class Message {
@@ -11,6 +12,7 @@ export default class Message {
     status: number
     type: number
     public reacts : Array<Reaction>
+    public manipulates : Array<User> = [];
     constructor(content: string,
         createat: Date,
         idgroup: number,

@@ -141,27 +141,27 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         cursor = new Date()
         let query = `
         SELECT *
-FROM (
-    SELECT groupchat.*, 
-    (
-        SELECT MAX(message.createat) 
+        FROM (
+        SELECT groupchat.*, 
+        (
+        SELECT MAX(message.idmessage) 
         FROM message 
         JOIN member AS MEM ON MEM.id = message.idmember 
         WHERE MEM.idgroup = groupchat.idgroup
-    ) AS time 
-    FROM user
-    INNER JOIN member ON user.iduser = member.iduser 
-    JOIN groupchat ON member.idgroup = groupchat.idgroup
-    WHERE user.iduser = ?
-    ) AS sub
-    WHERE sub.time < ?
-    ORDER BY 
-    CASE 
-        WHEN time IS NULL THEN 1 
+        ) AS _cursor 
+        FROM user
+        INNER JOIN member ON user.iduser = member.iduser 
+        JOIN groupchat ON member.idgroup = groupchat.idgroup
+        WHERE user.iduser = ?
+        ) AS sub
+        WHERE sub._cursor < ?
+        ORDER BY 
+        CASE 
+        WHEN _cursor IS NULL THEN 1 
         ELSE 0 
-    END,
-    ISNULL(time),
-    COALESCE(time, sub.createat) DESC LIMIT ?`
+        END,
+        ISNULL(_cursor),
+        COALESCE(_cursor, sub.createat) DESC LIMIT ?`
         let [dataRaw, inforColimn]: any = await MySql.excuteQuery(
             query, [iduser, cursor, limit]
         )
