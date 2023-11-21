@@ -15,6 +15,7 @@ import Reaction from "./dtos/react.dto";
 import TransformReaction from "@/utils/transform/reaction.transform";
 import { iGroupActions } from "../group/interface/group.service.interface";
 import GroupService from "../group/group.service";
+import { ListMessageResponseDTO } from "./dtos/list.message.dto";
 
 export default class MessageService implements MessageServiceBehavior {
     private messageRepository: MessageRepositoryBehavior
@@ -70,7 +71,7 @@ export default class MessageService implements MessageServiceBehavior {
         let raw = await this.messageRepository.sendTextMessage(idgroup, iduser, content)
         return TransformMessage.fromRawData(raw)
     }
-    async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<Message[]> {
+    async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO> {
         let groupAuthor : iGroupActions = new GroupService();
         if(await groupAuthor.isContainInGroup(iduser, idgroup)){
             let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser, cursor, limit)
@@ -83,7 +84,7 @@ export default class MessageService implements MessageServiceBehavior {
                     return TransformReaction.rawToModel(value)
                 })
             }
-            return messages
+            return ListMessageResponseDTO.rawToData(messages)
         }
         else {
             throw new MyException("Bạn không có quyền truy cập")
