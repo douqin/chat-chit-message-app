@@ -1,10 +1,11 @@
+import { ListMessageResponseDTO } from "../dtos/list.message.dto";
 import Message from "../dtos/message.dto";
 import Reaction from "../dtos/react.dto";
 import { ReactMessage } from "../enum/message.react.enum";
 
 export default interface MessageServiceBehavior extends MessageAction{
     updateLastView(iduser: number, idmessgae: number): Promise<boolean>;
-    getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<any>
+    getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO>
 }
 export interface MessageAction {
     sendFileMessage(idgroup: number, iduser: number, content: {
