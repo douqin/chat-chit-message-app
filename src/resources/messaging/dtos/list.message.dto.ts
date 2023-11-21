@@ -12,7 +12,7 @@ export class ListMessageResponseDTO {
         let dto = new ListMessageResponseDTO([], null)
         for(let dtoMessage of raws){
             dto.listMessage.push(dtoMessage)
-            dto.cursor = dtoMessage.idmessage
+            dto.nextCursor = dtoMessage.idmessage
         }
         return dto;
     }
