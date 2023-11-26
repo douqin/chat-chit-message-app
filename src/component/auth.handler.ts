@@ -93,18 +93,6 @@ class AuthHandler {
         }
         let refreshToken = await this.generateRefreshToken(`${iduser}`);
         if (refreshToken) {
-            let tokenOld = refreshToken;
-            refreshToken = await this.generateRefreshToken(`${iduser}`);
-            if (!refreshToken) {
-                return undefined;
-            }
-            // else {
-            //     await MySql.excuteQuery("DELETE FROM token WHERE iduser ='" +
-            //         `${iduser}` +
-            //         "' and refreshtoken = '" +
-            //         tokenOld + "'");
-            // }
-
             let token: Token = {
                 refreshToken: refreshToken,
                 accessToken: accessToken
@@ -121,14 +109,13 @@ class AuthHandler {
     public checkHSDRefreshToken = async (refreshToken: any) => {
         return await this.decodeToken2(refreshToken, refreshTokenSecret);
     }
-    private async saveFullToken(iduser: number, Token: Token, notificationToken: string): Promise<boolean> {
-        let refreshToken = Token.refreshToken
-        let accessToken = Token.accessToken
-        let query = 'INSERT INTO token (iduser, refreshtoken, accesstoken, notificationtoken) VALUES (?,?,?, ?)';
+    private async saveFullToken(iduser: number, token: Token, notificationToken: string): Promise<boolean> {
+        let refreshToken = token.refreshToken
+        let accessToken = token.accessToken
+        let query = 'INSERT INTO token (iduser, refreshtoken, notificationtoken) VALUES (?,?,?, ?)';
         let result: boolean = true;
         try {
-            let result1 = await Database.excuteQuery(query, [iduser, refreshToken, accessToken, notificationToken]);
-            //TODO: FIX empty notificationToken
+            await Database.excuteQuery(query, [iduser, refreshToken, notificationToken != null ? notificationToken : ""]);
         }
         catch (err) {
             console.log(err)

@@ -33,7 +33,7 @@ export default class AuthController extends MotherController {
             "/auth/refreshtoken",
             multer().none(),
             LoginMiddleware.checkAuth(),
-            this.getNewAccessToken
+            this.getRefreshToken
         )
         this.router.post(
             "/auth/register",
@@ -75,7 +75,7 @@ export default class AuthController extends MotherController {
             console.log("🚀 ~ file: login.controller.ts:64 ~ LoginController ~ error:", error)
             next(new HttpException(HttpStatus.FORBIDDEN, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
-    };
+    }
     private registerAccount = async (
         req: Request, res: Response, next: NextFunction
     ) => {
@@ -107,20 +107,26 @@ export default class AuthController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, 'Có lỗi xảy ra vui lòng thử lại sau'))
         }
     }
-    private logout = async ( //TODO: 
+    private logout = async (
         req: Request,
         res: Response,
         next: NextFunction
     ) => {
         try {
-            console.log("aasaa")
-            res.status(HttpStatus.NOT_ACCEPTABLE).send(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn chưa đăng nhập vui lòng thử lại"))
+            let iduser = Number(req.headers['iduser'])
+            let refreshToken = String(req.body.refreshToken)
+            let isOK = await this.authService.loguot(iduser, refreshToken)
+            res.status(HttpStatus.OK).send(new ResponseBody(
+                isOK,
+                "",
+                {}
+            ))
         } catch (error: any) {
-            console.log("Login Controller" + stringify(error))
+            console.log("🚀 ~ file: auth.controller.ts:125 ~ AuthController ~ error:", error)
             next(new HttpException(HttpStatus.FORBIDDEN, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private getNewAccessToken = async (
+    private getRefreshToken = async (
         req: Request,
         res: Response,
         next: NextFunction
