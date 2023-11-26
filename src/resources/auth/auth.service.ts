@@ -6,6 +6,11 @@ import { JwtPayload } from "jsonwebtoken";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 export default class AuthService {
+
+    async loguot(iduser: number, refreshToken: string) {
+        return await this.authRepository.loguot(iduser, refreshToken)
+    }
+
     async getNewAccessToken(iduser: number, oldToken: string, refreshToken: string): Promise<string> {
         let jwtPayload = authHandler.decodeRefreshToken(refreshToken) as JwtPayload;
         if (Number(jwtPayload.payload.iduser) === iduser) {
@@ -17,11 +22,12 @@ export default class AuthService {
         throw new MyException("Token không hợp lệ").withExceptionCode(HttpStatus.BAD_REQUEST)
     }
     private authRepository: AuthRepository;
+
     constructor() {
         this.authRepository = new AuthRepository()
     }
 
-    async login(phone: string, password: string, notificationToken : string): Promise<LoginSuccessfully | undefined> {
+    async login(phone: string, password: string, notificationToken: string): Promise<LoginSuccessfully | undefined> {
         let userRaw = await this.authRepository.login(phone, password, notificationToken);
         if (userRaw) {
             const {
