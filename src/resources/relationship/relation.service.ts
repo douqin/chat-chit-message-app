@@ -17,6 +17,10 @@ export default class RelationService implements RelationServiceBehavior {
     constructor() {
         this.friendRepostory = new RelationRepostory()
     }
+    async isFriend(iduser: number, iduserCanCheck: number): Promise<boolean> {
+        // TODO: complete func
+        throw new Error("Method not implemented.")
+    }
     async deleteInvite(iduser: number, idInvite: number): Promise<boolean> {
         return await this.friendRepostory.deleteInvite(iduser, idInvite)
     }
@@ -40,4 +44,5 @@ export default class RelationService implements RelationServiceBehavior {
     async getRelationship(iduser: number, iduserWGet: number) {
         this.friendRepostory.getRelationship(iduser, iduserWGet)
     }
+    
 }

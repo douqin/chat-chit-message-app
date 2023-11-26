@@ -1,5 +1,5 @@
 
-import { Database } from '@/config/sql/database';
+import { Database } from '@/config/database/database';
 import Token from '@/utils/definition/token';
 import jwt, { Secret, sign as _sign, verify as _verify } from 'jsonwebtoken';
 import { token } from 'morgan';
@@ -128,7 +128,6 @@ class AuthHandler {
         let result: boolean = true;
         try {
             let result1 = await Database.excuteQuery(query, [iduser, refreshToken, accessToken, notificationToken]);
-
             //TODO: FIX empty notificationToken
         }
         catch (err) {

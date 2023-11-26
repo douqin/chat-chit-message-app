@@ -11,4 +11,5 @@ export interface RelationServiceBehavior {
     getAllInvite(iduser: number, cursor : number, limit : number): Promise<InviteFriendDTO>
     inviteToBecomeFriend(iduser: number, idReceiver: number): Promise<any>;
     getAllFriend(iduser: number, cursor : number, limit : number): Promise<ListFriendDTO>;
+    isFriend(iduser :number, iduserCanCheck : number) : Promise<boolean>
 }

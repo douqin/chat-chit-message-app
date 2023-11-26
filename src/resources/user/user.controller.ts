@@ -17,4 +17,5 @@ export default class UserController extends MotherController {
     private searchUser = (req: Request, res: Response, next: NextFunction) => {
 
     }
+    
 }

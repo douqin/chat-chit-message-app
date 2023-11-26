@@ -138,7 +138,6 @@ export default class GroupController extends MotherController {
             const users : Array<number> = req.body.users
             if (name) {
                 let data = await this.groupService.createGroup(name, iduser, users)
-                // TODO: create group with multi user 
                 // TODO: add socket broad to user
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -243,7 +242,7 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private inviteMember = async (req: Request, res: Response, next: NextFunction) => { // FIXME:
+    private inviteMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'])
             const idgroup = Number(req.params.id)

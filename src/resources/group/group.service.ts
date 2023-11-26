@@ -13,6 +13,8 @@ import MemberDTO from './dtos/member.dto';
 import { ListGroupDTO } from './dtos/response.lisgroup.dto';
 import MessageService from '../messaging/message.service';
 import { MessageAction as MessageActionService } from '../messaging/interface/message.service.interaface';
+import RelationService from '../relationship/relation.service';
+import { RelationServiceBehavior } from '../relationship/interface/relation.service.interface';
 
 export default class GroupService implements iGroupServiceBehavior {
     private groupRepsitory: GroupRepositoryBehavior
@@ -131,7 +133,13 @@ export default class GroupService implements iGroupServiceBehavior {
     }
 
     async createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat> {
-        // TODO: check list user contain in list friend 
+        let inforUser : RelationServiceBehavior = new RelationService()
+        for(let _iduser of users){
+            if(!inforUser.isFriend(iduser, _iduser)){
+                throw new MyException("List user added isn't your friend").withExceptionCode(HttpStatus.BAD_REQUEST)
+            }
+        }
+
         let group = GroupChat.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users))
         let messageBehavior: MessageActionService = new MessageService()
         await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, "created group", [])

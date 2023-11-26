@@ -3,7 +3,6 @@ import { Request, Response, NextFunction, RequestHandler } from 'express';
 
 class LoginMiddleware {
     static checkAuth(): RequestHandler {
-        //TODO: 
         return async (
             req: Request,
             res: Response,
