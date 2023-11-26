@@ -12,7 +12,8 @@ export default class Message {
     status: number
     type: number
     public reacts : Array<Reaction>
-    public manipulates : Array<User> = [];
+    public manipulates : Array<User> = []
+    public tags : Array<User> = []
     constructor(content: string,
         createat: Date,
         idgroup: number,

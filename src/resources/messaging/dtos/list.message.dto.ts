@@ -8,7 +8,6 @@ export class ListMessageResponseDTO {
 
     }
     static rawToData(raws : Message[]) : ListMessageResponseDTO {
-        console.log("🚀 ~ file: list.message.dto.ts:11 ~ ListMessageResponseDTO ~ rawToData ~ rawToData:", raws)
         let dto = new ListMessageResponseDTO([], null)
         for(let dtoMessage of raws){
             dto.listMessage.push(dtoMessage)

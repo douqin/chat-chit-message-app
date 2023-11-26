@@ -7,12 +7,21 @@ import { MessageRepositoryBehavior } from "./interface/message.repository.interf
 import { MessageType } from "./enum/message.type.enum";
 import { MessageStatus } from "./enum/message.status.enum";
 import validVariable from "@/utils/extension/vailid_variable";
+import { RowDataPacket } from "mysql2";
 
 export default class MessageRepository implements MessageRepositoryBehavior {
 
     public drive: iDrive
     constructor() {
         this.drive = ServiceDrive.gI();
+    }
+    async getAllTagFromMessage(idmessage: number): Promise<any[]> {
+        const query = `SELECT user.* FROM message JOIN tagged_member ON message.idmessage = tagged_member.idmessage 
+        JOIN member ON member.id = message.idmember
+        JOIN user ON member.iduser = user.iduser
+        WHERE message.idmessage = ?`
+        let [row, inforColumn] = await MySql.excuteQuery(query, [idmessage]) as any
+        return row
     }
     async sendNotitfyMessage(idgroup: number, iduser: number, content: string, manipulates: number[]): Promise<any> {
         const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
@@ -87,16 +96,23 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         }
         return true
     }
-    async sendTextMessage(idgroup: number, iduser: number, content: string) {
+    async sendTextMessage(idgroup: number, iduser: number, content: string, tags : Array<number>) {
         // get idmember
-        const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+        const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
         const [[{ 'id': idmember }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
         let date = new Date();
         const sql = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, ?, ?, ?)`;
         const values = [idmember, content, date, MessageType.TEXT, MessageStatus.DEFAULT]
         const [rows] = await MySql.excuteQuery(sql, values) as any
+
+        const queryInsertTags = "INSERT INTO tagged_member VALUES(?,?)"
+        for (let index = 0; index < tags.length; index++) {
+            const [[{ 'id': idmember2 }], data] = await MySql.excuteQuery(queryGetIDMem, [idgroup, tags[index]]) as any;
+            await MySql.excuteQuery(queryInsertTags,[rows.insertId, idmember2])
+        }
         const [dataQuery, inforColumn] = await MySql.excuteQuery(
-            "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)", [idgroup, rows.insertId, idmember]
+            "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)",
+            [idgroup, rows.insertId, idmember]
         ) as any
         return dataQuery[0];
     }
@@ -115,7 +131,6 @@ export default class MessageRepository implements MessageRepositoryBehavior {
             const [dataQuery, inforColumn] = await MySql.excuteQuery(
                 query, [idgroup, cursor, limit]
             )
-            console.log("🚀 ~ file: message.repository.ts:126 ~ MessageRepository ~ getAllMessageFromGroup ~ dataQuery:", dataQuery)
             return dataQuery as any[];
         }
         const query = `
@@ -124,7 +139,6 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         const [dataQuery, inforColumn] = await MySql.excuteQuery(
             query, [idgroup]
         )
-        console.log("🚀 ~ file: message.repository.ts:126 ~ MessageRepository ~ getAllMessageFromGroup ~ dataQuery:", dataQuery)
         return dataQuery as any[];
     }
     async sendGiftMessage(idgroup: number, iduser: number, content: string) {
@@ -156,7 +170,6 @@ export default class MessageRepository implements MessageRepositoryBehavior {
     async getAllReactFromMessage(idmessage: number): Promise<any[]> {
         let query = "SELECT * FROM reaction WHERE reaction.idmessage = ?"
         let [data, inforColumn] = await MySql.excuteQuery(query, [idmessage]) as any
-        console.log("🚀 ~ file: message.repository.ts:126 ~ MessageRepository ~ getAllReactFromMessage ~ data:", data)
         return data
     }
 }

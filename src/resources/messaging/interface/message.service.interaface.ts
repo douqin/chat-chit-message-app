@@ -11,7 +11,7 @@ export interface MessageAction {
     sendFileMessage(idgroup: number, iduser: number, content: {
         [fieldname: string]: Express.Multer.File[];
     } | Express.Multer.File[] | undefined): Promise<Message[]>
-    sendTextMessage(idgroup: number, iduser: number, content: string): Promise<Message>
+    sendTextMessage(idgroup: number, iduser: number, content: string, tags : Array<number>): Promise<Message>
     sendNotitfyMessage(idgroup: number, iduser: number, content: string, manipulates : Array<number>): Promise<Message>
     reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup: Number): Promise<Reaction>
     removeMessage(iduser: number, idgroup: number, idmessgae: number): Promise<boolean>

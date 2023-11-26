@@ -1,5 +1,5 @@
 import firebase from 'firebase-admin';
-import serviceAccount from './chat-chit-vn-firebase-adminsdk-s5ov2-a6005a3a63.json'
+import serviceAccount from '../../../chat-chit-vn-firebase-adminsdk-s5ov2-a6005a3a63.json'
 
 const params = {               //clone json object into new object to make typescript happy
     type: serviceAccount.type,
