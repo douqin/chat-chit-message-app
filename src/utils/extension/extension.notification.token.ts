@@ -1,4 +1,4 @@
-import { MySql } from "@/config/sql/mysql";
+import { Database } from "@/config/sql/mysql";
 import { RemoteSocket, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
@@ -20,7 +20,7 @@ export async function checkElementsInAnotInB<T>(listA: Array<T>, listB: Array<T>
 }
 export async function getAllNotificationTokenFromServer(idgroup: number) {
     let query = "SELECT token.* FROM (token JOIN `user` JOIN member ON token.iduser = user.iduser AND user.iduser = member.iduser AND member.idgroup = ? )"
-    let [data, inforC] = await MySql.excuteQuery(query, [idgroup]) as any
+    let [data, inforC] = await Database.excuteQuery(query, [idgroup]) as any
     return data as Array<TokenDb>;
 }
 export interface TokenDb {

@@ -189,7 +189,6 @@ export default class MessageController extends MotherController {
             try{
                tags = JSON.parse(req.body.tags)
             } catch{}
-            // TODO: add feature tags 
             if (validVariable(idgroup) && message) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let messageModel = await this.messageService.sendTextMessage(idgroup, iduser, message, tags)

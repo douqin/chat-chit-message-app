@@ -1,7 +1,7 @@
 import { ServiceDrive } from "../../component/cloud/drive.service";
 import { iDrive } from "../../component/cloud/drive.interface";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
-import { MySql } from "@/config/sql/mysql";
+import { Database } from "@/config/sql/mysql";
 import MyException from "@/utils/exceptions/my.exception";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { ReactMessage } from "../messaging/enum/message.react.enum";
@@ -15,16 +15,20 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         this.drive = ServiceDrive.gI();
     }
     async reacStory(idstory: number, iduser: number, react: ReactStory): Promise<any> {
-        
+        const query = `INSERT INTO react_story(idstory, iduser_react, type) VALUE(
+            ?, ?, ?
+        )`
+        const [raw, inforC] = await Database.excuteQuery(query, [idstory, iduser, react])
+        return true
     }
 
     async uploadStory(file: Express.Multer.File, iduser: number): Promise<any> {
         let inforFile = await this.drive.uploadFile(file.filename, file.buffer)
         if (inforFile) {
             const querySaveId = `INSERT INTO story (iduserowner, content) VALUES ( ?, ?)`
-            let [data] = await MySql.excuteQuery(querySaveId, [iduser, inforFile.id]) as any
+            let [data] = await Database.excuteQuery(querySaveId, [iduser, inforFile.id]) as any
             let queryGetInformationStory = "SELECT * FROM story WHERE story.idstory = ?"
-            let [getInforStory] = await MySql.excuteQuery(queryGetInformationStory, [data.insertId]) as any
+            let [getInforStory] = await Database.excuteQuery(queryGetInformationStory, [data.insertId]) as any
             return getInforStory[0]
         }
         return new MyException("Lỗi upload file ").withExceptionCode(500)
@@ -74,26 +78,26 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         //     story[0].viewed = Boolean(Number(count) === 1);
         //     arr.push(story[0])
         // }
-        let [arr] = await MySql.excuteQuery(query, [iduser, iduser, iduser, RelationshipUser.FRIEND]) as any
+        let [arr] = await Database.excuteQuery(query, [iduser, iduser, iduser, RelationshipUser.FRIEND]) as any
         console.log("🚀 ~ file: story.repository.ts:73 ~ StoryRepository ~ getAllStoryFromFriends ~ arr:", arr)
         return arr
     }
 
     async deleteStory(idstory: number): Promise<any> {
         let query = "DELETE FROM story WHERE story.iduserowner = ?"
-        await MySql.excuteQuery(query, [idstory])
+        await Database.excuteQuery(query, [idstory])
         return true;
     }
 
     async seeStory(idstory: number, iduser: number): Promise<any> {
         let query = "INSERT INTO storyview (user_id, story_id) VALUES (?, ?);        "
-        await MySql.excuteQuery(query, [idstory, iduser])
+        await Database.excuteQuery(query, [idstory, iduser])
         return true;
     }
 
     async getViewedStory(iduser: number): Promise<any> {
         let query = "SELECT * FROM storyview WHERE viewer = ?"
-        let [data] = await MySql.excuteQuery(query, [iduser])
+        let [data] = await Database.excuteQuery(query, [iduser])
         return data;
     }
 }
