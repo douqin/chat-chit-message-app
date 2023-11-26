@@ -1,4 +1,4 @@
-import { MySql } from "@/config/sql/mysql";
+import { Database } from "@/config/sql/mysql";
 import { UserServiceBehavior } from "./interface/user.service.interface";
 
 export default class UserRepository implements UserServiceBehavior {
@@ -14,7 +14,7 @@ export default class UserRepository implements UserServiceBehavior {
         user.firstname	,
         user.bio	,
         user.username  FROM user WHERE user.phone = ?`
-        let [data, inforColumn] = await MySql.excuteQuery(query) as any
+        let [data, inforColumn] = await Database.excuteQuery(query) as any
         return data // FIXME:
     }
 }

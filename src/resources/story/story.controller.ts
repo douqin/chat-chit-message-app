@@ -9,6 +9,7 @@ import multer from "multer";
 import StoryService from "./story.service";
 import { Server } from "socket.io";
 import iStoryServiceBehavior from "./interfaces/story.service.interface";
+import validVariable from "@/utils/extension/vailid_variable";
 
 
 export default class StoryController extends MotherController {
@@ -19,10 +20,11 @@ export default class StoryController extends MotherController {
     }
 
     initRouter(): MotherController {
+        this.router.get("/story/:idstory/react", AuthMiddleware.auth, this.reacStory)
         this.router.get("/story", AuthMiddleware.auth, this.getAllStoryFromFriends)
         this.router.post("/story/upload", AuthMiddleware.auth, multer().single("story"), this.uploadStory)
         this.router.delete("/story/delete", AuthMiddleware.auth, multer().none(), this.deleteStory)
-        this.router.post("/story/see", AuthMiddleware.auth, multer().none(), this.seeStory)
+        this.router.post("/story/see", AuthMiddleware.auth, multer().none(), this.seeStoryFriend)
         this.router.post("/story/getviewedstory", AuthMiddleware.auth, multer().none(), this.getViewedStory)
         return this;
     }
@@ -122,10 +124,10 @@ export default class StoryController extends MotherController {
         }
     }
     // seen story
-    private seeStory = async (req: Request, res: Response, next: NextFunction) => {
+    private seeStoryFriend = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            let idstory = Number(req.body.idstory)
-            if (idstory) {
+            let idstory = Number(req.params.idstory)
+            if (validVariable(idstory)) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let story = await this.storyService.seeStory(iduser, idstory)
                 res.status(HttpStatus.OK).send(new ResponseBody(
@@ -187,5 +189,36 @@ export default class StoryController extends MotherController {
             );
         }
     }
+
+    private reacStory = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            let idstory = Number(req.params.idstory)
+            let react = Number(req.body.react)
+            const iduser = Number(req.headers['iduser'] as string)
+            let story = await this.storyService.reacStory(idstory, iduser, react)
+            res.status(HttpStatus.OK).send(new ResponseBody(
+                true,
+                "OK",
+                story
+            ));
+            return;
+        } catch (e: any) {
+            console.log("🚀 ~ file: story.controller.ts:121 ~ StoryController ~ getViewedStory=async ~ e:", e)
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.statusCode,
+                        e.message
+                    )
+                )
+            }
+            next(
+                new HttpException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Có lỗi xảy ra vui lòng thử lại sau"
+                )
+            );
+        }
+    } // TODO: check api is Ok ?
     
 }

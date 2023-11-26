@@ -39,4 +39,4 @@ class MySqlBuilder {
         }
     }
 }
-export { Database as MySql, MySqlBuilder };
+export { Database as Database, MySqlBuilder };

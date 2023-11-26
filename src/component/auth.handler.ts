@@ -1,5 +1,5 @@
 
-import { MySql } from '@/config/sql/mysql';
+import { Database } from '@/config/sql/mysql';
 import Token from '@/utils/definition/token';
 import jwt, { Secret, sign as _sign, verify as _verify } from 'jsonwebtoken';
 import { token } from 'morgan';
@@ -75,7 +75,7 @@ class AuthHandler {
     private async getRefreshTokenFromBD(iduser: number): Promise<string | null> {
         let query: string = "SELECT refreshtoken FROM token WHERE iduser ='" + `${iduser}` + "'";
         try {
-            let data2: any = await MySql.excuteQuery(query);
+            let data2: any = await Database.excuteQuery(query);
             if (data2.length === 0) {
                 return null;
             }
@@ -127,7 +127,7 @@ class AuthHandler {
         let query = 'INSERT INTO token (iduser, refreshtoken, accesstoken, notificationtoken) VALUES (?,?,?, ?)';
         let result: boolean = true;
         try {
-            let result1 = await MySql.excuteQuery(query, [iduser, refreshToken, accessToken, notificationToken]);
+            let result1 = await Database.excuteQuery(query, [iduser, refreshToken, accessToken, notificationToken]);
 
             //TODO: FIX empty notificationToken
         }
