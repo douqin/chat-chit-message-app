@@ -1,11 +1,10 @@
 import { ServiceDrive } from "../../component/cloud/drive.service";
 import { iDrive } from "../../component/cloud/drive.interface";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
-import { Database } from "@/config/sql/database";
 import MyException from "@/utils/exceptions/my.exception";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
-import { ReactMessage } from "../messaging/enum/message.react.enum";
 import { ReactStory } from "./enums/story.react.enum";
+import { Database } from "@/config/database/database";
 
 
 export default class StoryRepository implements iStoryRepositoryBehavior {

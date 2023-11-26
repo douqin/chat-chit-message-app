@@ -1,6 +1,6 @@
 import { PositionInGrop } from './enum/group.position.enum';
 import { ServiceDrive } from './../../component/cloud/drive.service';
-import { Database } from "@/config/sql/database";
+
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from '../../component/cloud/drive.interface';
@@ -9,6 +9,7 @@ import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import { MemberStatus } from './enum/member.status.enum';
 import { GroupStatus } from './enum/group.status.dto.enum';
 import { GroupType } from './enum/group.type.enum';
+import { Database } from '@/config/database/database';
 
 export default class GroupRepository implements GroupRepositoryBehavior {
     public drive: iDrive

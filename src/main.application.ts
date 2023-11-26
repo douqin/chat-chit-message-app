@@ -9,7 +9,6 @@ import morgan from "morgan";
 import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import SocketBuilder from './config/socketio/socket.builder'
-import { MySqlBuilder } from "@/config/sql/database";
 import { ResponseBody } from './utils/definition/http.response';
 import AuthController from './resources/auth/auth.controller';
 import GroupController from './resources/group/group.controller';
@@ -18,6 +17,8 @@ import MessageController from './resources/messaging/message.controller';
 import TestController from './resources/test/test.controller';
 import StoryController from './resources/story/story.controller';
 import FriendController from './resources/relationship/relation.controller';
+import { MySqlBuilder } from './config/database/database';
+import UserController from './resources/user/user.controller';
 class App {
     private server: any
     private io: Server
@@ -46,7 +47,8 @@ class App {
             new MeController(this.io).initRouter(),
             new TestController(this.io).initRouter(),
             new StoryController(this.io).initRouter(),
-            new FriendController(this.io).initRouter()
+            new FriendController(this.io).initRouter(),
+            new UserController(this.io).initRouter()
         ]
         this.initaliseController(controller) 
         this.initErrorHandler()

@@ -1,4 +1,4 @@
-import { Database } from "@/config/sql/database";
+import { Database } from "@/config/database/database";
 import { iDrive } from "../../component/cloud/drive.interface";
 import { ServiceDrive } from "../../component/cloud/drive.service";
 import { dateStrJSToMysql } from "@/utils/extension/date_to_date";

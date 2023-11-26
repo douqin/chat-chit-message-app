@@ -1,12 +1,22 @@
+import { User } from "../auth/dtos/user.dto";
+import { UserRepositoryBehavior } from "./interface/user.repository.interface";
 import { UserServiceBehavior } from "./interface/user.service.interface";
 import UserRepository from "./user.repository";
 
 export default class UserService implements UserServiceBehavior {
-    private userRepository: UserRepository
+    private userRepository: UserRepositoryBehavior
     constructor() {
         this.userRepository = new UserRepository()
     }
+    async inforUser(phone: string, username: string): Promise<User> {
+        return User.fromRawData(
+            await this.userRepository.inforUser(phone, username)
+        )
+    }
+
     async searchUser(phone: string): Promise<any> {
-        await this.userRepository.searchUser(phone)
+        return User.fromRawData(
+            await this.userRepository.searchUser(phone)
+        )
     }
 } 
