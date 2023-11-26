@@ -4,6 +4,8 @@ import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
 import { MySql } from "@/config/sql/mysql";
 import MyException from "@/utils/exceptions/my.exception";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
+import { ReactMessage } from "../messaging/enum/message.react.enum";
+import { ReactStory } from "./enums/story.react.enum";
 
 
 export default class StoryRepository implements iStoryRepositoryBehavior {
@@ -11,6 +13,9 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
     public drive: iDrive
     constructor() {
         this.drive = ServiceDrive.gI();
+    }
+    async reacStory(idstory: number, iduser: number, react: ReactStory): Promise<any> {
+        
     }
 
     async uploadStory(file: Express.Multer.File, iduser: number): Promise<any> {

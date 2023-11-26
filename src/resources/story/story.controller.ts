@@ -19,6 +19,7 @@ export default class StoryController extends MotherController {
     }
 
     initRouter(): MotherController {
+        this.router.get("/story/react", AuthMiddleware.auth, this.reacStory)
         this.router.get("/story", AuthMiddleware.auth, this.getAllStoryFromFriends)
         this.router.post("/story/upload", AuthMiddleware.auth, multer().single("story"), this.uploadStory)
         this.router.delete("/story/delete", AuthMiddleware.auth, multer().none(), this.deleteStory)
@@ -160,6 +161,35 @@ export default class StoryController extends MotherController {
     }
 
     private getViewedStory = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers['iduser'] as string)
+            let story = await this.storyService.getViewedStory(iduser)
+            res.status(HttpStatus.OK).send(new ResponseBody(
+                true,
+                "OK",
+                story
+            ));
+            return;
+        } catch (e: any) {
+            console.log("🚀 ~ file: story.controller.ts:121 ~ StoryController ~ getViewedStory=async ~ e:", e)
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.statusCode,
+                        e.message
+                    )
+                )
+            }
+            next(
+                new HttpException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Có lỗi xảy ra vui lòng thử lại sau"
+                )
+            );
+        }
+    }
+
+    private reacStory = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             let story = await this.storyService.getViewedStory(iduser)
