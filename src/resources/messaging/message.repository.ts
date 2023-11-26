@@ -1,4 +1,3 @@
-import { Database } from "@/config/sql/database";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from "../../component/cloud/drive.interface";
 import { ServiceDrive } from "../../component/cloud/drive.service";
@@ -8,6 +7,7 @@ import { MessageType } from "./enum/message.type.enum";
 import { MessageStatus } from "./enum/message.status.enum";
 import validVariable from "@/utils/extension/vailid_variable";
 import { RowDataPacket } from "mysql2";
+import { Database } from "@/config/database/database";
 
 export default class MessageRepository implements MessageRepositoryBehavior {
 

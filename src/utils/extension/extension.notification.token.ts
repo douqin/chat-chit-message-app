@@ -1,4 +1,4 @@
-import { Database } from "@/config/sql/database";
+import { Database } from "@/config/database/database";
 import { RemoteSocket, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 

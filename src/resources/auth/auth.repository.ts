@@ -1,5 +1,4 @@
-
-import { Database } from '@/config/sql/database';
+import { Database } from '@/config/database/database';
 import MyException from '@/utils/exceptions/my.exception';
 export default class AuthRepository {
     async saveNewAccessToken(token: number, iduser: number): Promise<boolean> {
