@@ -111,8 +111,7 @@ class AuthHandler {
     }
     private async saveFullToken(iduser: number, token: Token, notificationToken: string): Promise<boolean> {
         let refreshToken = token.refreshToken
-        let accessToken = token.accessToken
-        let query = 'INSERT INTO token (iduser, refreshtoken, notificationtoken) VALUES (?,?,?, ?)';
+        let query = 'INSERT INTO token (iduser, refreshtoken, notificationtoken) VALUES (?,?,?)';
         let result: boolean = true;
         try {
             await Database.excuteQuery(query, [iduser, refreshToken, notificationToken != null ? notificationToken : ""]);
