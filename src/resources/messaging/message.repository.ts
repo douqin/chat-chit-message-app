@@ -1,4 +1,4 @@
-import { Database } from "@/config/sql/mysql";
+import { Database } from "@/config/sql/database";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from "../../component/cloud/drive.interface";
 import { ServiceDrive } from "../../component/cloud/drive.service";

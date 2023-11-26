@@ -1,5 +1,5 @@
 import { RelationshipUser } from './enums/relationship.enum';
-import { Database } from "@/config/sql/mysql";
+import { Database } from "@/config/sql/database";
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface";
 import validVariable from '@/utils/extension/vailid_variable';
 

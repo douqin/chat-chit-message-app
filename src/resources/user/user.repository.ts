@@ -1,4 +1,4 @@
-import { Database } from "@/config/sql/mysql";
+import { Database } from "@/config/sql/database";
 import { UserServiceBehavior } from "./interface/user.service.interface";
 
 export default class UserRepository implements UserServiceBehavior {

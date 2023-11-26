@@ -1,5 +1,5 @@
 
-import { Database } from '@/config/sql/mysql';
+import { Database } from '@/config/sql/database';
 import Token from '@/utils/definition/token';
 import jwt, { Secret, sign as _sign, verify as _verify } from 'jsonwebtoken';
 import { token } from 'morgan';

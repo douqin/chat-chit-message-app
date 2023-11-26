@@ -1,6 +1,6 @@
 import { PositionInGrop } from './enum/group.position.enum';
 import { ServiceDrive } from './../../component/cloud/drive.service';
-import { Database } from "@/config/sql/mysql";
+import { Database } from "@/config/sql/database";
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from '../../component/cloud/drive.interface';
