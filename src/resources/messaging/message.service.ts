@@ -13,9 +13,10 @@ import TransformMessage from "@/utils/transform/message.transform";
 import { ServiceDrive } from "./../../component/cloud/drive.service";
 import Reaction from "./dtos/react.dto";
 import TransformReaction from "@/utils/transform/reaction.transform";
-import { iGroupActions } from "../group/interface/group.service.interface";
+import { iGroupActions, iInformationMember } from "../group/interface/group.service.interface";
 import GroupService from "../group/group.service";
 import { ListMessageResponseDTO } from "./dtos/list.message.dto";
+import { User } from "../auth/dtos/user.dto";
 
 export default class MessageService implements MessageServiceBehavior {
     private messageRepository: MessageRepositoryBehavior
@@ -67,21 +68,29 @@ export default class MessageService implements MessageServiceBehavior {
             return await ServiceDrive.gI().getUrlFile(id);
         })
     }
-    async sendTextMessage(idgroup: number, iduser: number, content: string){
-        let raw = await this.messageRepository.sendTextMessage(idgroup, iduser, content)
+    async sendTextMessage(idgroup: number, iduser: number, content: string, tags: Array<number>){
+        let group : iInformationMember = new GroupService()
+        for(let tag of tags){
+            if(!await group.isContainInGroup(tag, idgroup)){
+                throw new MyException("Wrong argument").withExceptionCode(HttpStatus.BAD_REQUEST)
+            }
+        }
+        let raw = await this.messageRepository.sendTextMessage(idgroup, iduser, content, tags)
         return TransformMessage.fromRawData(raw)
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO> {
-        let groupAuthor : iGroupActions = new GroupService();
+        let groupAuthor : iInformationMember = new GroupService();
         if(await groupAuthor.isContainInGroup(iduser, idgroup)){
             let data = await this.messageRepository.getAllMessageFromGroup(idgroup, iduser, cursor, limit)
             let messages = await TransformMessage.fromRawsData(data, async (id : string) => {
                 return await ServiceDrive.gI().getUrlFile(id)
             })
-            // join data getAllReactFromMessage
             for(let message of messages){
                 message.reacts = (await this.messageRepository.getAllReactFromMessage(message.idmessage)).map((value: any, index: number, array: any[]) =>{
                     return TransformReaction.rawToModel(value)
+                })
+                message.tags = (await this.messageRepository.getAllTagFromMessage(message.idmessage)).map((value: any, index: number, array: any[]) =>{
+                    return User.fromRawData(value)
                 })
             }
             return ListMessageResponseDTO.rawToData(messages)

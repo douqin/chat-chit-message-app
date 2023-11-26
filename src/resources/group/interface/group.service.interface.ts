@@ -5,7 +5,7 @@ import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
 import MemberDTO from "../dtos/member.dto";
 import { ListGroupDTO } from "../dtos/response.lisgroup.dto";
 
-export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions {}
+export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions, iInformationMember {}
 export interface iMemberActions {
     blockMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
     approvalMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
@@ -25,6 +25,9 @@ export interface iMemberActions {
     getOneGroup(idgroup: number): Promise<GroupChat | null>;
     getAllMember(idgroup: number): Promise<MemberDTO[]>;
     changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<DataFileDrive | null>;
-    isContainInGroup(iduser: number, idgroup: number): Promise<boolean>;
     renameGroup(iduser: number, idgroup: number, name: string): Promise<boolean>;
   }
+  export interface iInformationMember{
+    isContainInGroup(iduser: number, idgroup: number): Promise<boolean>;
+  }
+  

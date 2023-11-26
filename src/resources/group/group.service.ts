@@ -144,9 +144,6 @@ export default class GroupService implements iGroupServiceBehavior {
         }
         return group;
     }
-    async isContainMember(iduser: number, idgroup: number) {
-
-    }
     async getLastViewMember(idgroup: number) {
         let rawDataSQL = await this.groupRepsitory.getLastViewMember(idgroup)
         if (rawDataSQL) {
