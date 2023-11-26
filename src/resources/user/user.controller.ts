@@ -45,10 +45,7 @@ export default class UserController extends MotherController {
     private inforUser = (req: Request, res: Response, next: NextFunction) => {
         try {
             let username = Number(req.params.username)
-            if (isNaN(username)) {
-
-            }
-
+            
             next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
         } catch (error: any) {
             if (error instanceof MyException) {

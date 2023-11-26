@@ -17,8 +17,9 @@ import MessageController from './resources/messaging/message.controller';
 import TestController from './resources/test/test.controller';
 import StoryController from './resources/story/story.controller';
 import FriendController from './resources/relationship/relation.controller';
-import { MySqlBuilder } from './config/database/database';
+import { Database, MySqlBuilder } from './config/database/database';
 import UserController from './resources/user/user.controller';
+import { DatabaseCache } from './config/database/redis';
 class App {
     private server: any
     private io: Server
@@ -85,6 +86,7 @@ class App {
     }
     private initaliseDatabase() {
         new MySqlBuilder().initPool().build();
+        DatabaseCache.getInstance()
     }
     public listen(): void {
         this.server.listen(this.port, () => {

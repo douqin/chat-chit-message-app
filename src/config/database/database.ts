@@ -11,7 +11,7 @@ class Database {
     public static excuteQuery: (query: string, a?: any[]) => Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
 
 }
-class MySqlBuilder {
+class DatabaseBuilder {
     private pool!: mysql.Pool;
     constructor() {
         console.log("🚀 ~ file: mysql.ts:10 ~ DATABASE_PASSWORD:", DATABASE_PASSWORD)
@@ -39,4 +39,4 @@ class MySqlBuilder {
         }
     }
 }
-export { Database as Database, MySqlBuilder };
+export { Database as Database, DatabaseBuilder as MySqlBuilder };
