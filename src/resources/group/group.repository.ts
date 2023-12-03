@@ -16,6 +16,17 @@ export default class GroupRepository implements GroupRepositoryBehavior {
     constructor() {
         this.drive = ServiceDrive.gI();
     }
+    async getInformationMember( idmember: number, idgroup: number): Promise<any> {
+        const query = 'SELECT * from (user JOIN member ON user.iduser = member.iduser) WHERE member.id = ? AND member.idgroup = ? AND member.status = ?'
+        const [data, inforC] = await Database.excuteQuery(query, [idmember, idgroup, MemberStatus.DEFAULT]) as any
+        return data[0]
+    }
+    async getTotalMember(idgroup: number): Promise<number> {
+        let query = `SELECT COUNT(*) FROM groupchat JOIN member ON member.idgroup = groupchat.idgroup WHERE groupchat.idgroup = ?` //FIXME: check member staus suck as ban,...
+        let [data] = await Database.excuteQuery(query, [idgroup]);
+        const [{ 'COUNT(*)': count }] = data as any;
+        return count
+    }
     async blockMember(iduserAdd: number, idgroup: number): Promise<boolean> {
         throw new Error('Method not implemented.');
     }
@@ -138,36 +149,92 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         }
         return []; this
     }
-    async getSomeGroup(iduser: number, cursor: Date, limit: number): Promise<object[]> {
-        cursor = new Date()
-        let query = `
-        SELECT *
-        FROM (
-        SELECT groupchat.*, 
+    async getSomeGroup(iduser: number, cursor: number, limit: number): Promise<object[]> {
+
+        if (!isNaN(cursor)) {
+            let query = `
+            SELECT
+        *
+    FROM
         (
-        SELECT MAX(message.idmessage) 
-        FROM message 
-        JOIN member AS MEM ON MEM.id = message.idmember 
-        WHERE MEM.idgroup = groupchat.idgroup
-        ) AS _cursor 
-        FROM user
-        INNER JOIN member ON user.iduser = member.iduser 
+        SELECT
+            groupchat.*,
+            (
+            SELECT
+                MAX(message.idmessage)
+            FROM
+                message
+            JOIN member AS MEM
+            ON
+                MEM.id = message.idmember
+            WHERE
+                MEM.idgroup = groupchat.idgroup
+        ) AS _cursor
+    FROM
+        user
+    INNER JOIN member ON user.iduser = member.iduser
+    JOIN groupchat ON member.idgroup = groupchat.idgroup
+    WHERE
+        user.iduser = ?
+    ) AS sub
+    WHERE
+        _cursor < ?
+    ORDER BY
+        _cursor
+    DESC
+    LIMIT ?    
+           `
+            let [dataRaw, inforColimn]: any = await Database.excuteQuery(
+                query, [iduser, cursor, limit]
+            )
+            if (dataRaw) {
+                return dataRaw;
+            }
+        } else {
+
+            let query = `SELECT
+            *
+        FROM
+            (
+            SELECT
+                groupchat.*,
+                (
+                SELECT
+                    MAX(message.idmessage)
+                FROM
+                    message
+                JOIN member AS MEM
+                ON
+                    MEM.id = message.idmember
+                WHERE
+                    MEM.idgroup = groupchat.idgroup
+            ) AS _cursor
+        FROM
+            user
+        INNER JOIN member ON user.iduser = member.iduser
         JOIN groupchat ON member.idgroup = groupchat.idgroup
-        WHERE user.iduser = ?
+        WHERE
+            user.iduser = ?
         ) AS sub
-        WHERE sub._cursor < ?
-        ORDER BY 
-        CASE 
-        WHEN _cursor IS NULL THEN 1 
-        ELSE 0 
-        END,
-        ISNULL(_cursor),
-        COALESCE(_cursor, sub.createat) DESC LIMIT ?`
+        WHERE
+            _cursor <(
+                (
+                SELECT
+                    MAX(message.idmessage)
+                FROM
+                    message
+            ) + 1
+            )
+        ORDER BY
+            _cursor
+        DESC
+        LIMIT ?`
         let [dataRaw, inforColimn]: any = await Database.excuteQuery(
-            query, [iduser, cursor, limit]
+            query, [iduser, limit]
         )
         if (dataRaw) {
             return dataRaw;
+        }
         }
         return []
     }

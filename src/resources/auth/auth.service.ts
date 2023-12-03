@@ -1,4 +1,4 @@
-import { LoginSuccessfully, User } from "./dtos/user.dto";
+import { LoginSuccessfully, User } from "../../models/user.model";
 import AuthRepository from "./auth.repository";
 import AuthHandler from '../../component/auth.handler'
 import authHandler from "../../component/auth.handler";

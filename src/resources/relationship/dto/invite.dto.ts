@@ -1,4 +1,4 @@
-import { User } from "@/resources/auth/dtos/user.dto";
+import { User } from "@/models/user.model";
 
 
 export class InviteFriend {

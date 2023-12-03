@@ -1,19 +1,22 @@
-import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from "../../component/cloud/drive.interface";
 import { ServiceDrive } from "../../component/cloud/drive.service";
 import { ReactMessage } from "./enum/message.react.enum";
-import { MessageRepositoryBehavior } from "./interface/message.repository.interface";
+import { iMessageRepositoryBehavior } from "./interface/message.repository.interface";
 import { MessageType } from "./enum/message.type.enum";
 import { MessageStatus } from "./enum/message.status.enum";
 import validVariable from "@/utils/extension/vailid_variable";
-import { RowDataPacket } from "mysql2";
 import { Database } from "@/config/database/database";
 
-export default class MessageRepository implements MessageRepositoryBehavior {
+export default class MessageRepository implements iMessageRepositoryBehavior {
 
     public drive: iDrive
     constructor() {
         this.drive = ServiceDrive.gI();
+    }
+
+    async getNumMessageUnread(idgroup: number): Promise<number> {
+        return Promise.resolve(0)
+        // FIXME: getNumMessageUnread complete func
     }
     async getAllTagFromMessage(idmessage: number): Promise<any[]> {
         const query = `SELECT user.* FROM message JOIN tagged_member ON message.idmessage = tagged_member.idmessage 
@@ -116,13 +119,13 @@ export default class MessageRepository implements MessageRepositoryBehavior {
         ) as any
         return dataQuery[0];
     }
-    async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<any[]> {
+    async getAllMessageFromGroup(idgroup: number,cursor: number, limit: number): Promise<any[]> {
         if (validVariable(limit) && Number.isNaN(cursor)) {
-            console.log('a')
             const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? ) ORDER BY message.createat DESC limit ?`
             const [dataQuery, inforColumn] = await Database.excuteQuery(
                 query, [idgroup, limit]
             )
+            console.log("🚀 ~ file: message.repository.ts:129 ~ MessageRepository ~ getAllMessageFromGroup ~ dataQuery:", dataQuery)
             return dataQuery as any[];
         }
         else if (validVariable(limit) && validVariable(cursor)) {

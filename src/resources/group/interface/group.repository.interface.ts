@@ -24,6 +24,7 @@ export interface GroupRepositoryBehavior extends GroupManagement, GroupInfo, Gro
     // getPosition(idgroup: Number, iduser: Number): Promise<PositionInGrop>
 }
 export interface GroupManagement {
+
     changeStatusMember(iduserAdd: number, idgroup: number, status: MemberStatus): Promise<boolean>;
     removeMember(idgroup: number, iduserRemove: number): boolean | PromiseLike<boolean>;
     removeManager(idgroup: number, iduserAdd: any): boolean | PromiseLike<boolean>;
@@ -33,6 +34,8 @@ export interface GroupManagement {
 }
 
 export interface GroupActionMember {
+    getInformationMember(iduserCanFind: number, idgroup: number): Promise<any>
+    getTotalMember(idgroup: number): Promise<number>
     checkMemberPermisstion(permisstion: MemberPermisstion, iduser: Number, idgroup: Number): unknown;
     addUserToApprovalQueue(iduser: number, idgroup: number): any;
     joinGroup(iduser: number, idgroup: number): Promise<boolean>;
@@ -40,7 +43,7 @@ export interface GroupActionMember {
 }
 
 export interface GroupInfo {
-    getSomeGroup(iduser: number, cursor : Date, limit : number): Promise<Array<any>>;
+    getSomeGroup(iduser: number, cursor : number, limit : number): Promise<Array<any>>;
     getAllGroup(iduser: number): Promise<object[] | undefined>;
     getLastViewMember(idgroup: number): Promise<object[] | undefined>;
     getOneGroup(idgroup: number): Promise<object | null>;

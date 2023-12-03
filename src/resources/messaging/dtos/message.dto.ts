@@ -1,4 +1,4 @@
-import { User } from "@/resources/auth/dtos/user.dto"
+import { User } from "@/models/user.model"
 import Reaction from "./react.dto"
 
 export default class Message {

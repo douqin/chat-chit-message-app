@@ -1,7 +1,5 @@
-
-import { User } from "@/resources/auth/dtos/user.dto";
-import { InviteFriend, InviteFriendDTO } from "../dto/invite.dto";
 import { ListFriendDTO } from "../dto/friends.dto";
+import { InviteFriendDTO } from "../dto/invite.dto";
 
 export interface RelationServiceBehavior {
     deleteInvite(iduser: number, idInvite: number): Promise<boolean>;

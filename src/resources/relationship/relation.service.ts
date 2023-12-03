@@ -4,7 +4,7 @@ import RelationRepostory from "./relation.repository"
 import { InviteFriend, InviteFriendDTO } from "./dto/invite.dto"
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface"
 import { RelationshipUser } from "./enums/relationship.enum"
-import { User } from "../auth/dtos/user.dto"
+import { User } from "../../models/user.model"
 import { ListFriendDTO } from "./dto/friends.dto"
 
 export default class RelationService implements RelationServiceBehavior {

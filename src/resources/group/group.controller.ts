@@ -1,10 +1,8 @@
 import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import MotherController from "@/utils/interface/controller.interface";
-import authHandler from "../../component/auth.handler";
 import { NextFunction, Request, Response } from "express";
 import { Server } from "socket.io";
-import { JwtPayload } from "jsonwebtoken";
 import GroupService from "@/resources/group/group.service";
 import Controller from "@/utils/decorator/decorator";
 import LastViewGroup from "./dtos/lastview.dto";
@@ -13,6 +11,8 @@ import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import AuthMiddleware from "@/middleware/auth.middleware";
+import validVariable from "@/utils/extension/vailid_variable";
+import { User } from "../../models/user.model";
 @Controller("/group")
 export default class GroupController extends MotherController {
     private groupService: iGroupServiceBehavior;
@@ -24,7 +24,7 @@ export default class GroupController extends MotherController {
     initRouter(): MotherController {
         this.router.get('/group',
             AuthMiddleware.auth,
-            this.getAllGroup
+            this.getSomeGroup
         )
         this.router.get('/group/:id',
             AuthMiddleware.auth,
@@ -88,6 +88,11 @@ export default class GroupController extends MotherController {
             // AuthMiddleware.authAdmin,
             this.blockMember
         )
+        this.router.get(
+            '/group/:idgroup/member/:idmember/infor',
+            AuthMiddleware.auth,
+            this.getInformationMember
+        )
         return this
     }
     private joinfromLink = async (req: Request, res: Response, next: NextFunction) => {
@@ -115,10 +120,11 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private getAllGroup = async (req: Request, res: Response, next: NextFunction) => {
+    // ?cursor&limit
+    private getSomeGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const limit = Number(req.query.limit)
-            const cursor = new Date(req.query.cursor as string)
+            const cursor = Number(req.query.cursor as string)
             const iduser = Number(req.headers['iduser'] as string)
             let data = await this.groupService.getSomeGroup(iduser, cursor, limit)
             res.status(HttpStatus.OK).json(new ResponseBody(
@@ -127,7 +133,7 @@ export default class GroupController extends MotherController {
                 data
             ))
         } catch (error: any) {
-            console.log("🚀 ~ file: group.controller.ts:130 ~ GroupController ~ getAllGroup= ~ error:", error)
+            console.log("🚀 ~ file: group.controller.ts:130 ~ GroupController ~ getSomeGroup= ~ error:", error)
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
@@ -423,6 +429,31 @@ export default class GroupController extends MotherController {
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
         } catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+            }
+            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
+    private getInformationMember = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers.iduser)
+            const idmember = Number(req.params.idmember)
+            const idgroup = Number(req.params.idgroup)
+            if (validVariable(idmember) && validVariable(idgroup)) {
+                let data = await this.groupService.getInformationMember(iduser, idmember, idgroup)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody<User>(
+                        true,
+                        "",
+                        data
+                    )
+                )
+                return
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+        } catch (error: any) {
+            console.log("🚀 ~ file: group.controller.ts:456 ~ GroupController ~ getInformationMember= ~ error:", error)
             if (error instanceof MyException) {
                 next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
             }

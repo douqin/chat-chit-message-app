@@ -1,4 +1,4 @@
-import { User } from '../auth/dtos/user.dto';
+import { User } from '../../models/user.model';
 import MyException from "@/utils/exceptions/my.exception";
 import MeRepository from "./me.repository";
 

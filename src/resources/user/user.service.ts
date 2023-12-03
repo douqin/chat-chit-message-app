@@ -1,4 +1,4 @@
-import { User } from "../auth/dtos/user.dto";
+import { User } from "../../models/user.model";
 import { UserRepositoryBehavior } from "./interface/user.repository.interface";
 import { UserServiceBehavior } from "./interface/user.service.interface";
 import UserRepository from "./user.repository";

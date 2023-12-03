@@ -21,12 +21,11 @@ class DatabaseBuilder {
     }
     initPool() {
         this.pool = mysql.createPool({
-            port: isNaN(Number(DATABASE_PORT)) ? 3306 : Number(DATABASE_PORT),
+            port: isNaN(Number(DATABASE_PORT)) ? undefined : Number(DATABASE_PORT),
             database: DATABASE_NAME,
             host: DATABASE_HOST,
             user: DATABASE_USER,
-            password: DATABASE_PASSWORD,
-            multipleStatements: false
+            password: DATABASE_PASSWORD
         })
         return this
     }

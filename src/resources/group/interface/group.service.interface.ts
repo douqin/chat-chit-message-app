@@ -1,11 +1,13 @@
-import { User } from "@/resources/auth/dtos/user.dto";
-import GroupChat from "../dtos/group.dto";
+import GroupChat from "../../../models/group.model";
 import LastViewGroup from "../dtos/lastview.dto";
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
-import MemberDTO from "../dtos/member.dto";
 import { ListGroupDTO } from "../dtos/response.lisgroup.dto";
+import { MemberDTO } from "../dtos/member.dto";
+import { User } from "@/models/user.model";
 
-export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions, iInformationMember {}
+
+export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions, iInformationMember {
+}
 export interface iMemberActions {
     blockMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
     approvalMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
@@ -19,8 +21,10 @@ export interface iMemberActions {
   }
   
   export interface iGroupActions {
+    getInformationMember(iduser: number, idmember: number, idgroup: number): Promise<User>;
+    getTotalMember(idgroup : number) : Promise<number>
     getAllGroup(iduser: number): Promise<Array<GroupChat>>;
-    getSomeGroup(iduser: number, cursor : Date, limit : number): Promise<ListGroupDTO>;
+    getSomeGroup(iduser: number, cursor : number, limit : number): Promise<ListGroupDTO>;
     createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat>;
     getOneGroup(idgroup: number): Promise<GroupChat | null>;
     getAllMember(idgroup: number): Promise<MemberDTO[]>;

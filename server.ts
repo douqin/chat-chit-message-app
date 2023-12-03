@@ -5,6 +5,7 @@ moduleAlias.addAliases({
     "@/config": `${__dirname}/src/config`,
     "@/utils": `${__dirname}/src/utils`,
     "@/middleware": `${__dirname}/src/middleware`,
+    "@/models" : `${__dirname}/src/models`,
 });
 
 import App from "./src/main.application";

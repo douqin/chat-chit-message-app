@@ -1,30 +1,47 @@
-import { MemberPermisstion } from './enum/group.member.permisstion.enum';
-import GroupChat from "./dtos/group.dto";
-import GroupRepository from "./group.repository";
-import LastViewGroup from "./dtos/lastview.dto";
-import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
-import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
-import MyException from "@/utils/exceptions/my.exception";
-import { MemberStatus } from './enum/member.status.enum';
-import { PositionInGrop } from './enum/group.position.enum';
-import { HttpStatus } from '@/utils/extension/httpstatus.exception';
-import iGroupServiceBehavior from './interface/group.service.interface';
-import MemberDTO from './dtos/member.dto';
-import { ListGroupDTO } from './dtos/response.lisgroup.dto';
-import MessageService from '../messaging/message.service';
-import { MessageAction as MessageActionService } from '../messaging/interface/message.service.interaface';
-import RelationService from '../relationship/relation.service';
-import { RelationServiceBehavior } from '../relationship/interface/relation.service.interface';
+import MyException from "@/utils/exceptions/my.exception"
+import { HttpStatus } from "@/utils/extension/httpstatus.exception"
+import DataFileDrive from "component/cloud/dtos/file.drive.dtos"
+import GroupChat from "./../../models/group.model"
+import { iMessageAction } from "../messaging/interface/message.service.interaface"
+import MessageService from "../messaging/message.service"
+import { RelationServiceBehavior } from "../relationship/interface/relation.service.interface"
+import RelationService from "../relationship/relation.service"
+import LastViewGroup from "./dtos/lastview.dto"
+import { MemberDTO } from "./dtos/member.dto"
+import { ListGroupDTO } from "./dtos/response.lisgroup.dto"
+import { MemberPermisstion } from "./enum/group.member.permisstion.enum"
+import { PositionInGrop } from "./enum/group.position.enum"
+import { MemberStatus } from "./enum/member.status.enum"
+import GroupRepository from "./group.repository"
+import { GroupRepositoryBehavior } from "./interface/group.repository.interface"
+import iGroupServiceBehavior from "./interface/group.service.interface"
+import { User } from "../../models/user.model"
+
 
 export default class GroupService implements iGroupServiceBehavior {
     private groupRepsitory: GroupRepositoryBehavior
     constructor() {
         this.groupRepsitory = new GroupRepository()
     }
-    async getSomeGroup(iduser: number, cursor: Date, limit: number): Promise<ListGroupDTO> {
+    async getInformationMember(iduser: number, idmember: number, idgroup: number): Promise<any> {
+        if(await this.isContainInGroup(iduser, idgroup)){
+            return User.fromRawData(await this.groupRepsitory.getInformationMember(idmember, idgroup))
+        } throw new MyException("User request not contain in group").withExceptionCode(HttpStatus.FORBIDDEN)
+    }
+    async getTotalMember(idgroup: number): Promise<number> {
+        return await this.groupRepsitory.getTotalMember(idgroup)
+    }
+    async getSomeGroup(iduser: number, cursor: number, limit: number): Promise<ListGroupDTO> {
         let dataRaw = await this.groupRepsitory.getSomeGroup(iduser, cursor, limit)
         if (dataRaw) {
-            return ListGroupDTO.rawToDTO(dataRaw)
+            let message: iMessageAction = new MessageService()
+            return ListGroupDTO.rawToDTO(dataRaw, async (idgroup: number) => {
+                return await message.getLastMessage(idgroup)
+            }, async (idgroup: number) => {
+                return await this.getTotalMember(idgroup)
+            }, async (idgroup: number) => {
+                return await message.getNumMessageUnread(idgroup, iduser)
+            })
         }
         return new ListGroupDTO([], null)
     }
@@ -121,7 +138,6 @@ export default class GroupService implements iGroupServiceBehavior {
     async leaveGroup(iduser: any, idgroup: number): Promise<boolean> {
         return await this.groupRepsitory.leaveGroup(iduser, idgroup)
     }
-
     async getAllGroup(iduser: number): Promise<Array<GroupChat>> {
         let dataRaw = await this.groupRepsitory.getAllGroup(iduser)
         if (dataRaw) {
@@ -131,17 +147,16 @@ export default class GroupService implements iGroupServiceBehavior {
         }
         return []
     }
-
     async createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat> {
-        let inforUser : RelationServiceBehavior = new RelationService()
-        for(let _iduser of users){
-            if(!inforUser.isFriend(iduser, _iduser)){
+        let inforUser: RelationServiceBehavior = new RelationService()
+        for (let _iduser of users) {
+            if (!inforUser.isFriend(iduser, _iduser)) {
                 throw new MyException("List user added isn't your friend").withExceptionCode(HttpStatus.BAD_REQUEST)
             }
         }
 
         let group = GroupChat.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users))
-        let messageBehavior: MessageActionService = new MessageService()
+        let messageBehavior: iMessageAction = new MessageService()
         await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, "created group", [])
         if (users.length > 0) {
             let strMessage = "added member"

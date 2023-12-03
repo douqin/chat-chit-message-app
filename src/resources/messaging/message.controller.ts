@@ -7,14 +7,14 @@ import MessageService from "./message.service";
 import HttpException from "@/utils/exceptions/http.exeception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
-import MessageServiceBehavior from "./interface/message.service.interaface";
+import iMessageServiceBehavior from "./interface/message.service.interaface";
 import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import { MessageStatus } from "./enum/message.status.enum";
 import validVariable from "@/utils/extension/vailid_variable";
 @Controller("/message")
 export default class MessageController extends MotherController {
-    private messageService: MessageServiceBehavior;
+    private messageService: iMessageServiceBehavior;
     constructor(io: Server) {
         super(io);
         this.messageService = new MessageService();

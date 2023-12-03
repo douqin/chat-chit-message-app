@@ -8,15 +8,16 @@ export class User {
         public phone: string,
         public birthday: Date,
         public gender: number,
-        public avatar: string,
         public bio: string,
         public username: string,
-        public background: string
+        public avatar?: string,
+        public background? : string,
+        public email? : string, 
     ) { }
     static fromRawData(data: any): User {
-        const { iduser, phone, birthday, gender, avatar, firstname, lastname, bio, username, background } = data;
+        const { iduser, phone, birthday, gender, avatar, firstname, lastname, bio, username, background, email } = data;
         return new User(
-            iduser, lastname, firstname, phone, birthday, gender, avatar, bio, username, background
+            iduser, lastname, firstname, phone, birthday, gender, bio, username, avatar, background, email
         );
     }
 }

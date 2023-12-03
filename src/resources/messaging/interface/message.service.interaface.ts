@@ -3,11 +3,12 @@ import Message from "../dtos/message.dto";
 import Reaction from "../dtos/react.dto";
 import { ReactMessage } from "../enum/message.react.enum";
 
-export default interface MessageServiceBehavior extends MessageAction{
-    updateLastView(iduser: number, idmessgae: number): Promise<boolean>;
-    getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO>
+export default interface iMessageServiceBehavior extends iMessageAction, iMessageInformation{
+
 }
-export interface MessageAction {
+
+export interface iMessageAction {
+    updateLastView(iduser: number, idmessgae: number): Promise<boolean>;
     sendFileMessage(idgroup: number, iduser: number, content: {
         [fieldname: string]: Express.Multer.File[];
     } | Express.Multer.File[] | undefined): Promise<Message[]>
@@ -16,4 +17,11 @@ export interface MessageAction {
     reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup: Number): Promise<Reaction>
     removeMessage(iduser: number, idgroup: number, idmessgae: number): Promise<boolean>
     changePinMessage(idmessage: number, iduser: number, isPin: number): Promise<boolean>
+    getLastMessage(idgroup : number) : Promise<Message>
+    getNumMessageUnread(idgroup : number, iduser : number) : Promise<number>
+}
+export interface iMessageInformation{
+    getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO>
+    getAllTagFromMessage(idmessage: number): Promise<any[]>
+    getAllReactFromMessage(idmessage: number): Promise<any[]>
 }

@@ -1,6 +1,4 @@
 import SocketMiddleware from '@/middleware/socket.middleware';
-import GroupChat from '@/resources/group/dtos/group.dto';
-import GroupRepository from '@/resources/group/group.repository';
 import GroupService from '@/resources/group/group.service';
 import { iGroupActions } from '@/resources/group/interface/group.service.interface';
 import { Server, Socket } from 'socket.io';
