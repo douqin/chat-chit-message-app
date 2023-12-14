@@ -1,3 +1,4 @@
+======
 ## Api
 
 ### Auth `/auth`
@@ -270,3 +271,4 @@
 ### Socket Server trả về
 
 -   socket.emit('user-last-view', {groupId, channelId, userId, lastView: Date } ): user đã xem tin nhắn ở group hoặc channel.
+>>>>>>> 26f5a698332487e67cb79db5145a291101557729
