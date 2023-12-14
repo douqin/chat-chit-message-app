@@ -13,6 +13,7 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import validVariable from "@/utils/extension/vailid_variable";
 import { User } from "../../models/user.model";
+import { EVENT_GROUP_SOCKET } from "./constant/group.constant";
 @Controller("/group")
 export default class GroupController extends MotherController {
     private groupService: iGroupServiceBehavior;
@@ -42,7 +43,6 @@ export default class GroupController extends MotherController {
         this.router.post("/group/:id/lastview",
             multer().none(), AuthMiddleware.auth,
             this.getLastViewMember)
-
         this.router.get("/group/:id/getallmembers", AuthMiddleware.auth, this.getAllMember)
         this.router.post("/group/:id/invitemembers", multer().none(), AuthMiddleware.auth, this.inviteMember)
         this.router.post("/group/:id/members/leave", multer().none(), AuthMiddleware.auth, this.leaveGroup)
@@ -126,12 +126,14 @@ export default class GroupController extends MotherController {
             const limit = Number(req.query.limit)
             const cursor = Number(req.query.cursor as string)
             const iduser = Number(req.headers['iduser'] as string)
-            let data = await this.groupService.getSomeGroup(iduser, cursor, limit)
-            res.status(HttpStatus.OK).json(new ResponseBody(
-                true,
-                "OK",
-                data
-            ))
+            if (validVariable(limit) && validVariable(cursor)) {
+                let data = await this.groupService.getSomeGroup(iduser, cursor, limit)
+                res.status(HttpStatus.OK).json(new ResponseBody(
+                    true,
+                    "OK",
+                    data
+                ))
+            } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong")) 
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:130 ~ GroupController ~ getSomeGroup= ~ error:", error)
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
@@ -141,10 +143,13 @@ export default class GroupController extends MotherController {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const name = String(req.body.name)
-            const users : Array<number> = req.body.users
+            const users: Array<number> = req.body.users
             if (name) {
                 let data = await this.groupService.createGroup(name, iduser, users)
-                // TODO: add socket broad to user
+                // FIXME: socker ?
+                for(let a of users){
+                    this.io.to("").emit("invite-to-group", )
+                }
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
@@ -170,7 +175,7 @@ export default class GroupController extends MotherController {
                 let file = req.file;
                 if (file && file.mimetype.includes("image")) {
                     let data = await this.groupService.changeAvatarGroup(iduser, Number(id), file)
-                    this.io.to(id).emit("avatar_change", data?.url)
+                    this.io.to(id).emit(EVENT_GROUP_SOCKET.CHANGE_AVATAR, data?.url)
                     res.status(HttpStatus.OK).json(new ResponseBody(
                         true,
                         "",
@@ -261,7 +266,7 @@ export default class GroupController extends MotherController {
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
-    }
+    } // socket ? 
     private leaveGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
@@ -271,7 +276,7 @@ export default class GroupController extends MotherController {
             if (await this.groupService.isContainInGroup(iduser, Number(id))) {
                 let isSuccessfully = await this.groupService.leaveGroup(iduser, Number(id))
                 if (isSuccessfully) {
-                    this.io.to(id).emit("user_leave_group", iduser);
+                    this.io.to(id).emit(EVENT_GROUP_SOCKET.LEAVE_GROUP, iduser);
                     res.status(HttpStatus.OK).send(new ResponseBody(
                         true,
                         "OK",
@@ -294,6 +299,7 @@ export default class GroupController extends MotherController {
             const invitee = Number(req.body.invitee)
             const idgroup = Number(req.params.id)
             if (invitee && idgroup && iduser !== invitee) {
+                //FIXME: socket ?
                 let data = await this.groupService.addManager(iduser, invitee, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -318,6 +324,7 @@ export default class GroupController extends MotherController {
             const manager = Number(req.body.manager)
             const idgroup = Number(req.params.id)
             if (manager && idgroup && iduser !== manager) {
+                 //FIXME: socket ?
                 let data = await this.groupService.removeManager(iduser, manager, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -344,6 +351,7 @@ export default class GroupController extends MotherController {
             const iduserAdd = Number(req.body.member)
             const idgroup = Number(req.params.id)
             if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                 //FIXME: socket ?
                 let data = await this.groupService.removeMember(iduser, iduserAdd, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -369,6 +377,7 @@ export default class GroupController extends MotherController {
             const name = req.body['name']
             const idgroup = Number(req.params.id)
             if (idgroup) {
+                 //FIXME: socket ?
                 let isOK = await this.groupService.renameGroup(iduser, idgroup, name)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -387,13 +396,14 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
 
-    }
+    } //FIXME: socker ?
     private blockMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserAdd = Number(req.body.manager)
             const idgroup = Number(req.params.id)
             if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                 //FIXME: socket ?
                 let data = await this.groupService.blockMember(iduser, iduserAdd, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -417,6 +427,7 @@ export default class GroupController extends MotherController {
             const iduserAdd = Number(req.body.member)
             const idgroup = Number(req.params.id)
             if (iduserAdd && idgroup && iduser !== iduserAdd) {
+                 //FIXME: socket ?
                 let data = await this.groupService.approvalMember(iduser, iduserAdd, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -460,4 +471,5 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
+    // xin vao group nua nhe 
 }

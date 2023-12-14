@@ -10,6 +10,7 @@ import { MemberStatus } from './enum/member.status.enum';
 import { GroupStatus } from './enum/group.status.dto.enum';
 import { GroupType } from './enum/group.type.enum';
 import { Database } from '@/config/database/database';
+import { Constant } from './constant/group.constant';
 
 export default class GroupRepository implements GroupRepositoryBehavior {
     public drive: iDrive
@@ -150,8 +151,8 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return []; this
     }
     async getSomeGroup(iduser: number, cursor: number, limit: number): Promise<object[]> {
-
-        if (!isNaN(cursor)) {
+        if (cursor !== Constant.GET_GROUP_FROM_CURSOR_MAX) {
+            console.log("🚀 ")
             let query = `
             SELECT
         *
@@ -191,7 +192,6 @@ export default class GroupRepository implements GroupRepositoryBehavior {
                 return dataRaw;
             }
         } else {
-
             let query = `SELECT
             *
         FROM

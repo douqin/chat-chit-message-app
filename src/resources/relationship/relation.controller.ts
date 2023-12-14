@@ -11,6 +11,8 @@ import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { RelationServiceBehavior } from "./interface/relation.service.interface";
 import multer from "multer";
 import validVariable from "@/utils/extension/vailid_variable";
+import { DatabaseCache } from "@/config/database/redis";
+import { User } from "@/models/user.model";
 
 @Controller("/relationship")
 export default class FriendController extends MotherController {
@@ -27,7 +29,9 @@ export default class FriendController extends MotherController {
         this.router.post("/relationship/accept", AuthMiddleware.auth, multer().none(), this.acceptInviteFriend);
         this.router.delete("/relationship/me/invites/", AuthMiddleware.auth, multer().none(), this.deleteInvite)
         this.router.delete("/relationship/invites", AuthMiddleware.auth, multer().none(), this.deleteMySentInvite)
-        this.router.get("/relationship/:iduser/relation", this.getRelationship)
+        this.router.get("/relationship/:iduser/relation", AuthMiddleware.auth, this.getRelationship)
+        this.router.get("/relationship/friends/online", AuthMiddleware.auth, this.getFriendOnline)
+
         return this;
     }
     private getAllFriend = async (
@@ -232,4 +236,18 @@ export default class FriendController extends MotherController {
     private getRelationship = async (req: Request, res: Response, next: NextFunction) => {
 
     } //FIXME : 
+    private getFriendOnline = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers.iduser)
+            const data : User[] = await this.relationService.getFriendOnline(iduser)
+            return new ResponseBody(
+                true,
+                "",
+                {}
+            )
+        }
+        catch (e) {
+
+        }
+    }
 }

@@ -1,4 +1,4 @@
-export default class GroupChat {
+export default class Group {
     idgroup: number
     name: string
     avatar: string
@@ -17,9 +17,9 @@ export default class GroupChat {
         this.link = link
         this.role = role
     }
-    static fromRawData(object: any): GroupChat {
+    static fromRawData(object: any): Group {
         const { idgroup, name, avatar, status, createat, type , link, role} = object;
-        return new GroupChat(
+        return new Group(
             idgroup, name, avatar, status, createat, type, link, role
         );
     }

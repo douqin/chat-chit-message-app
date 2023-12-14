@@ -1,4 +1,4 @@
-import GroupChat from "../../../models/group.model";
+import Group from "../../../models/group.model";
 import LastViewGroup from "../dtos/lastview.dto";
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
 import { ListGroupDTO } from "../dtos/response.lisgroup.dto";
@@ -23,10 +23,10 @@ export interface iMemberActions {
   export interface iGroupActions {
     getInformationMember(iduser: number, idmember: number, idgroup: number): Promise<User>;
     getTotalMember(idgroup : number) : Promise<number>
-    getAllGroup(iduser: number): Promise<Array<GroupChat>>;
+    getAllGroup(iduser: number): Promise<Array<Group>>;
     getSomeGroup(iduser: number, cursor : number, limit : number): Promise<ListGroupDTO>;
-    createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat>;
-    getOneGroup(idgroup: number): Promise<GroupChat | null>;
+    createGroup(name: string, iduser: number, users: Array<number>): Promise<Group>;
+    getOneGroup(idgroup: number): Promise<Group | null>;
     getAllMember(idgroup: number): Promise<MemberDTO[]>;
     changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<DataFileDrive | null>;
     renameGroup(iduser: number, idgroup: number, name: string): Promise<boolean>;

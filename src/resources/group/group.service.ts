@@ -1,7 +1,7 @@
 import MyException from "@/utils/exceptions/my.exception"
 import { HttpStatus } from "@/utils/extension/httpstatus.exception"
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos"
-import GroupChat from "./../../models/group.model"
+import Group from "./../../models/group.model"
 import { iMessageAction } from "../messaging/interface/message.service.interaface"
 import MessageService from "../messaging/message.service"
 import { RelationServiceBehavior } from "../relationship/interface/relation.service.interface"
@@ -15,7 +15,7 @@ import { MemberStatus } from "./enum/member.status.enum"
 import GroupRepository from "./group.repository"
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface"
 import iGroupServiceBehavior from "./interface/group.service.interface"
-import { User } from "../../models/user.model"
+import { RelationshipUser } from "../relationship/enums/relationship.enum"
 
 
 export default class GroupService implements iGroupServiceBehavior {
@@ -25,7 +25,7 @@ export default class GroupService implements iGroupServiceBehavior {
     }
     async getInformationMember(iduser: number, idmember: number, idgroup: number): Promise<any> {
         if(await this.isContainInGroup(iduser, idgroup)){
-            return User.fromRawData(await this.groupRepsitory.getInformationMember(idmember, idgroup))
+            return MemberDTO.fromRawData(await this.groupRepsitory.getInformationMember(idmember, idgroup))
         } throw new MyException("User request not contain in group").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async getTotalMember(idgroup: number): Promise<number> {
@@ -125,10 +125,10 @@ export default class GroupService implements iGroupServiceBehavior {
         }
         return [];
     }
-    async getOneGroup(idgroup: number): Promise<GroupChat | null> {
+    async getOneGroup(idgroup: number): Promise<Group | null> {
         let data = await this.groupRepsitory.getOneGroup(idgroup);
         if (data) {
-            return GroupChat.fromRawData(data)
+            return Group.fromRawData(data)
         }
         return null;
     }
@@ -138,24 +138,23 @@ export default class GroupService implements iGroupServiceBehavior {
     async leaveGroup(iduser: any, idgroup: number): Promise<boolean> {
         return await this.groupRepsitory.leaveGroup(iduser, idgroup)
     }
-    async getAllGroup(iduser: number): Promise<Array<GroupChat>> {
+    async getAllGroup(iduser: number): Promise<Array<Group>> {
         let dataRaw = await this.groupRepsitory.getAllGroup(iduser)
         if (dataRaw) {
-            return dataRaw.map<GroupChat>((value, index, array) => {
-                return GroupChat.fromRawData(value)
+            return dataRaw.map<Group>((value, index, array) => {
+                return Group.fromRawData(value)
             });
         }
         return []
     }
-    async createGroup(name: string, iduser: number, users: Array<number>): Promise<GroupChat> {
+    async createGroup(name: string, iduser: number, users: Array<number>): Promise<Group> {
         let inforUser: RelationServiceBehavior = new RelationService()
         for (let _iduser of users) {
-            if (!inforUser.isFriend(iduser, _iduser)) {
+            if (await inforUser.getRelationship(iduser, _iduser) !== RelationshipUser.FRIEND) {
                 throw new MyException("List user added isn't your friend").withExceptionCode(HttpStatus.BAD_REQUEST)
             }
         }
-
-        let group = GroupChat.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users))
+        let group = Group.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users))
         let messageBehavior: iMessageAction = new MessageService()
         await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, "created group", [])
         if (users.length > 0) {
@@ -164,7 +163,7 @@ export default class GroupService implements iGroupServiceBehavior {
                 strMessage += " @"
             }
             await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, strMessage, users)
-        }
+        } else throw new MyException( "Total users > 2").withExceptionCode(HttpStatus.BAD_GATEWAY)
         return group;
     }
     async getLastViewMember(idgroup: number) {

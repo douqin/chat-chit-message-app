@@ -4,6 +4,8 @@ import authHandler from "../component/auth.handler";
 import { JwtPayload } from "jsonwebtoken";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Socket } from "socket.io";
+import { DatabaseCache } from "@/config/database/redis";
+import { ConstantRedis } from "@/config/database/constant";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         try {
@@ -15,6 +17,7 @@ class SocketMiddleware {
                     const { iduser } = jwtPayload.payload;
                     if (iduser) {
                         socket.handshake.headers.iduser = iduser
+                        DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, iduser)
                         socket.join(`${iduser}_user`)
                     }
                     next()

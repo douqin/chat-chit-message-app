@@ -1,15 +1,15 @@
-import { Redis } from "ioredis"
+import { Redis } from "ioredis";
 
-const DATABASE_REDIS_URL = process.env.DATABASE_REDIS_URL || "";
+const REDIS_HOST = process.env.REDIS_HOST || "";
+const REDIS_PORT = process.env.REDIS_PORT || "";
 export class DatabaseCache {
-    private static redis: Redis;
+  private static redis: Redis;
 
-    private constructor() {
-    }
+  private constructor() {}
 
-    public static getInstance(): Redis {
-        if (DatabaseCache.redis)
-            return DatabaseCache.redis
-        return DatabaseCache.redis = new Redis(DATABASE_REDIS_URL)
-    }
+  public static getInstance(): Redis {
+    if (DatabaseCache.redis) return DatabaseCache.redis;
+    return DatabaseCache.redis = new Redis();
+
+  }
 }

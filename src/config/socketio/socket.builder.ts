@@ -1,7 +1,11 @@
 import SocketMiddleware from '@/middleware/socket.middleware';
 import GroupService from '@/resources/group/group.service';
 import { iGroupActions } from '@/resources/group/interface/group.service.interface';
+import authHandler from '../../component/auth.handler';
 import { Server, Socket } from 'socket.io';
+import { JwtPayload } from 'jsonwebtoken';
+import { DatabaseCache } from '../database/redis';
+import { ConstantRedis } from '../database/constant';
 export default class SocketBuilder {
     private io: Server;
     constructor(io: Server) {
@@ -26,24 +30,26 @@ export default class SocketBuilder {
         }
     }
     private initConnection = (socket: Socket) => {
-        console.log("user connect to user with ID: " + socket.id + "--- iduser: " + socket.handshake.headers.iduser)
-        this.joinGroup(Number(socket.handshake.headers.iduser), socket);
-        socket.on('disconnect', () => {
+        const iduser = socket.handshake.headers.iduser
+        this.joinGroup(Number(iduser), socket);
+        DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, String(iduser))
+        socket.on('disconnect', async () => {
             console.log("User disconnect" + socket.id)
+            const iduser = socket.handshake.headers.iduser
+            DatabaseCache.getInstance().srem(ConstantRedis.KEY_USER_ONLINE, String(iduser))
         })
-        socket.on("typing", (data: {
+        socket.on("typing", async (data: {
             idgroup: number,
             iduser: number
         }) => {
-            console.log("🚀 ~ file: socket.builder.ts:37 ~ SocketBuilder ~ data:", data)
-            socket.to(`${data.idgroup}_group`).emit("typing", data.iduser)
+            socket.to(`${data.idgroup}_group`).except(socket.id).emit("typing", data.iduser)
         })
         socket.on("typing_end", (data: {
             idgroup: number,
             iduser: number
         }) => {
             console.log("🚀 ~ file: socket.builder.ts:37 ~ SocketBuilder ~ data:", data)
-            socket.to(`${data.idgroup}_group`).emit("typing_end", data.iduser)
+            socket.to(`${data.idgroup}_group`).except(socket.id).emit("typing_end", data.iduser)
         })
     }
 }

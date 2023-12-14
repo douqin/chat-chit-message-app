@@ -6,6 +6,8 @@ import { RelationRepositoryBehavior } from "./interface/relation.repository.inte
 import { RelationshipUser } from "./enums/relationship.enum"
 import { User } from "../../models/user.model"
 import { ListFriendDTO } from "./dto/friends.dto"
+import { DatabaseCache } from "@/config/database/redis"
+import { ConstantRedis } from "@/config/database/constant"
 
 export default class RelationService implements RelationServiceBehavior {
     async inviteToBecomeFriend(iduserSend: number, idReceiver: number) {
@@ -17,17 +19,35 @@ export default class RelationService implements RelationServiceBehavior {
     constructor() {
         this.friendRepostory = new RelationRepostory()
     }
-    async isFriend(iduser: number, iduserCanCheck: number): Promise<boolean> {
-        // TODO: complete func
-        throw new Error("Method not implemented.")
-    }
+
+    async getFriendOnline(iduser: number): Promise<User[]> {
+        // lay tam 10 nguoi online
+        let friendsOnline: User[] = [];
+        let users = (await DatabaseCache.getInstance().smembers(ConstantRedis.KEY_USER_ONLINE)).map((value, index) => {
+            return Number(value)
+        })
+        let cursor = 0;
+        if(users.length == 0) return friendsOnline;
+        while (friendsOnline.length > 10) {
+            let friends = await this.friendRepostory.getAllFriend(iduser, cursor, 20)
+            if (friends.length == 0) break
+            if (friends[friends.length - 1].iduser < users[0]) continue
+            for (let i of friends) {
+                if (users.includes(i)) {
+                    friendsOnline.push(User.fromRawData(i))
+                }
+            }
+            cursor += 40;
+        }
+        return friendsOnline;
+    } // FIXME: TEST POSTMAN
     async deleteInvite(iduser: number, idInvite: number): Promise<boolean> {
         return await this.friendRepostory.deleteInvite(iduser, idInvite)
     }
     async deleteMySentInvite(iduser: number, idInvite: number): Promise<boolean> {
         return await this.friendRepostory.deleteMySentInvite(iduser, idInvite)
     }
-    async getAllInvite(iduser: number, cursor : number, limit : number): Promise<InviteFriendDTO> {
+    async getAllInvite(iduser: number, cursor: number, limit: number): Promise<InviteFriendDTO> {
         let arrRaw = (await this.friendRepostory.getAllInvite(iduser, cursor, limit))
         return InviteFriendDTO.rawToDTO(arrRaw);
     }
@@ -37,12 +57,12 @@ export default class RelationService implements RelationServiceBehavior {
     async unFriend(iduser: number, iduserUnFriend: number): Promise<boolean> {
         return await this.friendRepostory.unFriend(iduser, iduserUnFriend)
     }
-    async getAllFriend(iduser: number, cursor : number, limit : number): Promise<ListFriendDTO> {
+    async getAllFriend(iduser: number, cursor: number, limit: number): Promise<ListFriendDTO> {
         let arrRaw = (await this.friendRepostory.getAllFriend(iduser, cursor, limit))
         return ListFriendDTO.rawToDTO(arrRaw);
     }
     async getRelationship(iduser: number, iduserWGet: number) {
-        this.friendRepostory.getRelationship(iduser, iduserWGet)
+        return this.friendRepostory.getRelationship(iduser, iduserWGet)
     }
-    
+
 }
