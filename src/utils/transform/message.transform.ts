@@ -1,4 +1,5 @@
-import Message from "@/resources/messaging/dtos/message.dto";
+import Message from "@/models/message.model";
+
 import { MessageType } from "@/resources/messaging/enum/message.type.enum";
 import MyException from "../exceptions/my.exception";
 import { HttpStatus } from "../extension/httpstatus.exception";

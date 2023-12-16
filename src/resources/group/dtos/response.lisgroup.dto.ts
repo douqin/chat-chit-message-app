@@ -1,4 +1,4 @@
-import Message from "@/resources/messaging/dtos/message.dto";
+import Message from "@/models/message.model";
 import Group from "../../../models/group.model";
 import { num } from "envalid";
 

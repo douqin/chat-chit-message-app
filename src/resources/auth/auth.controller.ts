@@ -11,6 +11,11 @@ import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import MyException from "@/utils/exceptions/my.exception";
+import Gender from "./enums/gender.enum";
+import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
+import authHandler from "../../component/auth.handler";
+import { JwtPayload } from "jsonwebtoken";
+
 @Controller("/auth")
 export default class AuthController extends MotherController {
 
@@ -32,8 +37,7 @@ export default class AuthController extends MotherController {
         this.router.post(
             "/auth/refreshtoken",
             multer().none(),
-            LoginMiddleware.checkAuth(),
-            this.getRefreshToken
+            this.getNewAccessToken
         )
         this.router.post(
             "/auth/register",
@@ -62,31 +66,42 @@ export default class AuthController extends MotherController {
             if (phone && password && notificationToken) {
                 let data = await this.authService.login(phone, password, notificationToken);
                 if (data) {
-                    res.setHeader("token", "Bearer " + data.token.accessToken)
-                    res.cookie("refreshtoken", data.token.refreshToken, { secure: false, httpOnly: true })
-                    res.status(HttpStatus.ACCEPTED).send(new ResponseBody(true, "OK", data))
+                    // res.setHeader("token", "Bearer " + data.token.accessToken)
+                    // res.cookie("refreshtoken", data.token.refreshToken, { expires : , secure: false, httpOnly: true })
+                    res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", data))
                 }
                 else {
-                    next(new HttpException(HttpStatus.NOT_FOUND, 'Sai tài khoản hoặc mật khẩu'))
+                    next(new HttpException(HttpStatus.NOT_FOUND, 'Incorrect username or password'))
                 }
             }
-            else next(new HttpException(HttpStatus.BAD_REQUEST, 'Tham số không hợp lệ'));
-        } catch (error: any) {
-            console.log("🚀 ~ file: login.controller.ts:64 ~ LoginController ~ error:", error)
-            next(new HttpException(HttpStatus.FORBIDDEN, "Có lỗi xảy ra vui lòng thử lại sau"))
+            else next(new BadRequest("Agurment is invalid"));
+        } catch (e: any) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.statusCode, e.message))
+                return
+            }
+            console.log("🚀 ~ file: login.controller.ts:64 ~ LoginController ~ error:", e)
+            next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }
     private registerAccount = async (
         req: Request, res: Response, next: NextFunction
     ) => {
         try {
-            const name = req.body.name.toString() || null
-            const phone = req.body.phone.toString() || null
-            const password = req.body.password.toString() || null
-            if (name && phone && password) {
-                let isSuccessfully = await this.authService.registerAccount(name, phone, password)
+            const firstname = req.body.firstname
+            const phone = req.body.phone
+            const password = req.body.password
+            const lastname = req.body.lastname
+            const email = req.body.email
+            const address = req.body.address
+            const gender: Gender = Number(req.body.gender) || 3
+            const username = req.body.username
+            const birthday = new Date(req.body.birthday)
+
+            if (firstname && phone && password && birthday) {
+                let isSuccessfully = await this.authService.registerAccount(firstname, phone, password, birthday, gender, username, lastname, email, address)
                 if (isSuccessfully) {
-                    res.json(
+                    res.status(HttpStatus.OK).json(
                         new ResponseBody(
                             true,
                             "Tạo tài khoản thành công",
@@ -95,16 +110,18 @@ export default class AuthController extends MotherController {
                     )
                     return
                 }
-                next(new HttpException(HttpStatus.BAD_REQUEST, 'Có lỗi xảy ra vui lòng thử lại sau'))
+            } else {
+                next(new BadRequest("Agurment is invalid"))
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, 'Có lỗi xảy ra vui lòng thử lại sau'))
+            next(next(new InternalServerError("An error occurred, please try again later.")))
         }
         catch (e) {
-            if (e instanceof DOMException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, e.message))
+            console.log("🚀 ~ file: auth.controller.ts:105 ~ AuthController ~ e:", e)
+            if (e instanceof MyException) {
+                next(new HttpException(e.statusCode, e.message))
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, 'Có lỗi xảy ra vui lòng thử lại sau'))
+            next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }
     private logout = async (
@@ -114,45 +131,53 @@ export default class AuthController extends MotherController {
     ) => {
         try {
             let iduser = Number(req.headers['iduser'])
-            let refreshToken = String(req.body.refreshToken)
-            let isOK = await this.authService.loguot(iduser, refreshToken)
-            res.status(HttpStatus.OK).send(new ResponseBody(
-                isOK,
-                "",
-                {}
-            ))
-        } catch (error: any) {
-            console.log("🚀 ~ file: auth.controller.ts:125 ~ AuthController ~ error:", error)
-            next(new HttpException(HttpStatus.FORBIDDEN, "Có lỗi xảy ra vui lòng thử lại sau"))
+            let refreshToken = req.body.refreshToken
+            if (refreshToken) {
+                let isOK = await this.authService.loguot(iduser, refreshToken)
+                console.log("🚀 ~ file: auth.controller.ts:137 ~ AuthController ~ req.cookies:", res.cookie)
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    isOK,
+                    "",
+                    {}
+                ))
+            }
+            else next(new BadRequest("Agurment is invalid"))
+        } catch (e: any) {
+            console.log("🚀 ~ file: auth.controller.ts:144 ~ AuthController ~ e:", e)
+            if (e instanceof MyException) {
+                next(new HttpException(e.statusCode, e.message))
+            }
+            next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }
-    private getRefreshToken = async (
+    private getNewAccessToken = async (
         req: Request,
         res: Response,
         next: NextFunction
     ): Promise<Response | void> => {
         try {
-            const iduser = Number(req.headers.iduser)
             const refreshToken = String(req.body.refreshtoken)
-            let token = req.headers["token"] as string
+            let token = req.headers["authorization"] as string
+            const jwtPayload = await authHandler.decodeRefreshToken(refreshToken) as JwtPayload;
+            const { iduser } = jwtPayload.payload;
             if (iduser && refreshToken && token) {
                 let newAccessToken = await this.authService.getNewAccessToken(iduser, token, refreshToken)
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
                     "",
                     {
-                        token : newAccessToken
+                        accessToken: newAccessToken
                     }
                 ))
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         }
-        catch (error) {
-            if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+        catch (e) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.statusCode, e.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }
     // TODO: confirm account

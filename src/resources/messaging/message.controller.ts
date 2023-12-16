@@ -12,6 +12,7 @@ import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import { MessageStatus } from "./enum/message.status.enum";
 import validVariable from "@/utils/extension/vailid_variable";
+import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 @Controller("/message")
 export default class MessageController extends MotherController {
     private messageService: iMessageServiceBehavior;
@@ -215,10 +216,10 @@ export default class MessageController extends MotherController {
                 );
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (e: any) {
             console.log("🚀 ~ file: message.controller.ts:211 ~ MessageController ~ sendTextMessage= ~ e:", e)
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"));
+            next(new InternalServerError("An error occurred, please try again later."));
         }
     };
     private reactMessage = async (req: Request, res: Response, next: NextFunction) => {
@@ -243,7 +244,7 @@ export default class MessageController extends MotherController {
                         model
                     )
                 );
-            } else next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            } else next(new BadRequest("Agurment is invalid"))
 
         } catch (e: any) {
             console.log("🚀 ~ file: message.controller.ts:241 ~ MessageController ~ reactMessage= ~ e:", e)
@@ -282,13 +283,13 @@ export default class MessageController extends MotherController {
                 ))
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         }
         catch (error) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private updateLastView = async (req: Request, res: Response, next: NextFunction) => {
@@ -305,13 +306,13 @@ export default class MessageController extends MotherController {
                 ))
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         }
         catch (error) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
 }

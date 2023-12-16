@@ -1,10 +1,11 @@
-import { LoginSuccessfully, User } from "../../models/user.model";
+import { type LoginSuccessfully, User } from "../../models/user.model";
 import AuthRepository from "./auth.repository";
 import AuthHandler from '../../component/auth.handler'
 import authHandler from "../../component/auth.handler";
 import { JwtPayload } from "jsonwebtoken";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
+import Gender from "./enums/gender.enum";
 export default class AuthService {
 
     async loguot(iduser: number, refreshToken: string) {
@@ -12,14 +13,11 @@ export default class AuthService {
     }
 
     async getNewAccessToken(iduser: number, oldToken: string, refreshToken: string): Promise<string> {
-        let jwtPayload = authHandler.decodeRefreshToken(refreshToken) as JwtPayload;
-        if (Number(jwtPayload.payload.iduser) === iduser) {
-            let token = await authHandler.generateAccessToken(String(iduser))
-            if (token) {
-                this.authRepository.saveNewAccessToken(iduser, iduser)
-            } else throw new Error("")
-        }
-        throw new MyException("Token không hợp lệ").withExceptionCode(HttpStatus.BAD_REQUEST)
+        let token = await authHandler.generateAccessToken(String(iduser))
+        if (token) {
+            // this.authRepository.saveNewAccessToken(iduser, iduser)
+            return token
+        } else throw new Error("")
     }
     private authRepository: AuthRepository;
 
@@ -47,8 +45,8 @@ export default class AuthService {
         }
         return undefined
     }
-    async registerAccount(name: string, phone: any, password: any) {
-        return await this.authRepository.registerAccount(name, phone, password)
+    async registerAccount(firstname: string, phone: any, password: any, birthday: Date, gender: Gender, username?: string, lastname?: string, email?: string, address?: string) {
+        return await this.authRepository.registerAccount(firstname, phone, password, birthday, gender, username, lastname, email, address)
     }
 
 }
