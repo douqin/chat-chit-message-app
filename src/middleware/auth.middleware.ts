@@ -3,6 +3,7 @@ import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import authHandler from "../component/auth.handler";
 import { NextFunction, Request, Response } from "express"
+import { BadRequest, Forbidden, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 
 export default class AuthMiddleware {
     static auth = async (
@@ -11,7 +12,7 @@ export default class AuthMiddleware {
         next: NextFunction
     ) => {
         try {
-            let token = req.headers["token"] as string
+            let token = req.headers["authorization"] as string
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
@@ -28,11 +29,12 @@ export default class AuthMiddleware {
                 }
             } else next(new HttpException(HttpStatus.FORBIDDEN, "Token không hợp lệ"))
         }
-        catch (e) {
+        catch (e : any) {
+            console.log("🚀 ~ file: auth.middleware.ts:33 ~ AuthMiddleware ~ e:", e)
             if (e instanceof TokenExpiredError) {
                 next(new HttpException(HttpStatus.UNAUTHORIZED, e.message))
-            }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            } 
+            next(new Forbidden("Invalid token"))
         }
     };
 }

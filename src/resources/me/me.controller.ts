@@ -8,6 +8,7 @@ import multer from "multer";
 import MyException from "@/utils/exceptions/my.exception";
 import HttpException from "@/utils/exceptions/http.exeception";
 import { ResponseBody } from '@/utils/definition/http.response';
+import { InternalServerError } from '@/utils/exceptions/badrequest.expception';
 
 export default class MeController extends MotherController {
     private meSerivce: MeService
@@ -72,7 +73,7 @@ export default class MeController extends MotherController {
             if (e instanceof MyException) {
                 next(new HttpException(e.statusCode, e.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
 
     }
@@ -97,7 +98,7 @@ export default class MeController extends MotherController {
             if (e instanceof MyException) {
                 next(new HttpException(e.statusCode, e.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private getMyProfile = async (
@@ -132,7 +133,7 @@ export default class MeController extends MotherController {
             if (e instanceof MyException) {
                 next(new HttpException(e.statusCode, e.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private updateMyprofile = async (

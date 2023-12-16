@@ -13,6 +13,7 @@ import multer from "multer";
 import validVariable from "@/utils/extension/vailid_variable";
 import { DatabaseCache } from "@/config/database/redis";
 import { User } from "@/models/user.model";
+import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 
 @Controller("/relationship")
 export default class FriendController extends MotherController {
@@ -64,7 +65,7 @@ export default class FriendController extends MotherController {
             if (error instanceof MyException) {
                 next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     };
     private getAllInvite = async (
@@ -87,9 +88,9 @@ export default class FriendController extends MotherController {
         } catch (error: any) {
             console.log(error)
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     };
     private unFriend = async (req: Request, res: Response, next: NextFunction) => {
@@ -106,9 +107,9 @@ export default class FriendController extends MotherController {
             )
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     };
     private inviteToBecomeFriend = async (
@@ -169,7 +170,7 @@ export default class FriendController extends MotherController {
                 ))
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         }
         catch (e) {
             console.log("🚀 ~ file: relation.controller.ts:156 ~ FriendController ~ e:", e)
@@ -205,7 +206,7 @@ export default class FriendController extends MotherController {
                     {}
                 )
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         }
         catch (e) {
 
@@ -227,7 +228,7 @@ export default class FriendController extends MotherController {
                     {}
                 )
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         }
         catch (e) {
 

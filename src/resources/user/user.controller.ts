@@ -7,6 +7,7 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
+import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 
 export default class UserController extends MotherController {
     private userSerivce: UserServiceBehavior
@@ -32,13 +33,13 @@ export default class UserController extends MotherController {
                 )
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             console.log("🚀 ~ file: user.controller.ts:37 ~ UserController ~ searchUser= ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
 
@@ -46,12 +47,12 @@ export default class UserController extends MotherController {
         try {
             let username = Number(req.params.username)
             
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
 }

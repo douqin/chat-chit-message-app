@@ -14,6 +14,7 @@ import AuthMiddleware from "@/middleware/auth.middleware";
 import validVariable from "@/utils/extension/vailid_variable";
 import { User } from "../../models/user.model";
 import { EVENT_GROUP_SOCKET } from "./constant/group.constant";
+import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 @Controller("/group")
 export default class GroupController extends MotherController {
     private groupService: iGroupServiceBehavior;
@@ -110,14 +111,14 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         }
         catch (error) {
             console.log("🚀 ~ file: group.controller.ts:74 ~ GroupController ~ joinfromLink= ~ error:", error)
             if (error instanceof MyException) {
                 next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     // ?cursor&limit
@@ -136,7 +137,7 @@ export default class GroupController extends MotherController {
             } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong")) 
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:130 ~ GroupController ~ getSomeGroup= ~ error:", error)
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private createGroup = async (req: Request, res: Response, next: NextFunction) => {
@@ -193,9 +194,9 @@ export default class GroupController extends MotherController {
             }
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private getLastViewMember = async (req: Request, res: Response, next: NextFunction) => {
@@ -262,7 +263,7 @@ export default class GroupController extends MotherController {
             res.status(HttpStatus.OK).send(new ResponseBody(isSuccessfully, "OK", {}))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
@@ -288,7 +289,7 @@ export default class GroupController extends MotherController {
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:333 ~ GroupController ~ leaveGroup= ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
@@ -310,12 +311,12 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private removeManager = async (req: Request, res: Response, next: NextFunction) => {
@@ -335,12 +336,12 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private removeMember = async (
@@ -362,13 +363,13 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:339 ~ GroupController ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private renameGroup = async (req: Request, res: Response, next: NextFunction) => {
@@ -391,9 +392,9 @@ export default class GroupController extends MotherController {
         }
         catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
 
     } //FIXME: socker ?
@@ -413,12 +414,12 @@ export default class GroupController extends MotherController {
                     )
                 )
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     } //FIXME: add check OK with POSTMAN
     private approvalMember = async (req: Request, res: Response, next: NextFunction) => {
@@ -438,12 +439,12 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private getInformationMember = async (req: Request, res: Response, next: NextFunction) => {
@@ -462,13 +463,13 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Tham số không hợp lệ"))
+            next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:456 ~ GroupController ~ getInformationMember= ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(HttpStatus.BAD_REQUEST, error.message))
+                next(new HttpException(error.statusCode, error.message))
             }
-            next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
 }
