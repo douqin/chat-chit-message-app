@@ -8,7 +8,7 @@ import MessageRepository from "./message.repository";
 import MyException from "@/utils/exceptions/my.exception";
 import { iMessageRepositoryBehavior } from "./interface/message.repository.interface";
 import { MessageStatus } from "./enum/message.status.enum";
-import Message from "./dtos/message.dto";
+import Message from "../../models/message.model";
 import TransformMessage from "@/utils/transform/message.transform";
 import { ServiceDrive } from "./../../component/cloud/drive.service";
 import Reaction from "./dtos/react.dto";

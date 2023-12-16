@@ -266,7 +266,7 @@ export default class GroupController extends MotherController {
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
-    } // socket ? 
+    } //FIXME: socket ? 
     private leaveGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
@@ -471,5 +471,4 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    // xin vao group nua nhe 
 }

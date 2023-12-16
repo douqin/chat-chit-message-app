@@ -23,7 +23,7 @@ export default class AuthMiddleware {
                     }
                 }
                 else {
-                    next(new HttpException(HttpStatus.FORBIDDEN, "Token không hợp lệ"))
+                    next(new HttpException(HttpStatus.UNAUTHORIZED, "Token không hợp lệ"))
                     return
                 }
             } else next(new HttpException(HttpStatus.FORBIDDEN, "Token không hợp lệ"))

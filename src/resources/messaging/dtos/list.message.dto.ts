@@ -1,4 +1,4 @@
-import Message from "./message.dto";
+import Message from "../../../models/message.model";
 
 export class ListMessageResponseDTO {
     constructor(

@@ -15,10 +15,6 @@ class LoginMiddleware {
                     res.status(HttpStatus.BAD_REQUEST).send({ errors: "BAD REQUEST" });
                     let contentType = req.headers['content-type']
                     let token = req.headers['token']
-                    // if (token) {
-                    //     res.status(HttpStatus.BAD_REQUEST).send({ errors: "BAD REQUEST" })
-                    //     return
-                    // }
                     if (!contentType) {
                         res.status(HttpStatus.BAD_REQUEST).send({ errors: "BAD REQUEST" });
                     }

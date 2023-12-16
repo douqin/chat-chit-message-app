@@ -1,5 +1,5 @@
 import { ListMessageResponseDTO } from "../dtos/list.message.dto";
-import Message from "../dtos/message.dto";
+import Message from "../../../models/message.model";
 import Reaction from "../dtos/react.dto";
 import { ReactMessage } from "../enum/message.react.enum";
 

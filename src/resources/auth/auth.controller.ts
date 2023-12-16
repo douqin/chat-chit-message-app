@@ -141,7 +141,7 @@ export default class AuthController extends MotherController {
                     true,
                     "",
                     {
-                        newAccessToken
+                        token : newAccessToken
                     }
                 ))
                 return
@@ -155,6 +155,8 @@ export default class AuthController extends MotherController {
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
+    // TODO: confirm account
+    // TODO: reset otp: confirm account
 }
 
 

@@ -1,5 +1,5 @@
 import { User } from "@/models/user.model"
-import Reaction from "./react.dto"
+import Reaction from "../resources/messaging/dtos/react.dto"
 
 export default class Message {
     idmember : string

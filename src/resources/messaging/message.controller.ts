@@ -185,10 +185,10 @@ export default class MessageController extends MotherController {
         try {
             const idgroup = Number(req.params.idgroup)
             const message = String(req.body.message)
-            let tags : Array<number> = []
-            try{
-               tags = JSON.parse(req.body.tags)
-            } catch{}
+            let tags: Array<number> = []
+            try {
+                tags = JSON.parse(req.body.tags)
+            } catch { }
             if (validVariable(idgroup) && message) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let messageModel = await this.messageService.sendTextMessage(idgroup, iduser, message, tags)
@@ -292,12 +292,12 @@ export default class MessageController extends MotherController {
         }
     }
     private updateLastView = async (req: Request, res: Response, next: NextFunction) => {
-
         try {
             const iduser = Number(req.headers.iduser)
             const idmessgae = Number(req.params.id)
             if (iduser && idmessgae) {
                 let isOK = await this.messageService.updateLastView(iduser, idmessgae)
+                //FIXME: socket to [member]
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     isOK,
                     "",
