@@ -3,7 +3,8 @@ import Message from "../../../models/message.model";
 export class ListMessageResponseDTO {
     constructor(
         public listMessage : Array<Message>,
-        public nextCursor : number | null
+        public nextCursor : number | null,
+        public totalSize : number = 0
     ){
 
     }

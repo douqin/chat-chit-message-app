@@ -2,9 +2,6 @@ import { type LoginSuccessfully, User } from "../../models/user.model";
 import AuthRepository from "./auth.repository";
 import AuthHandler from '../../component/auth.handler'
 import authHandler from "../../component/auth.handler";
-import { JwtPayload } from "jsonwebtoken";
-import MyException from "@/utils/exceptions/my.exception";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import Gender from "./enums/gender.enum";
 export default class AuthService {
 
@@ -45,8 +42,8 @@ export default class AuthService {
         }
         return undefined
     }
-    async registerAccount(firstname: string, phone: any, password: any, birthday: Date, gender: Gender, username?: string, lastname?: string, email?: string, address?: string) {
-        return await this.authRepository.registerAccount(firstname, phone, password, birthday, gender, username, lastname, email, address)
+    async registerAccount(firstname: string, phone: any, password: any, birthday: Date, gender: Gender,lastname?: string, email?: string, address?: string) {
+        return await this.authRepository.registerAccount(firstname, phone, password, birthday, gender, lastname, email, address)
     }
 
 }

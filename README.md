@@ -1,4 +1,3 @@
-
 ## Api
 
 ### Auth `/auth`
@@ -54,9 +53,10 @@
 
 ### User `/users`
 
-- `[GET] /search/username/:username`: tìm kiếm bằng username.
-  - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage, status(gồm 4 trạng thái: FRIEND, FOLLOWER, YOU_FOLLOW, NOT_FRIEND), numberCommonGroup: int, numberCommonFriend: int}.
-- `[GET] /search/id/:id`: tìm kiếm bằng id.
+- `[GET] /search?phone=`: tìm kiếm bằng phone.
+     - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage}.
+- `[GET] /user/:username`: tim kiem user voi full thong tin
+    - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage, status(gồm 4 trạng thái), numberCommonFriend: int}.
 
 ### Friend `/friends`
 

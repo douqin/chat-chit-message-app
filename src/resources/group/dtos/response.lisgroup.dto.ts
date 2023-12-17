@@ -5,7 +5,8 @@ import { num } from "envalid";
 export class ListGroupDTO {
     constructor(
         public listGroup: Array<GroupChatDTO>,
-        public nextCursor: Date | null
+        public nextCursor: Date | null,
+        public totalSize : number = 0
     ) { }
     static async rawToDTO(raw: any[], getlastMessage : (idgroup : number) => Promise<Message> , totalMember : (idgroup : number) => Promise<number>, numMessageUnread : (idgroup : number) => Promise<number> ) {
         let dto = new ListGroupDTO([], null)

@@ -8,6 +8,7 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
+import AuthMiddleware from "@/middleware/auth.middleware";
 
 export default class UserController extends MotherController {
     private userSerivce: UserServiceBehavior
@@ -16,8 +17,8 @@ export default class UserController extends MotherController {
         this.userSerivce = new UserService()
     }
     initRouter(): MotherController {
-        this.router.get("/user/searchuser", this.searchUser)
-        this.router.get("/user/:username", this.inforUser)
+        this.router.get("/user/searchuser", AuthMiddleware.auth, this.searchUser)
+        this.router.get("/user/:username", AuthMiddleware.auth, this.inforUser)
         return this
     }
     private searchUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -43,10 +44,21 @@ export default class UserController extends MotherController {
         }
     }
 
-    private inforUser = (req: Request, res: Response, next: NextFunction) => {
+    private inforUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            let username = Number(req.params.username)
-            
+            let username = String(req.params.username)
+            let iduser = Number(req.query.iduser)
+            if(username){
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        true,
+                        "",
+                        await this.userSerivce.inforUser(iduser, username)
+                        // TODO: add status(gồm 4 trạng thái), numberCommonFriend: int}.
+                    )
+                )
+                return
+            } else
             next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {

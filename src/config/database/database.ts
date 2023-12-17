@@ -1,3 +1,4 @@
+
 import mysql from "mysql2";
 require('dotenv').config()
 const DATABASE_NAME = process.env.DATABASE_NAME;
@@ -10,6 +11,7 @@ class Database {
 
     public static excuteQuery: (query: string, a?: any[]) => Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
 
+    public static transaction: void;
 }
 class DatabaseBuilder {
     private pool!: mysql.Pool;
@@ -36,6 +38,20 @@ class DatabaseBuilder {
                 query, a
             )
         }
+        Database.transaction = this.pool.getConnection(function (err, connection) {
+            connection.beginTransaction(function (err) {
+                if (err) {
+                    connection.rollback(function () {
+                        connection.release();
+                        //Failure
+                    });
+                } else {
+                    // 
+                }
+            });
+        });
     }
 }
-export { Database as Database, DatabaseBuilder as MySqlBuilder };
+declare type QueryOK = [mysql.RowDataPacket[], mysql.FieldPacket[]];
+declare type InsertOK = [mysql.ResultSetHeader[], mysql.FieldPacket[]];
+export { Database as Database, DatabaseBuilder as MySqlBuilder, QueryOK, InsertOK };

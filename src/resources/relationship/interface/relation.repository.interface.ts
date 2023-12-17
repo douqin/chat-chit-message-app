@@ -8,5 +8,6 @@ export interface RelationRepositoryBehavior {
     unFriend(iduser: number, iduserUnFriend: number): Promise<boolean>;
     getAllInvite(iduser: number, cursor : number, limit : number): Promise<any[]>;
     inviteToBecomeFriend(iduser: number, idReceiver: number): Promise<any>;
-    getAllFriend(iduser: number, cursor : number, limit : number): Promise<any>;
+    getSomeFriend(iduser: number, cursor : number, limit : number): Promise<any>;
+    getSomeFriendCommon(iduser: number, iduserWGet: number, cursor : number, limit : number): Promise<any[]>;
 }

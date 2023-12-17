@@ -1,10 +1,9 @@
 import MotherController from "@/utils/interface/controller.interface"
 import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { NextFunction, Router, Response, Request } from "express";
+import { NextFunction, Response, Request } from "express";
 import { Server } from "socket.io";
 import LoginMiddleware from "./middleware/auth.validation";
-import { stringify } from "querystring";
 import AuthService from "./auth.service";
 import Controller from "@/utils/decorator/decorator";
 import multer from "multer";
@@ -95,11 +94,10 @@ export default class AuthController extends MotherController {
             const email = req.body.email
             const address = req.body.address
             const gender: Gender = Number(req.body.gender) || 3
-            const username = req.body.username
             const birthday = new Date(req.body.birthday)
 
             if (firstname && phone && password && birthday) {
-                let isSuccessfully = await this.authService.registerAccount(firstname, phone, password, birthday, gender, username, lastname, email, address)
+                let isSuccessfully = await this.authService.registerAccount(firstname, phone, password, birthday, gender, lastname, email, address)
                 if (isSuccessfully) {
                     res.status(HttpStatus.OK).json(
                         new ResponseBody(

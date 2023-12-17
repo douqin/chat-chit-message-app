@@ -1,9 +1,15 @@
 import { Database } from '@/config/database/database';
 import { RelationshipUser } from './enums/relationship.enum';
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface";
-import validVariable from '@/utils/extension/vailid_variable';
 
 export default class RelationRepostory implements RelationRepositoryBehavior {
+    getSomeFriendCommon(iduser: number, iduserWGet: number, cursor: number, limit: number): Promise<any[]> {
+        //TODO: add query
+        let query = ""
+        let params : any[] = []
+        Database.excuteQuery(query, params);
+        return Promise.resolve([]);
+    }
     async deleteMySentInvite(iduser: number, idInvite: number): Promise<boolean> {
         const query = 'DELETE FROM relationship WHERE relationship.id = ? AND relationship.requesterid = ? AND relationship.relation = ?'
         await Database.excuteQuery(query, [idInvite, iduser, RelationshipUser.WAIT_RESPONSE_REQUEST_FRIEND])
@@ -29,7 +35,7 @@ export default class RelationRepostory implements RelationRepositoryBehavior {
         let [data, inforC] = await Database.excuteQuery(query, [RelationshipUser.WAIT_RESPONSE_REQUEST_FRIEND, iduser, cursor, limit]) as any
         return data as any[]
     }
-    async getAllFriend(iduser: number, cursor: number, limit: number): Promise<any[]> {
+    async getSomeFriend(iduser: number, cursor: number, limit: number): Promise<any[]> {
         let query = 'SELECT * FROM relationship JOIN user ON relationship.addresseeid = user.iduser OR relationship.requesterid = user.iduser WHERE relationship.relation = ? AND user.iduser != ? AND user.iduser > ? ORDER BY relationship.id LIMIT ?'
         let [data, inforC] = await Database.excuteQuery(query, [RelationshipUser.FRIEND, iduser, cursor, limit]) as any
         return data as any[]

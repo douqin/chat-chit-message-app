@@ -6,4 +6,6 @@ export enum RelationshipUser {
     FRIEND = 1,
     /** user 1 block user 2 */
     BLOCKED = 3,
+
+    // WAS_BLOCKED = 4,
 }

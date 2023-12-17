@@ -3,6 +3,7 @@ import MyException from '@/utils/exceptions/my.exception';
 import { dateJSToMysql } from '@/utils/extension/date_to_date';
 import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import Gender from './enums/gender.enum';
+import { FieldPacket, ResultSetHeader } from 'mysql2';
 export default class AuthRepository {
 
     async loguot(iduser: number, refreshToken: string): Promise<boolean> {
@@ -25,7 +26,7 @@ export default class AuthRepository {
         let [data] = await Database.excuteQuery(query, [phone, password]) as any
         return data[0];
     }
-    public async registerAccount(name: string, phone: string, password: string, birthday: Date, gender: Gender, username?: string, lastname?: string, email?: string, address?: string) {
+    public async registerAccount(name: string, phone: string, password: string, birthday: Date, gender: Gender, lastname?: string, email?: string, address?: string) {
         let query = `SELECT COUNT(*) FROM user WHERE user.phone = (?);`
         let [data, inforColumn] = await Database.excuteQuery(
             query, [phone]
@@ -35,9 +36,10 @@ export default class AuthRepository {
             throw new MyException("Phone is exist").withExceptionCode(HttpStatus.BAD_REQUEST)
         }
         let query2 = `INSERT INTO user( firstname, phone, password, birthday, gender, username, lastname, email, address) VALUES (?,?,?,?,?,?,?,?,?);`
-        await Database.excuteQuery(
-            query2, [name, phone, password, dateJSToMysql(birthday), gender, username, lastname, email, address]
-        )
+        let _username = crypto.randomUUID().toString();
+        let [dataUser, C] = await Database.excuteQuery(
+            query2, [name, phone, password, dateJSToMysql(birthday), gender, _username, lastname, email, address]
+        ) as [ResultSetHeader, FieldPacket[]]
         return true;
     }
 }
