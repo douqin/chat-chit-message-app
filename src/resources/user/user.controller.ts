@@ -47,23 +47,25 @@ export default class UserController extends MotherController {
     private inforUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             let username = String(req.params.username)
-            let iduser = Number(req.query.iduser)
-            if(username){
+            let iduser = Number(req.headers.iduser)
+            let data = await this.userSerivce.inforUser(iduser, username)
+            // TODO: add status(gồm 4 trạng thái), numberCommonFriend: int}.
+            if (username) {
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
                         "",
-                        await this.userSerivce.inforUser(iduser, username)
-                        // TODO: add status(gồm 4 trạng thái), numberCommonFriend: int}.
+                        data
                     )
                 )
                 return
             } else
-            next(new BadRequest("Agurment is invalid"))
+                next(new BadRequest("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.statusCode, error.message))
             }
+            console.log("🚀 ~ file: user.controller.ts:64 ~ UserController ~ inforUser= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }

@@ -21,7 +21,7 @@ export default class RelationService implements RelationServiceBehavior {
         this.friendRepostory = new RelationRepostory()
     }
     async getSomeFriendCommon(iduser: number, iduserWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO> {
-        let friends =  (await this.friendRepostory.getSomeFriendCommon(iduser, iduserWGet, cursor, limit)).map((value, index) => {
+        let friends = (await this.friendRepostory.getSomeFriendCommon(iduser, iduserWGet, cursor, limit)).map((value, index) => {
             return User.fromRawData(value)
         });
         return ListFriendCommonDTO.rawToDTO(friends);

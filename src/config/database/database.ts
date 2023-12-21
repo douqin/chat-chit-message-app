@@ -52,6 +52,6 @@ class DatabaseBuilder {
         });
     }
 }
-declare type QueryOK = [mysql.RowDataPacket[], mysql.FieldPacket[]];
-declare type InsertOK = [mysql.ResultSetHeader[], mysql.FieldPacket[]];
-export { Database as Database, DatabaseBuilder as MySqlBuilder, QueryOK, InsertOK };
+declare type QuerySuccessResult = [mysql.RowDataPacket[], mysql.FieldPacket[]];
+declare type InsertSuccessResult = [mysql.ResultSetHeader[], mysql.FieldPacket[]];
+export { Database as Database, DatabaseBuilder as MySqlBuilder, QuerySuccessResult , InsertSuccessResult };
