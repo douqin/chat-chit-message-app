@@ -13,7 +13,7 @@ import MyException from "@/utils/exceptions/my.exception";
 import Gender from "./enums/gender.enum";
 import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import authHandler from "../../component/auth.handler";
-import { JwtPayload } from "jsonwebtoken";
+import { JsonWebTokenError, JwtPayload, NotBeforeError, TokenExpiredError } from "jsonwebtoken";
 
 @Controller("/auth")
 export default class AuthController extends MotherController {
@@ -174,7 +174,14 @@ export default class AuthController extends MotherController {
         catch (e) {
             if (e instanceof MyException) {
                 next(new HttpException(e.statusCode, e.message))
+            } else if (e instanceof TokenExpiredError) {
+                next(new BadRequest("Token expired"))
+            } else if (e instanceof JsonWebTokenError) {
+                next(new BadRequest("Token invalid"))
+            } else if (e instanceof NotBeforeError) {
+                next(new BadRequest("Token invalid"))
             }
+            console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e)
             next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }

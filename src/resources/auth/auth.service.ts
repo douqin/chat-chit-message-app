@@ -12,7 +12,6 @@ export default class AuthService {
     async getNewAccessToken(iduser: number, oldToken: string, refreshToken: string): Promise<string> {
         let token = await authHandler.generateAccessToken(String(iduser))
         if (token) {
-            // this.authRepository.saveNewAccessToken(iduser, iduser)
             return token
         } else throw new Error("")
     }
