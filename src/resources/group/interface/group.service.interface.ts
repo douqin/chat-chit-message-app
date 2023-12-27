@@ -4,6 +4,7 @@ import DataFileDrive from "component/cloud/dtos/file.drive.dtos";
 import { ListGroupDTO } from "../dtos/response.lisgroup.dto";
 import { MemberDTO } from "../dtos/member.dto";
 import { User } from "@/models/user.model";
+import { PositionInGrop } from "../enum/group.position.enum";
 
 
 export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions, iInformationMember {
@@ -33,5 +34,6 @@ export interface iMemberActions {
   }
   export interface iInformationMember{
     isContainInGroup(iduser: number, idgroup: number): Promise<boolean>;
+    getPosition(idgroup: Number, iduser: Number): Promise<PositionInGrop>;
   }
   

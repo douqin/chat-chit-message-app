@@ -1,4 +1,4 @@
-import Controller from "@/utils/decorator/decorator";
+import Controller from "@/utils/decorator/controller";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import MotherController from "@/utils/interface/controller.interface";
 import { NextFunction, Request, Response } from "express";
@@ -12,40 +12,40 @@ import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import { MessageStatus } from "./enum/message.status.enum";
 import validVariable from "@/utils/extension/vailid_variable";
-import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
+import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
+import { inject } from "tsyringe";
+
 @Controller("/message")
 export default class MessageController extends MotherController {
-    private messageService: iMessageServiceBehavior;
-    constructor(io: Server) {
+    constructor(@inject(Server) io: Server, @inject(MessageService) private messageService: MessageService) {
         super(io);
-        this.messageService = new MessageService();
     }
 
     initRouter(): MotherController {
         this.router.get(
-            "/message/:idgroup",
+            "/:idgroup",
             AuthMiddleware.auth,
             this.getMessageFromGroup
         );
         this.router.post(
-            "/message/:idgroup/text",
+            "/:idgroup/text",
             multer().none(),
             AuthMiddleware.auth,
             this.sendTextMessage
         );
         this.router.post(
-            "/message/:idgroup/file",
+            "/:idgroup/file",
             multer().array("files", 12),
             AuthMiddleware.auth,
             this.sendFileMessage
         );
-        this.router.post("/message/:id/react", multer().none(), AuthMiddleware.auth, this.reactMessage);
-        this.router.patch("/message/:id/pin/:ispin", multer().none(), AuthMiddleware.auth, this.changePinMessage);
-        this.router.patch("/message/:id/removemessage", multer().none(), AuthMiddleware.auth, this.removeMessage)
-        this.router.patch("/message/:id/ ", multer().none(), AuthMiddleware.auth, this.updateLastView)
+        this.router.post("/:id/react", multer().none(), AuthMiddleware.auth, this.reactMessage);
+        this.router.patch("/:id/pin/:ispin", multer().none(), AuthMiddleware.auth, this.changePinMessage);
+        this.router.patch("/:id/removemessage", multer().none(), AuthMiddleware.auth, this.removeMessage)
+        this.router.patch("/:id/ ", multer().none(), AuthMiddleware.auth, this.updateLastView)
         return this;
     }
-    private changePinMessage = async (req: Request, res: Response, next: NextFunction) => {
+    private  changePinMessage = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id, ispin, idgroup } = req.params;
             if (id && Number(idgroup)) {
@@ -72,10 +72,7 @@ export default class MessageController extends MotherController {
             console.log("🚀 ~ file: message.controller.ts:71 ~ MessageController ~ changePinMessage= ~ e:", e);
             if (e instanceof MyException) {
                 next(
-                    new HttpException(
-                        HttpStatus.FORBIDDEN,
-                        e.message
-                    )
+                    e
                 )
             }
             next(
@@ -169,7 +166,7 @@ export default class MessageController extends MotherController {
             if (e instanceof MyException) {
                 next(
                     new HttpException(
-                        e.statusCode,
+                        e.status,
                         e.message
                     )
                 )
@@ -216,7 +213,7 @@ export default class MessageController extends MotherController {
                 );
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (e: any) {
             console.log("🚀 ~ file: message.controller.ts:211 ~ MessageController ~ sendTextMessage= ~ e:", e)
             next(new InternalServerError("An error occurred, please try again later."));
@@ -244,7 +241,7 @@ export default class MessageController extends MotherController {
                         model
                     )
                 );
-            } else next(new BadRequest("Agurment is invalid"))
+            } else next(new BadRequestException("Agurment is invalid"))
 
         } catch (e: any) {
             console.log("🚀 ~ file: message.controller.ts:241 ~ MessageController ~ reactMessage= ~ e:", e)
@@ -283,11 +280,11 @@ export default class MessageController extends MotherController {
                 ))
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         }
         catch (error) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -306,11 +303,11 @@ export default class MessageController extends MotherController {
                 ))
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         }
         catch (error) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }

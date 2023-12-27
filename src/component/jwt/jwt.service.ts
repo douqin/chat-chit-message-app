@@ -1,17 +1,17 @@
 
 import { Database } from '@/config/database/database';
 import Token from '@/utils/definition/token';
-import jwt, { Secret, sign as _sign, verify as _verify } from 'jsonwebtoken';
-import { token } from 'morgan';
-import { stringify } from 'querystring';
+import jwt, {sign as _sign, verify as _verify } from 'jsonwebtoken';
+import { inject, injectable } from 'tsyringe';
 require('dotenv').config()
 const accessTokenLife = process.env.ACCESS_TOKEN_LIFE || "cc";
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || "cc";
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || "";
 const refreshTokenLife = process.env.REFRESH_TOKEN_LIFE || "cc";
-class AuthHandler {
-    static instance = new AuthHandler()
-    constructor() {
+
+@injectable()
+export class JwtService {
+    constructor( @inject(Database) private db: Database) {
 
     }
     private generateToken = async (payload: string | object | Buffer, secretSignature: string, tokenLife: string | number | undefined) => {
@@ -75,7 +75,7 @@ class AuthHandler {
     private async getRefreshTokenFromBD(iduser: number): Promise<string | null> {
         let query: string = "SELECT refreshtoken FROM token WHERE iduser ='" + `${iduser}` + "'";
         try {
-            let data2: any = await Database.excuteQuery(query);
+            let data2: any = await this.db.excuteQuery(query);
             if (data2.length === 0) {
                 return null;
             }
@@ -97,9 +97,7 @@ class AuthHandler {
                 refreshToken: refreshToken,
                 accessToken: accessToken
             }
-            if (await this.saveFullToken(iduser, token, notificationToken)) {
-                return token;
-            }
+            return token;
         }
         return undefined;
     }
@@ -109,18 +107,4 @@ class AuthHandler {
     public checkHSDRefreshToken = async (refreshToken: any) => {
         return await this.decodeToken2(refreshToken, refreshTokenSecret);
     }
-    private async saveFullToken(iduser: number, token: Token, notificationToken: string): Promise<boolean> {
-        let refreshToken = token.refreshToken
-        let query = 'INSERT INTO token (iduser, refreshtoken, notificationtoken) VALUES (?,?,?)';
-        let result: boolean = true;
-        try {
-            await Database.excuteQuery(query, [iduser, refreshToken, notificationToken != null ? notificationToken : ""]);
-        }
-        catch (err) {
-            console.log(err)
-            result = false;
-        }
-        return result;
-    }
 }
-export default AuthHandler.instance;

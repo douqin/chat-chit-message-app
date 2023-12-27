@@ -7,11 +7,26 @@ const DATABASE_USER = process.env.DATABASE_USER;
 const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
 const DATABASE_HOST = process.env.DATABASE_HOST;
 
-class Database {
+class Database implements iDatabase {
 
-    public static excuteQuery: (query: string, a?: any[]) => Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
+    constructor(private pool: mysql.Pool) {
 
-    public static transaction: void;
+    }
+    transaction(): void {
+        throw new Error("Method not implemented.");
+    }
+    async excuteQuery(query: string, a?: any[] | undefined): Promise<[mysql.OkPacket | mysql.ResultSetHeader | mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket[], mysql.FieldPacket[]]> {
+        return await this.pool.promise().query(
+            query, a
+        )
+    }
+
+}
+interface iDatabase {
+
+    excuteQuery(query: string, a?: any[]): Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
+
+    transaction(): void;
 }
 class DatabaseBuilder {
     private pool!: mysql.Pool;
@@ -32,26 +47,10 @@ class DatabaseBuilder {
         return this
     }
     build() {
-
-        Database.excuteQuery = async (query: string, a?: any[]) => {
-            return await this.pool.promise().query(
-                query, a
-            )
-        }
-        Database.transaction = this.pool.getConnection(function (err, connection) {
-            connection.beginTransaction(function (err) {
-                if (err) {
-                    connection.rollback(function () {
-                        connection.release();
-                        //Failure
-                    });
-                } else {
-                    // 
-                }
-            });
-        });
+        
+        return new Database(this.pool);
     }
 }
 declare type QuerySuccessResult = [mysql.RowDataPacket[], mysql.FieldPacket[]];
 declare type InsertSuccessResult = [mysql.ResultSetHeader[], mysql.FieldPacket[]];
-export { Database as Database, DatabaseBuilder as MySqlBuilder, QuerySuccessResult , InsertSuccessResult };
+export { Database as Database, DatabaseBuilder as MySqlBuilder, QuerySuccessResult, InsertSuccessResult, iDatabase };

@@ -1,11 +1,11 @@
 import SocketMiddleware from '@/middleware/socket.middleware';
 import GroupService from '@/resources/group/group.service';
 import { iGroupActions } from '@/resources/group/interface/group.service.interface';
-import authHandler from '../../component/auth.handler';
 import { Server, Socket } from 'socket.io';
 import { JwtPayload } from 'jsonwebtoken';
 import { DatabaseCache } from '../database/redis';
 import { ConstantRedis } from '../database/constant';
+import { container } from 'tsyringe';
 export default class SocketBuilder {
     private io: Server;
     constructor(io: Server) {
@@ -23,7 +23,7 @@ export default class SocketBuilder {
         return this.io
     }
     async joinGroup(iduser: number, socket: Socket): Promise<void> {
-        let serivce: iGroupActions = new GroupService();
+        let serivce: iGroupActions = container.resolve(GroupService);
         let groups = await serivce.getAllGroup(iduser);
         for (let group of groups) {
             socket.join(`${group.idgroup}_group`);

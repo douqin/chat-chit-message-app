@@ -10,18 +10,19 @@ import { iMessageRepositoryBehavior } from "./interface/message.repository.inter
 import { MessageStatus } from "./enum/message.status.enum";
 import Message from "../../models/message.model";
 import TransformMessage from "@/utils/transform/message.transform";
-import { ServiceDrive } from "./../../component/cloud/drive.service";
+import { CloudDrive } from "./../../component/cloud/drive.service";
 import Reaction from "./dtos/react.dto";
 import TransformReaction from "@/utils/transform/reaction.transform";
 import { iGroupActions, iInformationMember } from "../group/interface/group.service.interface";
 import GroupService from "../group/group.service";
 import { ListMessageResponseDTO } from "./dtos/list.message.dto";
 import { User } from "../../models/user.model";
+import { container, inject, injectable } from "tsyringe";
 
+@injectable()
 export default class MessageService implements iMessageServiceBehavior {
-    private messageRepository: iMessageRepositoryBehavior
-    constructor() {
-        this.messageRepository = new MessageRepository()
+
+    constructor(@inject(MessageRepository) private messageRepository: iMessageRepositoryBehavior) {
     }
     async getAllTagFromMessage(idmessage: number): Promise<any[]> {
         return (await this.messageRepository.getAllTagFromMessage(idmessage)).map((value: any, index: number, array: any[]) => {
@@ -33,13 +34,13 @@ export default class MessageService implements iMessageServiceBehavior {
             return TransformReaction.rawToModel(value)
         })
     }
-    async getNumMessageUnread(idgroup: number, iduser : number): Promise<number> {
+    async getNumMessageUnread(idgroup: number, iduser: number): Promise<number> {
         return await this.messageRepository.getNumMessageUnread(idgroup, iduser);
     }
     async getLastMessage(idgroup: number): Promise<Message> {
         let data = await this.messageRepository.getAllMessageFromGroup(idgroup, NaN, 1)
         return await TransformMessage.fromRawData(data[0], async (id: string) => {
-            return await ServiceDrive.gI().getUrlFile(id)
+            return await CloudDrive.gI().getUrlFile(id)
         })
     }
     async sendNotitfyMessage(idgroup: number, iduser: number, content: string, manipulates: Array<number>): Promise<Message> {
@@ -49,7 +50,7 @@ export default class MessageService implements iMessageServiceBehavior {
         return await this.messageRepository.updateLastView(iduser, idmessgae)
     }
     async removeMessage(iduser: number, idgroup: number, idmessgae: number): Promise<boolean> {
-        let memberInfor: MemberInfo = new GroupRepository()
+        let memberInfor: iInformationMember = container.resolve(GroupService)
         if (await this.messageRepository.isMessageContainInGroup(idmessgae, idgroup)) {
             if (await this.messageRepository.isMessageOfUser(idmessgae, iduser)) {
                 return await this.messageRepository.changeStatusMessage(idmessgae, MessageStatus.DEL_BY_OWNER)
@@ -67,7 +68,7 @@ export default class MessageService implements iMessageServiceBehavior {
         else throw new MyException("Tham số không hợp lệ")
     }
     async reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup: number): Promise<Reaction> {
-        let memberInfor: MemberInfo = new GroupRepository()
+        let memberInfor: MemberInfo = container.resolve(GroupService)
         if (await this.messageRepository.isMessageContainInGroup(idmessage, idgroup)) {
             if (await memberInfor.isContainInGroup(iduser, idgroup)) {
                 return TransformReaction.rawToModel(
@@ -84,11 +85,11 @@ export default class MessageService implements iMessageServiceBehavior {
             }
         }
         return TransformMessage.fromRawsData(await this.messageRepository.sendFileMessage(idgroup, iduser, content), async (id: string) => {
-            return await ServiceDrive.gI().getUrlFile(id);
+            return await CloudDrive.gI().getUrlFile(id);
         })
     }
     async sendTextMessage(idgroup: number, iduser: number, content: string, tags: Array<number>) {
-        let group: iInformationMember = new GroupService()
+        let group: iInformationMember = container.resolve(GroupService)
         for (let tag of tags) {
             if (!await group.isContainInGroup(tag, idgroup)) {
                 throw new MyException("Wrong argument").withExceptionCode(HttpStatus.BAD_REQUEST)
@@ -98,15 +99,15 @@ export default class MessageService implements iMessageServiceBehavior {
         return TransformMessage.fromRawData(raw)
     }
     async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO> {
-        let groupAuthor: iInformationMember = new GroupService();
+        let groupAuthor: iInformationMember = container.resolve(GroupService)
         if (await groupAuthor.isContainInGroup(iduser, idgroup)) {
             let data = await this.messageRepository.getAllMessageFromGroup(idgroup, cursor, limit)
             let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
-                return await ServiceDrive.gI().getUrlFile(id)
+                return await CloudDrive.gI().getUrlFile(id)
             })
             for (let message of messages) {
                 message.reacts = await this.getAllReactFromMessage(message.idmessage)
-                message.tags =  await this.getAllTagFromMessage(message.idmessage)
+                message.tags = await this.getAllTagFromMessage(message.idmessage)
             }
             return ListMessageResponseDTO.rawToData(messages)
         }

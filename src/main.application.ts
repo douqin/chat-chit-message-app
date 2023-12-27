@@ -17,9 +17,13 @@ import MessageController from './resources/messaging/message.controller';
 import TestController from './resources/test/test.controller';
 import StoryController from './resources/story/story.controller';
 import FriendController from './resources/relationship/relation.controller';
-import { Database, MySqlBuilder } from './config/database/database';
+import { Database, MySqlBuilder, iDatabase } from './config/database/database';
 import UserController from './resources/user/user.controller';
 import { DatabaseCache } from './config/database/redis';
+import { container } from 'tsyringe';
+import { RegisterModuleController } from './utils/extension/controller.container.module';
+import controllers from './resources/module.controller';
+import ModuleController from './resources/module.controller';
 class App {
     private server: any
     private io: Server
@@ -39,19 +43,12 @@ class App {
             .initalizeMiddleware()
             .initalizeServer()
             .build()
+        container.register<Server>(Server, { useValue: this.io })
+        RegisterModuleController((new ModuleController() as any).controllers);
         this.initaliseDatabase()
         this.initaliseMiddleware()
-        let controller: MotherController[] = [
-            new AuthController(this.io).initRouter(),
-            new GroupController(this.io).initRouter(),
-            new MessageController(this.io).initRouter(),
-            new MeController(this.io).initRouter(),
-            new TestController(this.io).initRouter(),
-            new StoryController(this.io).initRouter(),
-            new FriendController(this.io).initRouter(),
-            new UserController(this.io).initRouter()
-        ]
-        this.initaliseController(controller) 
+        let controller: MotherController[] = container.resolveAll<MotherController>("controller")
+        this.initaliseController(controller)
         this.initErrorHandler()
     }
     private initErrorHandler() {
@@ -59,18 +56,18 @@ class App {
     }
     private initaliseController(controllers: MotherController[]) {
         controllers.forEach((controller: MotherController) => {
-            this.express.use('', controller.router);
+            controller.initRouter();
+            this.express.use(controller.pathMain, controller.router);
         });
         this.express.use((
             req,
             res,
-            next
         ) => {
             res.status(HttpStatus.NOT_FOUND).send(new ResponseBody(
                 false,
                 "Không tìm thấy trang bạn yêu cầu",
                 {
-                    "url" : req.url
+                    "url": req.url
                 }
             ))
         })
@@ -85,7 +82,7 @@ class App {
         this.express.use(compression());
     }
     private initaliseDatabase() {
-        new MySqlBuilder().initPool().build();
+        container.register<Database>(Database, { useValue: new MySqlBuilder().initPool().build() })
         DatabaseCache.getInstance()
     }
     public listen(): void {

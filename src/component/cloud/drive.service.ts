@@ -3,18 +3,21 @@ import { drive_v3, google } from "googleapis";
 import { Readable } from "stream";
 import { iDrive } from "./drive.interface"
 import DataFileDrive from "./dtos/file.drive.dtos";
+import { injectable } from "tsyringe";
 const CLIENT_ID = process.env.CLIENT_ID;
 const SECRECT_ID = process.env.SECRECT_ID;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 const REFRESH_TOKEN_DRIVE = process.env.REFRESH_TOKEN_DRIVE;
 
-export class ServiceDrive implements iDrive {
+
+@injectable()
+export class CloudDrive implements iDrive {
     private drive: drive_v3.Drive;
-    private static instance = new ServiceDrive();
+    private static instance = new CloudDrive();
     public static gI() {
-        return ServiceDrive.instance
+        return CloudDrive.instance
     }
-    private constructor() {
+    public constructor() {
         let auth = new google.auth.OAuth2(CLIENT_ID, SECRECT_ID, REDIRECT_URI);
         auth.setCredentials({
             refresh_token: REFRESH_TOKEN_DRIVE,

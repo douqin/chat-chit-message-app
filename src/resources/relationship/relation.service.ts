@@ -9,16 +9,17 @@ import { ListFriendDTO } from "./dto/listfriends.dto"
 import { DatabaseCache } from "@/config/database/redis"
 import { ConstantRedis } from "@/config/database/constant"
 import { ListFriendCommonDTO } from "./dto/list.friend.common.dto"
-
+import { inject, injectable } from "tsyringe"
+import { BadRequestException, ForbiddenException } from "@/utils/exceptions/badrequest.expception"
+@injectable()
 export default class RelationService implements RelationServiceBehavior {
     async inviteToBecomeFriend(iduserSend: number, idReceiver: number) {
         if (await this.friendRepostory.getRelationship(iduserSend, idReceiver) === RelationshipUser.NO_RELATIONSHIP) {
             await this.friendRepostory.inviteToBecomeFriend(iduserSend, idReceiver)
         }
     }
-    friendRepostory: RelationRepositoryBehavior
-    constructor() {
-        this.friendRepostory = new RelationRepostory()
+
+    constructor(@inject(RelationRepostory) private friendRepostory: RelationRepositoryBehavior) {
     }
     async getSomeFriendCommon(iduser: number, iduserWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO> {
         let friends = (await this.friendRepostory.getSomeFriendCommon(iduser, iduserWGet, cursor, limit)).map((value, index) => {
@@ -34,7 +35,7 @@ export default class RelationService implements RelationServiceBehavior {
             return Number(value)
         })
         let cursor = 0;
-        if(users.length == 0) return friendsOnline;
+        if (users.length == 0) return friendsOnline;
         while (friendsOnline.length > 10) {
             let friends = await this.friendRepostory.getSomeFriend(iduser, cursor, 20)
             if (friends.length == 0) break
@@ -62,7 +63,11 @@ export default class RelationService implements RelationServiceBehavior {
         return await this.friendRepostory.acceptInviteFriend(iduser, idInvite)
     }
     async unFriend(iduser: number, iduserUnFriend: number): Promise<boolean> {
-        return await this.friendRepostory.unFriend(iduser, iduserUnFriend)
+        if (await this.friendRepostory.getRelationship(iduser, iduserUnFriend) === RelationshipUser.FRIEND) {
+            console.log("")
+            return await this.friendRepostory.unFriend(iduser, iduserUnFriend)
+        }
+        throw new BadRequestException("You are not friend")
     }
     async getAllFriend(iduser: number, cursor: number, limit: number): Promise<ListFriendDTO> {
         let arrRaw = (await this.friendRepostory.getSomeFriend(iduser, cursor, limit))

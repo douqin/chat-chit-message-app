@@ -1,18 +1,22 @@
 
-import { Database, QuerySuccessResult } from "@/config/database/database";
+import { Database, QuerySuccessResult, iDatabase } from "@/config/database/database";
 import { UserServiceBehavior } from "./interface/user.service.interface";
-import { UserRepositoryBehavior } from "./interface/user.repository.interface";
+import { iUserRepositoryBehavior } from "./interface/user.repository.interface";
+import { inject, injectable } from "tsyringe";
 
-export default class UserRepository implements UserRepositoryBehavior {
+@injectable()
+export default class UserRepository implements iUserRepositoryBehavior {
+
+    constructor(@inject(Database) private db: iDatabase) { }
 
     async inforUser(username: string): Promise<any> {
         const query = "SELECT * FROM user WHERE user.username = ?"
-        let [data, inforColumn] = await Database.excuteQuery(query, [username]) as QuerySuccessResult
+        let [data, inforColumn] = await this.db.excuteQuery(query, [username]) as QuerySuccessResult
         return data[0] // TODO: check in postman
     }
     async searchUser(phone: string): Promise<any> {
         const query = ` SELECT *  FROM user WHERE user.phone = ?`
-        let [data, inforColumn] = await Database.excuteQuery(query, [phone]) as any
+        let [data, inforColumn] = await this.db.excuteQuery(query, [phone]) as any
         return data[0] // TODO: check in postman
     }
 }

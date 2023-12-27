@@ -8,7 +8,9 @@ export default abstract class MotherController {
     constructor(io: Server) {
         this.pathMain = ""
         this.io = io
-        this.router = Router()
+        this.router = Router( {
+            
+        })
     }
     abstract initRouter(): MotherController
 }

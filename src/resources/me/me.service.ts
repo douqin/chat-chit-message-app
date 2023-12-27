@@ -1,7 +1,9 @@
 import { User } from '../../models/user.model';
 import MyException from "@/utils/exceptions/my.exception";
 import MeRepository from "./me.repository";
+import { inject, injectable } from 'tsyringe';
 
+@injectable()
 export default class MeService {
     async getMyProfile(iduser: number) {
         let data = await this.meRepository.getMyProfile(iduser)
@@ -19,9 +21,8 @@ export default class MeService {
             return await this.meRepository.changeBackground(iduser, file)
         } else throw new MyException("File phải có định dạng img")
     }
-    private meRepository: MeRepository
-    constructor() {
-        this.meRepository = new MeRepository()
+
+    constructor(@inject(MeRepository) private meRepository: MeRepository) {
     }
     async changeAvatar(iduser: number, file: Express.Multer.File) {
         if (file.mimetype.includes('image')) {

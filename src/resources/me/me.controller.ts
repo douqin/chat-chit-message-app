@@ -9,34 +9,35 @@ import MyException from "@/utils/exceptions/my.exception";
 import HttpException from "@/utils/exceptions/http.exeception";
 import { ResponseBody } from '@/utils/definition/http.response';
 import { InternalServerError } from '@/utils/exceptions/badrequest.expception';
+import { inject } from 'tsyringe';
+import Controller from '@/utils/decorator/controller';
 
+@Controller("/me")
 export default class MeController extends MotherController {
-    private meSerivce: MeService
-    constructor(io: Server) {
+    constructor( @inject(Server) io: Server, @inject(MeService) private meSerivce: MeService) {
         super(io)
-        this.meSerivce = new MeService()
     }
     initRouter(): MotherController {
         this.router.get(
-            "/me/profile",
+            "/profile",
             AuthMiddleware.auth,
             this.getMyProfile
         )
 
         this.router.patch(
-            "/me/profile",
+            "/profile",
             multer().none(),
             AuthMiddleware.auth,
             this.updateMyprofile
         )
 
         this.router.patch(
-            "/me/password",
+            "/password",
             AuthMiddleware.auth,
             this.changePassword
         )
         this.router.patch(
-            "/me/avatar",
+            "/avatar",
             AuthMiddleware.auth,
             multer({
                 limits: {
@@ -46,7 +47,7 @@ export default class MeController extends MotherController {
             this.changeAvatar
         )
         this.router.patch(
-            "/me/background",
+            "/background",
             AuthMiddleware.auth,
             multer().single('background'),
             this.changeBackground
@@ -71,7 +72,7 @@ export default class MeController extends MotherController {
         }
         catch (e) {
             if (e instanceof MyException) {
-                next(new HttpException(e.statusCode, e.message))
+                next(new HttpException(e.status, e.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -96,7 +97,7 @@ export default class MeController extends MotherController {
         catch (e) {
             console.log("🚀 ~ file: me.controller.ts:95 ~ MeController ~ e:", e)
             if (e instanceof MyException) {
-                next(new HttpException(e.statusCode, e.message))
+                next(new HttpException(e.status, e.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -131,7 +132,7 @@ export default class MeController extends MotherController {
         }
         catch (e) {
             if (e instanceof MyException) {
-                next(new HttpException(e.statusCode, e.message))
+                next(new HttpException(e.status, e.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }

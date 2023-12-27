@@ -4,7 +4,7 @@ import MotherController from "@/utils/interface/controller.interface";
 import { NextFunction, Request, Response } from "express";
 import { Server } from "socket.io";
 import GroupService from "@/resources/group/group.service";
-import Controller from "@/utils/decorator/decorator";
+import Controller from "@/utils/decorator/controller";
 import LastViewGroup from "./dtos/lastview.dto";
 import iGroupServiceBehavior from "@/resources/group/interface/group.service.interface";
 import MyException from "@/utils/exceptions/my.exception";
@@ -14,83 +14,82 @@ import AuthMiddleware from "@/middleware/auth.middleware";
 import validVariable from "@/utils/extension/vailid_variable";
 import { User } from "../../models/user.model";
 import { EVENT_GROUP_SOCKET } from "./constant/group.constant";
-import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
+import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
+import { inject } from "tsyringe";
 @Controller("/group")
 export default class GroupController extends MotherController {
-    private groupService: iGroupServiceBehavior;
-    constructor(io: Server) {
+        constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
         super(io)
-        this.groupService = new GroupService()
     }
 
     initRouter(): MotherController {
-        this.router.get('/group',
+        this.router.get('',
             AuthMiddleware.auth,
             this.getSomeGroup
         )
-        this.router.get('/group/:id',
+        this.router.get('/:id',
             AuthMiddleware.auth,
             this.getOneGroup
         )
-        this.router.post('/group/create',
+        this.router.post('/create',
             multer().none(),
             AuthMiddleware.auth,
             this.createGroup
         )
-        this.router.patch("/group/:id/avatar",
+        this.router.patch("/:id/avatar",
             multer().single("avatar"),
             AuthMiddleware.auth,
             this.changeAvatarGroup)
-        this.router.post("/group/:id/lastview",
+        this.router.post("/:id/lastview",
             multer().none(), AuthMiddleware.auth,
             this.getLastViewMember)
-        this.router.get("/group/:id/getallmembers", AuthMiddleware.auth, this.getAllMember)
-        this.router.post("/group/:id/invitemembers", multer().none(), AuthMiddleware.auth, this.inviteMember)
-        this.router.post("/group/:id/members/leave", multer().none(), AuthMiddleware.auth, this.leaveGroup)
-        this.router.post("/group/:id/members/join-from-link", multer().none(), AuthMiddleware.auth, this.joinfromLink)
+        this.router.get("/:id/getallmembers", AuthMiddleware.auth, this.getAllMember)
+        this.router.post("/:id/invitemembers", multer().none(), AuthMiddleware.auth, this.inviteMember)
+        this.router.post("/:id/members/leave", multer().none(), AuthMiddleware.auth, this.leaveGroup)
+        this.router.post("/:id/members/join-from-link", multer().none(), AuthMiddleware.auth, this.joinfromLink)
 
-        this.router.patch("/group/admin/:id/rename",
+        this.router.patch("/admin/:id/rename",
             multer().none(),
             AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
             this.renameGroup)
         this.router.delete(
-            '/group/admin/:id/manager',
+            '/admin/:id/manager',
             multer().none(),
             AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
             this.removeManager
         )
         this.router.patch(
-            '/group/admin/:id/manager',
+            '/admin/:id/manager',
             multer().none(),
             AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
             this.addManager
         )
         this.router.delete(
-            '/group/admin/:id/member',
+            '/admin/:id/member',
             multer().none(),
             AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
             this.removeMember
         )
         this.router.post(
-            '/group/admin/:id/approval',
+            '/admin/:id/approval',
             multer().none(),
             AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
             this.approvalMember
         )
         this.router.patch(
-            '/group/admin/:id/blockmember',
+            '/admin/:id/blockmember',
             multer().none(),
             AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
             this.blockMember
         )
         this.router.get(
-            '/group/:idgroup/member/:idmember/infor',
+            '/:idgroup/member/:idmember/infor',
             AuthMiddleware.auth,
             this.getInformationMember
         )
@@ -111,12 +110,12 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         }
         catch (error) {
             console.log("🚀 ~ file: group.controller.ts:74 ~ GroupController ~ joinfromLink= ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -194,7 +193,7 @@ export default class GroupController extends MotherController {
             }
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -263,7 +262,7 @@ export default class GroupController extends MotherController {
             res.status(HttpStatus.OK).send(new ResponseBody(isSuccessfully, "OK", {}))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
@@ -289,7 +288,7 @@ export default class GroupController extends MotherController {
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:333 ~ GroupController ~ leaveGroup= ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
@@ -311,10 +310,10 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -336,10 +335,10 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -363,11 +362,11 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:339 ~ GroupController ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -392,7 +391,7 @@ export default class GroupController extends MotherController {
         }
         catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -414,10 +413,10 @@ export default class GroupController extends MotherController {
                     )
                 )
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -439,10 +438,10 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -463,11 +462,11 @@ export default class GroupController extends MotherController {
                 )
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:456 ~ GroupController ~ getInformationMember= ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }

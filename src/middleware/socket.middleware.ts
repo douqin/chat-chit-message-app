@@ -1,11 +1,12 @@
 import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import authHandler from "../component/auth.handler";
 import { JwtPayload } from "jsonwebtoken";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Socket } from "socket.io";
 import { DatabaseCache } from "@/config/database/redis";
 import { ConstantRedis } from "@/config/database/constant";
+import { container } from "tsyringe";
+import { JwtService } from "../component/jwt/jwt.service";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         try {
@@ -13,7 +14,7 @@ class SocketMiddleware {
             let notificationToken = String(socket.handshake.headers.notification)
             if (token && notificationToken) {
                 if (token) {
-                    const jwtPayload = await authHandler.decodeAccessToken(token) as JwtPayload;
+                    const jwtPayload = await container.resolve(JwtService).decodeAccessToken(token) as JwtPayload;
                     const { iduser } = jwtPayload.payload;
                     if (iduser) {
                         socket.handshake.headers.iduser = iduser

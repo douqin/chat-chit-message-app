@@ -6,26 +6,27 @@ import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import MotherController from "@/utils/interface/controller.interface";
 import { Response, Request, NextFunction } from "express";
 import multer from "multer";
-import StoryService from "./story.service";
 import { Server } from "socket.io";
 import iStoryServiceBehavior from "./interfaces/story.service.interface";
 import validVariable from "@/utils/extension/vailid_variable";
+import { inject, injectable, singleton } from "tsyringe";
+import Controller from "@/utils/decorator/controller";
+import StoryService from "./story.service";
 
-
+@Controller("story")
 export default class StoryController extends MotherController {
-    private storyService: iStoryServiceBehavior;
-    constructor(io: Server) {
+    
+    constructor(@inject(Server) io: Server, @inject(StoryService) private storyService: StoryService) {
         super(io);
-        this.storyService = new StoryService();
     }
 
     initRouter(): MotherController {
-        this.router.get("/story/:idstory/react", AuthMiddleware.auth, this.reacStory)
-        this.router.get("/story", AuthMiddleware.auth, this.getAllStoryFromFriends)
-        this.router.post("/story/upload", AuthMiddleware.auth, multer().single("story"), this.uploadStory)
-        this.router.delete("/story/delete", AuthMiddleware.auth, multer().none(), this.deleteStory)
-        this.router.post("/story/see", AuthMiddleware.auth, multer().none(), this.seeStoryFriend)
-        this.router.post("/story/getviewedstory", AuthMiddleware.auth, multer().none(), this.getViewedStory)
+        this.router.get("/:idstory/react", AuthMiddleware.auth, this.reacStory)
+        this.router.get("", AuthMiddleware.auth, this.getAllStoryFromFriends)
+        this.router.post("/upload", AuthMiddleware.auth, multer().single("story"), this.uploadStory)
+        this.router.delete("/delete", AuthMiddleware.auth, multer().none(), this.deleteStory)
+        this.router.post("/see", AuthMiddleware.auth, multer().none(), this.seeStoryFriend)
+        this.router.post("/getviewedstory", AuthMiddleware.auth, multer().none(), this.getViewedStory)
         return this;
     }
     // upload story
@@ -51,10 +52,7 @@ export default class StoryController extends MotherController {
             console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
             if (e instanceof MyException) {
                 next(
-                    new HttpException(
-                        e.statusCode,
-                        e.message
-                    )
+                    e
                 )
             }
             next(
@@ -80,7 +78,7 @@ export default class StoryController extends MotherController {
             if (e instanceof MyException) {
                 next(
                     new HttpException(
-                        e.statusCode,
+                        e.status,
                         e.message
                     )
                 )
@@ -110,7 +108,7 @@ export default class StoryController extends MotherController {
             if (e instanceof MyException) {
                 next(
                     new HttpException(
-                        e.statusCode,
+                        e.status,
                         e.message
                     )
                 )
@@ -147,7 +145,7 @@ export default class StoryController extends MotherController {
             if (e instanceof MyException) {
                 next(
                     new HttpException(
-                        e.statusCode,
+                        e.status,
                         e.message
                     )
                 )
@@ -176,7 +174,7 @@ export default class StoryController extends MotherController {
             if (e instanceof MyException) {
                 next(
                     new HttpException(
-                        e.statusCode,
+                        e.status,
                         e.message
                     )
                 )
@@ -207,7 +205,7 @@ export default class StoryController extends MotherController {
             if (e instanceof MyException) {
                 next(
                     new HttpException(
-                        e.statusCode,
+                        e.status,
                         e.message
                     )
                 )

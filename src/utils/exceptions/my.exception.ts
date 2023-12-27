@@ -1,14 +1,12 @@
 import { HttpStatus } from "../extension/httpstatus.exception";
+import HttpException from "./http.exeception";
 
-export default class MyException extends Error {
-    public statusCode: number;
+export default class MyException extends HttpException {
     constructor(message: string) {
-        super();
-        this.message = message
-        this.statusCode = HttpStatus.BAD_REQUEST
+        super(HttpStatus.BAD_REQUEST, message);
     }
     public withExceptionCode(statusCode: HttpStatus) {
-        this.statusCode = statusCode
+        this.status = statusCode
         return this
     }
 }

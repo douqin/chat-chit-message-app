@@ -1,23 +1,25 @@
-import { ServiceDrive } from "../../component/cloud/drive.service";
+import { CloudDrive } from "../../component/cloud/drive.service";
 import { iDrive } from "../../component/cloud/drive.interface";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { ReactStory } from "./enums/story.react.enum";
-import { Database } from "@/config/database/database";
+import { Database, iDatabase } from "@/config/database/database";
+import { inject, injectable } from "tsyringe";
 
 
+
+@injectable()
 export default class StoryRepository implements iStoryRepositoryBehavior {
 
-    public drive: iDrive
-    constructor() {
-        this.drive = ServiceDrive.gI();
+
+    constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
     }
     async reacStory(idstory: number, iduser: number, react: ReactStory): Promise<any> {
         const query = `INSERT INTO react_story(idstory, iduser_react, type) VALUE(
             ?, ?, ?
         )`
-        const [raw, inforC] = await Database.excuteQuery(query, [idstory, iduser, react])
+        const [raw, inforC] = await this.db.excuteQuery(query, [idstory, iduser, react])
         return true
     }
 
@@ -25,9 +27,9 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         let inforFile = await this.drive.uploadFile(file.filename, file.buffer)
         if (inforFile) {
             const querySaveId = `INSERT INTO story (iduserowner, content) VALUES ( ?, ?)`
-            let [data] = await Database.excuteQuery(querySaveId, [iduser, inforFile.id]) as any
+            let [data] = await this.db.excuteQuery(querySaveId, [iduser, inforFile.id]) as any
             let queryGetInformationStory = "SELECT * FROM story WHERE story.idstory = ?"
-            let [getInforStory] = await Database.excuteQuery(queryGetInformationStory, [data.insertId]) as any
+            let [getInforStory] = await this.db.excuteQuery(queryGetInformationStory, [data.insertId]) as any
             return getInforStory[0]
         }
         return new MyException("Lỗi upload file ").withExceptionCode(500)
@@ -77,26 +79,26 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         //     story[0].viewed = Boolean(Number(count) === 1);
         //     arr.push(story[0])
         // }
-        let [arr] = await Database.excuteQuery(query, [iduser, iduser, iduser, RelationshipUser.FRIEND]) as any
+        let [arr] = await this.db.excuteQuery(query, [iduser, iduser, iduser, RelationshipUser.FRIEND]) as any
         console.log("🚀 ~ file: story.repository.ts:73 ~ StoryRepository ~ getAllStoryFromFriends ~ arr:", arr)
         return arr
     }
 
     async deleteStory(idstory: number): Promise<any> {
         let query = "DELETE FROM story WHERE story.iduserowner = ?"
-        await Database.excuteQuery(query, [idstory])
+        await this.db.excuteQuery(query, [idstory])
         return true;
     }
 
     async seeStory(idstory: number, iduser: number): Promise<any> {
         let query = "INSERT INTO storyview (user_id, story_id) VALUES (?, ?);        "
-        await Database.excuteQuery(query, [idstory, iduser])
+        await this.db.excuteQuery(query, [idstory, iduser])
         return true;
     }
 
     async getViewedStory(iduser: number): Promise<any> {
         let query = "SELECT * FROM storyview WHERE viewer = ?"
-        let [data] = await Database.excuteQuery(query, [iduser])
+        let [data] = await this.db.excuteQuery(query, [iduser])
         return data;
     }
 }

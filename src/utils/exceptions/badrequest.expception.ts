@@ -1,7 +1,7 @@
 import { HttpStatus } from "../extension/httpstatus.exception";
 import HttpException from "./http.exeception";
 
-export class BadRequest extends HttpException {
+export class BadRequestException extends HttpException {
     public status: number
     public success: boolean = false;
     constructor(message: string) {
@@ -10,7 +10,7 @@ export class BadRequest extends HttpException {
         this.message = message
     }
 }
-export class UnAuthorized extends HttpException {
+export class UnAuthorizedException extends HttpException {
     public status: number
     public success: boolean = false;
     constructor(message: string) {
@@ -19,7 +19,7 @@ export class UnAuthorized extends HttpException {
         this.message = message
     }
 }
-export class Forbidden extends HttpException {
+export class ForbiddenException extends HttpException {
     public status: number
     public success: boolean = false;
     constructor(message: string) {
@@ -28,7 +28,7 @@ export class Forbidden extends HttpException {
         this.message = message
     }
 }
-export class NotFound extends HttpException {    
+export class NotFoundException extends HttpException {    
     public status: number
     public success: boolean = false;
     constructor(message: string) {

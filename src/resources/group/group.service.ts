@@ -16,15 +16,18 @@ import GroupRepository from "./group.repository"
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface"
 import iGroupServiceBehavior from "./interface/group.service.interface"
 import { RelationshipUser } from "../relationship/enums/relationship.enum"
+import { container, inject, injectable } from "tsyringe"
 
-
+@injectable()
 export default class GroupService implements iGroupServiceBehavior {
-    private groupRepsitory: GroupRepositoryBehavior
-    constructor() {
-        this.groupRepsitory = new GroupRepository()
+
+    constructor(@inject(GroupRepository) private groupRepsitory: GroupRepositoryBehavior) {
+    }
+    async getPosition(idgroup: Number, iduser: Number): Promise<PositionInGrop> {
+        return await this.groupRepsitory.getPosition(idgroup, iduser)
     }
     async getInformationMember(iduser: number, idmember: number, idgroup: number): Promise<any> {
-        if(await this.isContainInGroup(iduser, idgroup)){
+        if (await this.isContainInGroup(iduser, idgroup)) {
             return MemberDTO.fromRawData(await this.groupRepsitory.getInformationMember(idmember, idgroup))
         } throw new MyException("User request not contain in group").withExceptionCode(HttpStatus.FORBIDDEN)
     }
@@ -34,7 +37,7 @@ export default class GroupService implements iGroupServiceBehavior {
     async getSomeGroup(iduser: number, cursor: number, limit: number): Promise<ListGroupDTO> {
         let dataRaw = await this.groupRepsitory.getSomeGroup(iduser, cursor, limit)
         if (dataRaw) {
-            let message: iMessageAction = new MessageService()
+            let message: iMessageAction = container.resolve(MessageService)
             return ListGroupDTO.rawToDTO(dataRaw, async (idgroup: number) => {
                 return await message.getLastMessage(idgroup)
             }, async (idgroup: number) => {
@@ -148,14 +151,14 @@ export default class GroupService implements iGroupServiceBehavior {
         return []
     }
     async createGroup(name: string, iduser: number, users: Array<number>): Promise<Group> {
-        let inforUser: RelationServiceBehavior = new RelationService()
+        let inforUser: RelationServiceBehavior = container.resolve(RelationService)
         for (let _iduser of users) {
             if (await inforUser.getRelationship(iduser, _iduser) !== RelationshipUser.FRIEND) {
                 throw new MyException("List user added isn't your friend").withExceptionCode(HttpStatus.BAD_REQUEST)
             }
         }
         let group = Group.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users))
-        let messageBehavior: iMessageAction = new MessageService()
+        let messageBehavior: iMessageAction = container.resolve(MessageService)
         await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, "created group", [])
         if (users.length > 0) {
             let strMessage = "added member"
@@ -163,7 +166,7 @@ export default class GroupService implements iGroupServiceBehavior {
                 strMessage += " @"
             }
             await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, strMessage, users)
-        } else throw new MyException( "Total users > 2").withExceptionCode(HttpStatus.BAD_GATEWAY)
+        } else throw new MyException("Total users > 2").withExceptionCode(HttpStatus.BAD_GATEWAY)
         return group;
     }
     async getLastViewMember(idgroup: number) {

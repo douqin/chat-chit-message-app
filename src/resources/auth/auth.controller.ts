@@ -2,50 +2,48 @@ import MotherController from "@/utils/interface/controller.interface"
 import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { NextFunction, Response, Request } from "express";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import LoginMiddleware from "./middleware/auth.validation";
 import AuthService from "./auth.service";
-import Controller from "@/utils/decorator/decorator";
+import Controller from "@/utils/decorator/controller";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import MyException from "@/utils/exceptions/my.exception";
 import Gender from "./enums/gender.enum";
-import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
-import authHandler from "../../component/auth.handler";
+import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { JsonWebTokenError, JwtPayload, NotBeforeError, TokenExpiredError } from "jsonwebtoken";
+import { container, inject } from "tsyringe";
+import { JwtService } from "../../component/jwt/jwt.service";
 
 @Controller("/auth")
 export default class AuthController extends MotherController {
 
-    authService: AuthService
-
-    constructor(io: Server) {
+    constructor(@inject(Server) io: Server, @inject(AuthService) private authService: AuthService) {
         super(io);
-        this.authService = new AuthService()
     }
 
     initRouter(): MotherController {
 
         this.router.post(
-            "/auth/login",
+            "/login",
             multer().none(),
             LoginMiddleware.checkAuth(),
             this.login
         )
         this.router.post(
-            "/auth/refreshtoken",
+            "/refreshtoken",
             multer().none(),
             this.getNewAccessToken
         )
         this.router.post(
-            "/auth/register",
+            "/register",
             multer().none(),
             LoginMiddleware.checkAuth(),
             this.registerAccount
         )
         this.router.post(
-            "/auth/logout",
+            "/logout",
             multer().none(),
             AuthMiddleware.auth,
             this.logout
@@ -73,10 +71,10 @@ export default class AuthController extends MotherController {
                     next(new HttpException(HttpStatus.NOT_FOUND, 'Incorrect username or password'))
                 }
             }
-            else next(new BadRequest("Agurment is invalid"));
+            else next(new BadRequestException("Agurment is invalid"));
         } catch (e: any) {
             if (e instanceof MyException) {
-                next(new HttpException(e.statusCode, e.message))
+                next(new HttpException(e.status, e.message))
                 return
             }
             console.log("🚀 ~ file: login.controller.ts:64 ~ LoginController ~ error:", e)
@@ -109,7 +107,7 @@ export default class AuthController extends MotherController {
                     return
                 }
             } else {
-                next(new BadRequest("Agurment is invalid"))
+                next(new BadRequestException("Agurment is invalid"))
                 return
             }
             next(next(new InternalServerError("An error occurred, please try again later.")))
@@ -117,7 +115,7 @@ export default class AuthController extends MotherController {
         catch (e) {
             console.log("🚀 ~ file: auth.controller.ts:105 ~ AuthController ~ e:", e)
             if (e instanceof MyException) {
-                next(new HttpException(e.statusCode, e.message))
+                next(new HttpException(e.status, e.message))
             }
             next(next(new InternalServerError("An error occurred, please try again later.")))
         }
@@ -139,11 +137,11 @@ export default class AuthController extends MotherController {
                     {}
                 ))
             }
-            else next(new BadRequest("Agurment is invalid"))
+            else next(new BadRequestException("Agurment is invalid"))
         } catch (e: any) {
             console.log("🚀 ~ file: auth.controller.ts:144 ~ AuthController ~ e:", e)
-            if (e instanceof MyException) {
-                next(new HttpException(e.statusCode, e.message))
+            if (e instanceof HttpException) {
+                next(e)
             }
             next(next(new InternalServerError("An error occurred, please try again later.")))
         }
@@ -156,7 +154,7 @@ export default class AuthController extends MotherController {
         try {
             const refreshToken = String(req.body.refreshtoken)
             let token = req.headers["authorization"] as string
-            const jwtPayload = await authHandler.decodeRefreshToken(refreshToken) as JwtPayload;
+            const jwtPayload = await container.resolve(JwtService).decodeRefreshToken(refreshToken) as JwtPayload;
             const { iduser } = jwtPayload.payload;
             if (iduser && refreshToken && token) {
                 let newAccessToken = await this.authService.getNewAccessToken(iduser, token, refreshToken)
@@ -169,17 +167,17 @@ export default class AuthController extends MotherController {
                 ))
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         }
         catch (e) {
             if (e instanceof MyException) {
-                next(new HttpException(e.statusCode, e.message))
+                next(new HttpException(e.status, e.message))
             } else if (e instanceof TokenExpiredError) {
-                next(new BadRequest("Token expired"))
+                next(new BadRequestException("Token expired"))
             } else if (e instanceof JsonWebTokenError) {
-                next(new BadRequest("Token invalid"))
+                next(new BadRequestException("Token invalid"))
             } else if (e instanceof NotBeforeError) {
-                next(new BadRequest("Token invalid"))
+                next(new BadRequestException("Token invalid"))
             }
             console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e)
             next(next(new InternalServerError("An error occurred, please try again later.")))

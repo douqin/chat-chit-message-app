@@ -7,14 +7,17 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { BadRequest, InternalServerError } from "@/utils/exceptions/badrequest.expception";
+import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import AuthMiddleware from "@/middleware/auth.middleware";
+import { inject, injectable, singleton } from "tsyringe";
+import Controller from "@/utils/decorator/controller";
 
+
+@Controller("user")
 export default class UserController extends MotherController {
-    private userSerivce: UserServiceBehavior
-    constructor(io: Server) {
+    
+    constructor(@inject(Server) io: Server, @inject(UserService) private userSerivce: UserService) {
         super(io)
-        this.userSerivce = new UserService()
     }
     initRouter(): MotherController {
         this.router.get("/user/searchuser", AuthMiddleware.auth, this.searchUser)
@@ -34,11 +37,11 @@ export default class UserController extends MotherController {
                 )
                 return
             }
-            next(new BadRequest("Agurment is invalid"))
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             console.log("🚀 ~ file: user.controller.ts:37 ~ UserController ~ searchUser= ~ error:", error)
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(error)
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -60,11 +63,14 @@ export default class UserController extends MotherController {
                 )
                 return
             } else
-                next(new BadRequest("Agurment is invalid"))
+                next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
-                next(new HttpException(error.statusCode, error.message))
+                next(new HttpException(error.status, error.message))
+            } else if (error instanceof HttpException) {
+                next(new HttpException(error.status, error.message))
             }
+            //TODO: conflifct MyException vs HttpException
             console.log("🚀 ~ file: user.controller.ts:64 ~ UserController ~ inforUser= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
         }

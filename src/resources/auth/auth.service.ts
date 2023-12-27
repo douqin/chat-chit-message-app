@@ -1,24 +1,26 @@
+import { JwtService } from "../../component/jwt/jwt.service";
 import { type LoginSuccessfully, User } from "../../models/user.model";
 import AuthRepository from "./auth.repository";
-import AuthHandler from '../../component/auth.handler'
-import authHandler from "../../component/auth.handler";
 import Gender from "./enums/gender.enum";
-export default class AuthService {
+import { container, inject, injectable } from "tsyringe";
+import iServiceBeahvior from "./interface/service.interface";
+
+@injectable()
+export default class AuthService implements iServiceBeahvior {
+
+    constructor(@inject(AuthRepository) private authRepository: AuthRepository) {
+        
+    }
 
     async loguot(iduser: number, refreshToken: string) {
         return await this.authRepository.loguot(iduser, refreshToken)
     }
 
     async getNewAccessToken(iduser: number, oldToken: string, refreshToken: string): Promise<string> {
-        let token = await authHandler.generateAccessToken(String(iduser))
+        let token = await container.resolve(JwtService).generateAccessToken(String(iduser))
         if (token) {
             return token
         } else throw new Error("")
-    }
-    private authRepository: AuthRepository;
-
-    constructor() {
-        this.authRepository = new AuthRepository()
     }
 
     async login(phone: string, password: string, notificationToken: string): Promise<LoginSuccessfully | undefined> {
@@ -29,19 +31,20 @@ export default class AuthService {
             } = userRaw
             let user: User = User.fromRawData(userRaw)
             if (user) {
-                let fullToken = await AuthHandler.getFullToken(iduser, notificationToken)
+                let fullToken = await container.resolve(JwtService).getFullToken(iduser, notificationToken)
                 if (fullToken) {
                     let response: LoginSuccessfully = {
                         user: user,
                         token: fullToken
                     }
+                    await this.authRepository.saveFullToken(iduser, fullToken, notificationToken)
                     return response;
                 }
             }
         }
         return undefined
     }
-    async registerAccount(firstname: string, phone: any, password: any, birthday: Date, gender: Gender,lastname?: string, email?: string, address?: string) {
+    async registerAccount(firstname: string, phone: any, password: any, birthday: Date, gender: Gender, lastname?: string, email?: string, address?: string) {
         return await this.authRepository.registerAccount(firstname, phone, password, birthday, gender, lastname, email, address)
     }
 
