@@ -8,7 +8,6 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { RelationServiceBehavior } from "./interface/relation.service.interface";
 import multer from "multer";
 import validVariable from "@/utils/extension/vailid_variable";
 import { User } from "@/models/user.model";
@@ -28,11 +27,38 @@ export default class RelationshipController extends MotherController {
         this.router.post("/invites", AuthMiddleware.auth, multer().none(), this.inviteToBecomeFriend)
         this.router.post("/accept", AuthMiddleware.auth, multer().none(), this.acceptInviteFriend);
         this.router.delete("/invites/:invite", AuthMiddleware.auth, multer().none(), this.deleteInvite)
-        this.router.delete("/invites", AuthMiddleware.auth, multer().none(), this.deleteMySentInvite)
+        this.router.delete("/invites/:invite/myself", AuthMiddleware.auth, multer().none(), this.deleteMySentInvite)
         this.router.get("/:iduser/relation", AuthMiddleware.auth, this.getRelationship)
         this.router.get("/friends/online", AuthMiddleware.auth, this.getFriendOnline)
+        this.router.get(":iduser/block", AuthMiddleware.auth, this.blockUser)
         return this;
+
     }
+
+    private blockUser = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers.iduser)
+            const iduserBlock = Number(req.params.iduser)
+            if (validVariable(iduserBlock) && iduser !== iduserBlock) {
+                let data = await this.relationService.blockUser(iduser, iduserBlock)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        true,
+                        "",
+                        data
+                    )
+                )
+            } else next(new BadRequestException("Agurment is invalid"))
+        } catch (error: any) {
+            console.log("🚀 ~ file: relation.controller.ts:49 ~ FriendController ~ error:", error)
+            if (error instanceof HttpException) {
+                next(error)
+            }
+            next(new InternalServerError("An error occurred, please try again later."))
+        }
+    }
+
+
     private getAllFriend = async (
         req: Request,
         res: Response,
@@ -264,7 +290,7 @@ export default class RelationshipController extends MotherController {
             }
             else next(new InternalServerError("An error occurred, please try again later."))
         }
-    } 
+    }
     private getFriendOnline = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers.iduser)

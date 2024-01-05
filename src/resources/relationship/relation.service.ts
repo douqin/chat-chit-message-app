@@ -13,6 +13,10 @@ import { inject, injectable } from "tsyringe"
 import { BadRequestException, ForbiddenException } from "@/utils/exceptions/badrequest.expception"
 @injectable()
 export default class RelationService implements RelationServiceBehavior {
+    async blockUser(iduser: number, iduserBlock: number): Promise<boolean> {
+        //FIXME: !!!
+        return this.updateRealationship(iduser, iduserBlock, RelationshipUser.BLOCKED)
+    }
     async inviteToBecomeFriend(iduserSend: number, idReceiver: number) {
         if (await this.friendRepostory.getRelationship(iduserSend, idReceiver) === RelationshipUser.NO_RELATIONSHIP) {
             await this.friendRepostory.inviteToBecomeFriend(iduserSend, idReceiver)
@@ -20,6 +24,14 @@ export default class RelationService implements RelationServiceBehavior {
     }
 
     constructor(@inject(RelationRepostory) private friendRepostory: RelationRepositoryBehavior) {
+    }
+    async updateRealationship(iduser: number, iduserBlock: number, relationship: RelationshipUser): Promise<boolean> {
+        throw new Error("Method not implemented.")
+        //FIXME: !!!
+    }
+    async createRelationShip(iduser: number, iduserBlock: number, relationship: RelationshipUser): Promise<boolean> {
+        //FIXME: !!!
+        throw new Error("Method not implemented.")
     }
     async getSomeFriendCommon(iduser: number, iduserWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO> {
         let friends = (await this.friendRepostory.getSomeFriendCommon(iduser, iduserWGet, cursor, limit)).map((value, index) => {

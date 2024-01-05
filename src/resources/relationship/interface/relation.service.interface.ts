@@ -5,6 +5,8 @@ import { RelationshipUser } from "../enums/relationship.enum";
 import { ListFriendCommonDTO } from "../dto/list.friend.common.dto";
 
 export interface RelationServiceBehavior {
+    updateRealationship(iduser: number, iduserBlock: number, relationship: RelationshipUser): Promise<boolean>;
+    createRelationShip(iduser: number, iduserBlock: number, relationship: RelationshipUser): Promise<boolean>;
     getRelationship(iduser: number, iduserWGet: number): Promise<RelationshipUser>;
     deleteInvite(iduser: number, idInvite: number): Promise<boolean>;
     deleteMySentInvite(iduser: number, idInvite: number): Promise<boolean>;
