@@ -10,10 +10,19 @@ import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import SocketBuilder from './config/socketio/socket.builder'
 import { ResponseBody } from './utils/definition/http.response';
+import AuthController from './resources/auth/auth.controller';
+import GroupController from './resources/group/group.controller';
+import MeController from './resources/me/me.controller';
+import MessageController from './resources/messaging/message.controller';
+import TestController from './resources/test/test.controller';
+import StoryController from './resources/story/story.controller';
+import FriendController from './resources/relationship/relation.controller';
 import { Database, MySqlBuilder, iDatabase } from './config/database/database';
+import UserController from './resources/user/user.controller';
 import { DatabaseCache } from './config/database/redis';
 import { container } from 'tsyringe';
 import { RegisterModuleController } from './utils/extension/controller.container.module';
+import controllers from './resources/module.controller';
 import ModuleController from './resources/module.controller';
 class App {
     private server: any
@@ -25,10 +34,12 @@ class App {
         this.express = express()
         this.port = Number(process.env.PORT) || 3000
         this.server = require("http").createServer(this.express);
-        this.io = new SocketBuilder(require("socket.io")(this.server, cors({
-            origin: 'http://localhost:3003',
-            credentials: true
-        })))
+        this.io = new SocketBuilder(require("socket.io")(this.server, {
+            cors: {
+                origin: '*',
+                credentials: true
+            }
+        }))
             .initalizeMiddleware()
             .initalizeServer()
             .build()
@@ -64,15 +75,32 @@ class App {
     }
     private initaliseMiddleware() {
         this.express.use(helmet());
-        this.express.use(function(req, res, next) {
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        this.express.use(function (req, res, next) {
+            // Website you wish to allow to connect
+            res.setHeader('Access-Control-Allow-Origin', "http://localhost:3003");
+        
+            // Request methods you wish to allow
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+        
+            // Request headers you wish to allow
+            res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
+        
+            // Set to true if you need the website to include cookies in the requests sent
+            // to the API (e.g. in case you use sessions)
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+        
+            if (req.method === 'OPTIONS') {
+                return res.sendStatus(200);
+            }
+            // Pass to next layer of middleware
             next();
         });
-        this.express.use(cors({
-            origin: 'http://localhost:3003',
-            credentials: true
-        }));
+        // this.express.use(cors({
+        //     origin: 'http://localhost:3003',
+        //     credentials: true,
+        //     optionsSuccessStatus: 200
+        // }));
+
         this.express.use(morgan('dev'));
         this.express.use(bodyParser.json());
         this.express.use(bodyParser.urlencoded({ extended: true }));

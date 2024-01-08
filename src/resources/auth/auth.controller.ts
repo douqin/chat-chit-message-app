@@ -28,7 +28,7 @@ export default class AuthController extends MotherController {
         this.router.post(
             "/login",
             multer().none(),
-            LoginMiddleware.checkAuth(),
+            // LoginMiddleware.checkAuth(),
             this.login
         )
         this.router.post(
@@ -57,6 +57,7 @@ export default class AuthController extends MotherController {
         next: NextFunction
     ): Promise<Response | void> => {
         try {
+            console.log("🚀 ~ file: auth.controller.ts:71 ~ AuthController ~ login ~ req.body", req.body)
             const phone = String(req.body.phone)
             const password = String(req.body.password)
             const notificationToken = String(req.body.notification)
