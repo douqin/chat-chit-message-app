@@ -74,7 +74,9 @@ class App {
     }
     private initaliseMiddleware() {
         this.express.use(helmet());
-        this.express.use(cors());
+        this.express.use(cors({
+            origin: ['http://localhost:3000', 'http://localhost:3003']
+        }));
         this.express.use(morgan('dev'));
         this.express.use(bodyParser.json());
         this.express.use(bodyParser.urlencoded({ extended: true }));

@@ -18,7 +18,7 @@ import { BadRequestException, InternalServerError } from "@/utils/exceptions/bad
 import { inject } from "tsyringe";
 @Controller("/group")
 export default class GroupController extends MotherController {
-        constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
+    constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
         super(io)
     }
 
@@ -133,7 +133,7 @@ export default class GroupController extends MotherController {
                     "OK",
                     data
                 ))
-            } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong")) 
+            } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong"))
         } catch (error: any) {
             console.log("🚀 ~ file: group.controller.ts:130 ~ GroupController ~ getSomeGroup= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
@@ -147,8 +147,8 @@ export default class GroupController extends MotherController {
             if (name) {
                 let data = await this.groupService.createGroup(name, iduser, users)
                 // FIXME: socker ?
-                for(let a of users){
-                    this.io.to("").emit("invite-to-group", )
+                for (let a of users) {
+                    this.io.to("").emit("invite-to-group",)
                 }
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -161,6 +161,10 @@ export default class GroupController extends MotherController {
         }
         catch (e: any) {
             console.log(e)
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
+                return
+            }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
 
@@ -324,7 +328,7 @@ export default class GroupController extends MotherController {
             const manager = Number(req.body.manager)
             const idgroup = Number(req.params.id)
             if (manager && idgroup && iduser !== manager) {
-                 //FIXME: socket ?
+                //FIXME: socket ?
                 let data = await this.groupService.removeManager(iduser, manager, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -351,7 +355,7 @@ export default class GroupController extends MotherController {
             const iduserAdd = Number(req.body.member)
             const idgroup = Number(req.params.id)
             if (iduserAdd && idgroup && iduser !== iduserAdd) {
-                 //FIXME: socket ?
+                //FIXME: socket ?
                 let data = await this.groupService.removeMember(iduser, iduserAdd, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -377,7 +381,7 @@ export default class GroupController extends MotherController {
             const name = req.body['name']
             const idgroup = Number(req.params.id)
             if (idgroup) {
-                 //FIXME: socket ?
+                //FIXME: socket ?
                 let isOK = await this.groupService.renameGroup(iduser, idgroup, name)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -403,7 +407,7 @@ export default class GroupController extends MotherController {
             const iduserAdd = Number(req.body.manager)
             const idgroup = Number(req.params.id)
             if (iduserAdd && idgroup && iduser !== iduserAdd) {
-                 //FIXME: socket ?
+                //FIXME: socket ?
                 let data = await this.groupService.blockMember(iduser, iduserAdd, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -427,7 +431,7 @@ export default class GroupController extends MotherController {
             const iduserAdd = Number(req.body.member)
             const idgroup = Number(req.params.id)
             if (iduserAdd && idgroup && iduser !== iduserAdd) {
-                 //FIXME: socket ?
+                //FIXME: socket ?
                 let data = await this.groupService.approvalMember(iduser, iduserAdd, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
