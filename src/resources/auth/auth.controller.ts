@@ -73,6 +73,7 @@ export default class AuthController extends MotherController {
             }
             else next(new BadRequestException("Agurment is invalid"));
         } catch (e: any) {
+            console.log("🚀 ~ file: auth.controller.ts:76 ~ AuthController ~ e:", e)
             if (e instanceof MyException) {
                 next(new HttpException(e.status, e.message))
                 return

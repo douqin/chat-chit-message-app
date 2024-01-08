@@ -10,19 +10,10 @@ import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import SocketBuilder from './config/socketio/socket.builder'
 import { ResponseBody } from './utils/definition/http.response';
-import AuthController from './resources/auth/auth.controller';
-import GroupController from './resources/group/group.controller';
-import MeController from './resources/me/me.controller';
-import MessageController from './resources/messaging/message.controller';
-import TestController from './resources/test/test.controller';
-import StoryController from './resources/story/story.controller';
-import FriendController from './resources/relationship/relation.controller';
 import { Database, MySqlBuilder, iDatabase } from './config/database/database';
-import UserController from './resources/user/user.controller';
 import { DatabaseCache } from './config/database/redis';
 import { container } from 'tsyringe';
 import { RegisterModuleController } from './utils/extension/controller.container.module';
-import controllers from './resources/module.controller';
 import ModuleController from './resources/module.controller';
 class App {
     private server: any
@@ -34,12 +25,10 @@ class App {
         this.express = express()
         this.port = Number(process.env.PORT) || 3000
         this.server = require("http").createServer(this.express);
-        this.io = new SocketBuilder(require("socket.io")(this.server, {
-            cors: {
-                origin: '*',
-                credentials: true
-            }
-        }))
+        this.io = new SocketBuilder(require("socket.io")(this.server, cors({
+            origin: 'http://localhost:3003',
+            credentials: true
+        })))
             .initalizeMiddleware()
             .initalizeServer()
             .build()
