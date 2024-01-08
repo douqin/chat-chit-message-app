@@ -55,11 +55,7 @@ class App {
         this.express.use(ErrorMiddleware);
     }
     private initaliseController(controllers: MotherController[]) {
-        this.express.all('*', function (req, res) {
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");
-            res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
-        });
+
         controllers.forEach((controller: MotherController) => {
             controller.initRouter();
             this.express.use(controller.pathMain, controller.router);
@@ -79,6 +75,11 @@ class App {
     }
     private initaliseMiddleware() {
         this.express.use(helmet());
+        this.express.use(function(req, res, next) {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            next();
+        });
         this.express.use(cors({
             origin: ['http://localhost:3000', 'http://localhost:3003'],
             credentials: true
