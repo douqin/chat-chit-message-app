@@ -81,7 +81,7 @@ class App {
             next();
         });
         this.express.use(cors({
-            origin: ['http://localhost:3000', 'http://localhost:3003'],
+            origin: 'http://localhost:3003',
             credentials: true
         }));
         this.express.use(morgan('dev'));
