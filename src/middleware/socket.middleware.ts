@@ -18,7 +18,7 @@ class SocketMiddleware {
                     const { iduser } = jwtPayload.payload;
                     if (iduser) {
                         socket.handshake.headers.iduser = iduser
-                        DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, iduser)
+                        // DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, iduser)
                         socket.join(`${iduser}_user`)
                     }
                     next()

@@ -32,11 +32,11 @@ export default class SocketBuilder {
     private initConnection = (socket: Socket) => {
         const iduser = socket.handshake.headers.iduser
         this.joinGroup(Number(iduser), socket);
-        DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, String(iduser))
+        // DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, String(iduser))
         socket.on('disconnect', async () => {
             console.log("User disconnect" + socket.id)
             const iduser = socket.handshake.headers.iduser
-            DatabaseCache.getInstance().srem(ConstantRedis.KEY_USER_ONLINE, String(iduser))
+            // DatabaseCache.getInstance().srem(ConstantRedis.KEY_USER_ONLINE, String(iduser))
         })
         socket.on("typing", async (data: {
             idgroup: number,

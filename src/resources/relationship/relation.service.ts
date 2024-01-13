@@ -42,24 +42,25 @@ export default class RelationService implements RelationServiceBehavior {
 
     async getFriendOnline(iduser: number): Promise<User[]> {
         // lay tam 10 nguoi online
-        let friendsOnline: User[] = [];
-        let users = (await DatabaseCache.getInstance().smembers(ConstantRedis.KEY_USER_ONLINE)).map((value, index) => {
-            return Number(value)
-        })
-        let cursor = 0;
-        if (users.length == 0) return friendsOnline;
-        while (friendsOnline.length > 10) {
-            let friends = await this.friendRepostory.getSomeFriend(iduser, cursor, 20)
-            if (friends.length == 0) break
-            if (friends[friends.length - 1].iduser < users[0]) continue
-            for (let i of friends) {
-                if (users.includes(i)) {
-                    friendsOnline.push(User.fromRawData(i))
-                }
-            }
-            cursor += 40;
-        }
-        return friendsOnline;
+        // let friendsOnline: User[] = [];
+        // let users = (await DatabaseCache.getInstance().smembers(ConstantRedis.KEY_USER_ONLINE)).map((value, index) => {
+        //     return Number(value)
+        // })
+        // let cursor = 0;
+        // if (users.length == 0) return friendsOnline;
+        // while (friendsOnline.length > 10) {
+        //     let friends = await this.friendRepostory.getSomeFriend(iduser, cursor, 20)
+        //     if (friends.length == 0) break
+        //     if (friends[friends.length - 1].iduser < users[0]) continue
+        //     for (let i of friends) {
+        //         if (users.includes(i)) {
+        //             friendsOnline.push(User.fromRawData(i))
+        //         }
+        //     }
+        //     cursor += 40;
+        // }
+        // return friendsOnline;
+        throw new Error("Method not implemented.")
     } // FIXME: TEST POSTMAN
     async deleteInvite(iduser: number, idInvite: number): Promise<boolean> {
         return await this.friendRepostory.deleteInvite(iduser, idInvite)

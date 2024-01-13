@@ -99,7 +99,7 @@ class App {
     }
     private initaliseDatabase() {
         container.register<Database>(Database, { useValue: new MySqlBuilder().initPool().build() })
-        DatabaseCache.getInstance()
+        // DatabaseCache.getInstance()
     }
     public listen(): void {
         this.server.listen(this.port, () => {

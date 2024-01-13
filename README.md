@@ -4,9 +4,9 @@
 
 - `[POST] /login`: login.
   - body: {username: String, password: String}.
-  - result: {token: String, refreshToken: String}.
+  - result: {user : {iduser","lastname","firstname","phone": "0842943637","birthday","gender","bio","username","avatar","background","email"} , token : {token: String, refreshToken: String}}.
 - `[POST] /refresh-token`: refresh token.
-  - body: {refreshToken: String}.
+  - body: {accessToken: String}.
   - result: {token: String}.
 - `[POST] /registry`: đăng ký.
   - body: {name: String, username: String, password: String}.
@@ -54,9 +54,9 @@
 ### User `/users`
 
 - `[GET] /search?phone=`: tìm kiếm bằng phone.
-     - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage}.
+  - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage}.
 - `[GET] /user/:username`: tim kiem user voi full thong tin
-    - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage, status(gồm 4 trạng thái), numberCommonFriend: int}.
+  - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage, status(gồm 4 trạng thái), numberCommonFriend: int}.
 
 ### Friend `/friends`
 
@@ -83,16 +83,18 @@
   - params: {page (default: 0), size (default: 12)}.
   - result: [{_id: String, name, username, avatar, numberCommonGroup: int, numberCommonFriend: int }].
 
-### group `/groups`
+### Group `/groups`
 
 - `[GET] `: get danh sách trò chuyện mới nhất.
 
   - params: {name: String (default: '') , type: int (0: tất cả, không tìm tên ;1: cá nhân; 2: nhóm) (default: 0) }.
+  - body : { cursor , limit}
+    - P/s: cursor = -1 để lấy list gr mới nhất.
   - result: [{_id: String, name: String, avatar: String, userId: String, friendStatus: String , type: boolean, numberUnread: int, isNotify, isJoinFromLink,
     lastMessage: {
     _id: String,
     content: String,
-    type: String (TEXT, IMAGE, VIDEO, FILE, HTML, NOTIFY),
+    type: String (TEXT, IMAGE, VIDEO,FILE),
     createdAt: String,
     user: {
     _id: String,
@@ -103,12 +105,11 @@
     }].
 
 - `[GET] /:id`: get một group.
-- `[GET] /classifies/:classifyId`: danh sách phân loại cuộc trò chuyện.
-  - result: như trên.
-- `[POST] /individuals/:userId`: tạo cuộc trò chuyện cá nhân (socket tới userId, nhận được socket này thì bắn socket join-group).
-  - result: {\_id: String, isExists: boolean}.
+- `[POST] /individual-group/:userId`: tạo cuộc trò chuyện cá nhân (socket tới userId, nhận được socket này thì bắn socket join-group).
+  - result: { Group.Object }.
+    - nếu group tồn tại trả về status code 400
   - socket: io.emit('create-individual-group', groupId).
-- `[POST] /groups`: tạo cuộc trò chuyện nhóm.
+- `[POST] /groups/community-group`: tạo cuộc trò chuyện nhóm.
   - body: {name:String, userIds: [String]}.
   - socket: io.emit('create-group', groupId).
   - result: {\_id: String}.
@@ -233,41 +234,46 @@
 
 - `[PATCH] /:id/:isDeleted`: cập nhật trạng thái hoạt động (isDeleted là 0(kích hoạt) và 1(không kích hoạt) ).
 
-### Sticker Manager `/admin/stickers-manager`.
-
-- `[POST] `: tạo nhóm sticker.
-  - body: {name: String, description: String}.
-  - result: {\_id, name, description, stickers: [String] }.
-- `[PUT] /:id `: update nhóm sticker.
-  - body: {name: String, description: String}.
-- `[DELETE] /:id `: xóa nhóm sticker (chỉ xóa được khi không có sticker nào).
-- `[POST] /:id `: thêm sticker vào nhóm.
-  - body(FormData): {file: File}.
-- `[DELETE] /:id/sticker `: xóa sticker trong nhóm (url là đường dẫn của sticker cần xóa).
-  - params: {url: String}.
-
 ### Socket Server nhận
 
-- socket.on('join-groups', (groupIds) => {
-  groupIds.forEach((id) => socket.join(id));
-  });
-
-- socket.on('join-group', (groupId) => {
-  socket.join(groupId);
-  });
-
-- socket.on('leave-group', (groupId) => {
-  socket.leave(groupId);
-  });
 - socket.on('typing', (groupId, me) => {
   socket.broadcast.to(groupId).emit('typing', groupId, me);
   });
+
 - socket.on('not-typing', (groupId, me) => {
   socket.broadcast.to(groupId).emit('not-typing', groupId, me);
   });
+
 - socket.on('get-user-online', (userId, ({isOnline, lastLogin}) => {} ))
-- socket.on('group-last-view', (groupId, channelId) => {}): để cập nhật lại last view của mình ở group hoặc channel đó (nếu là channel thì phải truyền cả 2 tham số).
+-
+- socket.on('group-last-view', (groupId) => {}): để cập nhật lại last view của mình ở group hoặc channel đó (nếu là channel thì phải truyền cả 2 tham số).
 
 ### Socket Server trả về
 
-- socket.emit('user-last-view', {groupId, channelId, userId, lastView: Date } ): user đã xem tin nhắn ở group hoặc channel.
+- **group**
+
+  - socket.emit('user-last-view', {groupId, channelId, userId, lastView: Date } ): user đã xem tin nhắn ở group hoặc channel.
+  - new member join group
+  - event: ''
+  - res data: {}
+  - invite group:
+  - member leave group:
+  - rename group:
+  - approval member:
+  - joinfromLink (socket to admin):
+
+- **message**
+
+  - receive message:
+  - file:
+  - text:
+  - react message:
+  - update-last-view (user seen message):
+  - recall message:
+  - change pin:
+  
+- **friend**
+   -  handling 99%...
+  
+- **notification**
+   -  handling 99%...
