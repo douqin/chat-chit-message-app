@@ -17,11 +17,33 @@ import { GroupRepositoryBehavior } from "./interface/group.repository.interface"
 import iGroupServiceBehavior from "./interface/group.service.interface"
 import { RelationshipUser } from "../relationship/enums/relationship.enum"
 import { container, inject, injectable } from "tsyringe"
+import { GroupStatus } from "./enum/group.status.dto.enum"
 
 @injectable()
 export default class GroupService implements iGroupServiceBehavior {
 
     constructor(@inject(GroupRepository) private groupRepsitory: GroupRepositoryBehavior) {
+    }
+    async isExistInvidualGroup(iduser: number, idUserAddressee: number): Promise<boolean> {
+        return await this.groupRepsitory.isExistInvidualGroup(iduser, idUserAddressee)
+    }
+    async getInvidualGroup(iduser: number, idUserAddressee: number): Promise<number> {
+        let inforUser: RelationServiceBehavior = container.resolve(RelationService)
+        if (RelationshipUser.FRIEND && !await this.isExistInvidualGroup(iduser, idUserAddressee)) {
+            if (await inforUser.getRelationship(iduser, idUserAddressee) === RelationshipUser.FRIEND)
+                return this.groupRepsitory.createInvidualGroup(iduser, idUserAddressee, GroupStatus.DEFAULT)
+            return this.groupRepsitory.createInvidualGroup(iduser, idUserAddressee, GroupStatus.STRANGE_PEOPLE)
+        }
+        return await this.groupRepsitory.getInvidualGroup(iduser, idUserAddressee);
+    }
+    async createInvidualGroup(iduser: number, users: number): Promise<number> {
+        let inforUser: RelationServiceBehavior = container.resolve(RelationService)
+        if (RelationshipUser.FRIEND && !await this.isExistInvidualGroup(iduser, users)) {
+            if (await inforUser.getRelationship(iduser, users) === RelationshipUser.FRIEND)
+                return this.groupRepsitory.createInvidualGroup(iduser, users, GroupStatus.DEFAULT)
+            return this.groupRepsitory.createInvidualGroup(iduser, users, GroupStatus.STRANGE_PEOPLE)
+        }
+        return await this.getInvidualGroup(iduser, users);
     }
     async getPosition(idgroup: Number, iduser: Number): Promise<PositionInGrop> {
         return await this.groupRepsitory.getPosition(idgroup, iduser)
@@ -29,7 +51,7 @@ export default class GroupService implements iGroupServiceBehavior {
     async getInformationMember(iduser: number, idmember: number, idgroup: number): Promise<any> {
         if (await this.isContainInGroup(iduser, idgroup)) {
             return MemberDTO.fromRawData(await this.groupRepsitory.getInformationMember(idmember, idgroup))
-        } throw new MyException("User request not contain in group").withExceptionCode(HttpStatus.FORBIDDEN)
+        } throw new MyException("You don't contain in group").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async getTotalMember(idgroup: number): Promise<number> {
         return await this.groupRepsitory.getTotalMember(idgroup)
@@ -109,7 +131,7 @@ export default class GroupService implements iGroupServiceBehavior {
         //TODO : check user was blocked by admin
     }
     async isContainInGroup(iduser: number, idgroup: number): Promise<boolean> {
-        return await this.groupRepsitory.isContainInGroup(iduser, idgroup)
+        return await this.groupRepsitory.isContainInGroup(iduser, idgroup, MemberStatus.DEFAULT)
     }
     async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<DataFileDrive | null> {
         if (await this.groupRepsitory.isContainInGroup(iduser, idgroup, MemberStatus.DEFAULT) && await this.groupRepsitory.checkMemberPermisstion(MemberPermisstion.RENAME_GROUP, iduser, idgroup) || (await this.groupRepsitory.getPosition(idgroup, iduser) == PositionInGrop.ADMIN || PositionInGrop.CREATOR)) {
@@ -150,7 +172,7 @@ export default class GroupService implements iGroupServiceBehavior {
         }
         return []
     }
-    async createGroup(name: string, iduser: number, users: Array<number>): Promise<Group> {
+    async createCommunityGroup(name: string, iduser: number, users: Array<number>): Promise<Group> {
         let inforUser: RelationServiceBehavior = container.resolve(RelationService)
         for (let _iduser of users) {
             if (await inforUser.getRelationship(iduser, _iduser) !== RelationshipUser.FRIEND) {

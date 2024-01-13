@@ -31,10 +31,19 @@ export default class GroupController extends MotherController {
             AuthMiddleware.auth,
             this.getOneGroup
         )
-        this.router.post('/create',
+        this.router.post('/community-group',
             multer().none(),
             AuthMiddleware.auth,
-            this.createGroup
+            this.createCommunityGroup
+        )
+        this.router.post('/individual-group/:userId',
+            multer().none(),
+            AuthMiddleware.auth,
+            this.createInvidualGroup
+        )
+        this.router.get('/individual-group/:userId',
+            AuthMiddleware.auth,
+            this.getInvidualGroup
         )
         this.router.patch("/:id/avatar",
             multer().single("avatar"),
@@ -95,6 +104,30 @@ export default class GroupController extends MotherController {
         )
         return this
     }
+    private getInvidualGroup = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers['iduser'])
+            const idUserAddressee = Number(req.params.userId)
+            if (idUserAddressee) {
+                let data = await this.groupService.getInvidualGroup(iduser, idUserAddressee)
+                res.status(HttpStatus.OK).json(new ResponseBody(
+                    true,
+                    "OK",
+                    data
+                ))
+                return
+            }
+            next(new BadRequestException("Agurment is invalid"))
+        }
+        catch (e: any) {
+            console.log(e)
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
+                return
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
+    }
     private joinfromLink = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'])
@@ -113,7 +146,6 @@ export default class GroupController extends MotherController {
             next(new BadRequestException("Agurment is invalid"))
         }
         catch (error) {
-            console.log("🚀 ~ file: group.controller.ts:74 ~ GroupController ~ joinfromLink= ~ error:", error)
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
             }
@@ -135,17 +167,16 @@ export default class GroupController extends MotherController {
                 ))
             } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong"))
         } catch (error: any) {
-            console.log("🚀 ~ file: group.controller.ts:130 ~ GroupController ~ getSomeGroup= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private createGroup = async (req: Request, res: Response, next: NextFunction) => {
+    private createCommunityGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const name = String(req.body.name)
             const users: Array<number> = req.body.users
             if (name) {
-                let data = await this.groupService.createGroup(name, iduser, users)
+                let data = await this.groupService.createCommunityGroup(name, iduser, users)
                 // FIXME: socker ?
                 for (let a of users) {
                     this.io.to("").emit("invite-to-group",)
@@ -168,6 +199,32 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
 
+    }
+    private createInvidualGroup = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers['iduser'] as string)
+            const idUserAddressee = Number(req.params.userId)
+            if (idUserAddressee) {
+                let data = await this.groupService.createInvidualGroup(iduser, idUserAddressee)
+                // FIXME: socker ?
+
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    true,
+                    "",
+                    { groupId: data }
+                ))
+                return
+            }
+
+        }
+        catch (e: any) {
+            console.log(e)
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
+                return
+            }
+            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
+        }
     }
     private changeAvatarGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -253,7 +310,6 @@ export default class GroupController extends MotherController {
             }
 
         } catch (error: any) {
-            console.log("🚀 ~ file: group.controller.ts:239 ~ GroupController ~ getAllMember= ~ error:", error)
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
@@ -290,7 +346,6 @@ export default class GroupController extends MotherController {
                 return
             }
         } catch (error: any) {
-            console.log("🚀 ~ file: group.controller.ts:333 ~ GroupController ~ leaveGroup= ~ error:", error)
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
             }
@@ -368,7 +423,6 @@ export default class GroupController extends MotherController {
             }
             next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
-            console.log("🚀 ~ file: group.controller.ts:339 ~ GroupController ~ error:", error)
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
             }
@@ -468,10 +522,11 @@ export default class GroupController extends MotherController {
             }
             next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
-            console.log("🚀 ~ file: group.controller.ts:456 ~ GroupController ~ getInformationMember= ~ error:", error)
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
-            }
+                return
+            } 
+            console.log("🚀 ~ GroupController ~ getInformationMember= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }

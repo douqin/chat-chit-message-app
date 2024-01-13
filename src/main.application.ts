@@ -3,26 +3,16 @@ import express, { Application } from "express";
 import MotherController from "@/utils/interface/controller.interface";
 import ErrorMiddleware from "@/middleware/error.midleware";
 import helmet from "helmet";
-import cors from "cors";
 import compression from "compression";
 import morgan from "morgan";
 import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import SocketBuilder from './config/socketio/socket.builder'
 import { ResponseBody } from './utils/definition/http.response';
-import AuthController from './resources/auth/auth.controller';
-import GroupController from './resources/group/group.controller';
-import MeController from './resources/me/me.controller';
-import MessageController from './resources/messaging/message.controller';
-import TestController from './resources/test/test.controller';
-import StoryController from './resources/story/story.controller';
-import FriendController from './resources/relationship/relation.controller';
-import { Database, MySqlBuilder, iDatabase } from './config/database/database';
-import UserController from './resources/user/user.controller';
+import { Database, MySqlBuilder } from './config/database/database';
 import { DatabaseCache } from './config/database/redis';
 import { container } from 'tsyringe';
 import { RegisterModuleController } from './utils/extension/controller.container.module';
-import controllers from './resources/module.controller';
 import ModuleController from './resources/module.controller';
 class App {
     private server: any

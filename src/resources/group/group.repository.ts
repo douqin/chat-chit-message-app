@@ -15,10 +15,42 @@ import { inject, injectable } from 'tsyringe';
 
 @injectable()
 export default class GroupRepository implements GroupRepositoryBehavior {
-    
+
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
     }
-    async getInformationMember( idmember: number, idgroup: number): Promise<any> {
+    async isExistInvidualGroup(iduser: number, idUserAddressee: number): Promise<boolean> {
+        let get = `SELECT * FROM groupchat as g JOIN member as m1 ON g.idgroup = m1.idgroup 
+        JOIN member as m2 ON g.idgroup = m2.idgroup
+        WHERE m1.id <> m2.id AND m1.iduser = ? AND m2.iduser = ? AND g.type = ?`
+        let [data] = await this.db.excuteQuery(get, [iduser, idUserAddressee, GroupType.INVIDIAL]) as any
+        return Boolean(data.length == 1);
+    }
+    async getInvidualGroup(iduser: number, idUserAddressee: number): Promise<number> {
+        let get = `SELECT * FROM groupchat as g JOIN member as m1 ON g.idgroup = m1.idgroup 
+        JOIN member as m2 ON g.idgroup = m2.idgroup
+        WHERE m1.id <> m2.id AND m1.iduser = ? AND m2.iduser = ? AND g.type = ?`
+        let [data] = await this.db.excuteQuery(get, [iduser, idUserAddressee, GroupType.INVIDIAL]) as any
+        return data[0].idgroup as number;
+    }
+    async createInvidualGroup(iduser: number, users: number, status: GroupStatus): Promise<number> {
+        let idgroup = -1;
+        try {
+            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat) VALUES ( ?, ?, ?, now());`
+            let data: [ResultSetHeader, any] = await this.db.excuteQuery(
+                query, ["INVIDIAL", GroupType.INVIDIAL, status]
+            ) as any
+            idgroup = data[0].insertId
+            await this.joinGroup(iduser, idgroup, PositionInGrop.MEMBER)
+            await this.joinGroup(users, idgroup, PositionInGrop.MEMBER)
+        }
+        catch (e) {
+            console.log("🚀 ~ file: group.repository.ts:163 ~ GroupRepository ~ createGroup ~ e:", e)
+            throw new MyException("Có lỗi xảy ra, không thể tạo nhóm").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+        return idgroup;
+    }
+
+    async getInformationMember(idmember: number, idgroup: number): Promise<any> {
         const query = 'SELECT * from (user JOIN member ON user.iduser = member.iduser) WHERE member.id = ? AND member.idgroup = ? AND member.status = ?'
         const [data, inforC] = await this.db.excuteQuery(query, [idmember, idgroup, MemberStatus.DEFAULT]) as any
         return data[0]
@@ -99,8 +131,11 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         }
     }
     async isContainInGroup(iduser: number, idgroup: number, status_check?: MemberStatus): Promise<boolean> {
-        let [data] = await this.db.excuteQuery(`SELECT COUNT(*) FROM member WHERE member.iduser = ? AND member.idgroup = ? ${((status_check) ? 'AND member.status = ?' : '')}`, [iduser, idgroup, status_check]);
+        let sql = `SELECT COUNT(*) FROM member WHERE member.iduser = ? AND member.idgroup = ? ${((status_check) ? 'AND member.status = ?' : '')}`
+        let [data] = await this.db.excuteQuery(sql, [iduser, idgroup, status_check]);
+        console.log("🚀 ~ GroupRepository ~ isContainInGroup ~ sql:", sql)
         const [{ 'COUNT(*)': count }] = data as any;
+        console.log("🚀 ~ GroupRepository ~ isContainInGroup ~ data:", data)
         return Boolean(Number(count) === 1)
     }
     async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File) {
@@ -153,7 +188,6 @@ export default class GroupRepository implements GroupRepositoryBehavior {
     }
     async getSomeGroup(iduser: number, cursor: number, limit: number): Promise<object[]> {
         if (cursor !== Constant.GET_GROUP_FROM_CURSOR_MAX) {
-            console.log("🚀 ")
             let query = `
             SELECT
         *
@@ -230,12 +264,12 @@ export default class GroupRepository implements GroupRepositoryBehavior {
             _cursor
         DESC
         LIMIT ?`
-        let [dataRaw, inforColimn]: any = await this.db.excuteQuery(
-            query, [iduser, limit]
-        )
-        if (dataRaw) {
-            return dataRaw;
-        }
+            let [dataRaw, inforColimn]: any = await this.db.excuteQuery(
+                query, [iduser, limit]
+            )
+            if (dataRaw) {
+                return dataRaw;
+            }
         }
         return []
     }

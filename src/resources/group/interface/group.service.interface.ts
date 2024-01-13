@@ -10,6 +10,7 @@ import { PositionInGrop } from "../enum/group.position.enum";
 export default interface iGroupServiceBehavior extends iMemberActions, iGroupActions, iInformationMember {
 }
 export interface iMemberActions {
+
     blockMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
     approvalMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
     removeMember(iduser: number, iduserAdd: number, idgroup: number): Promise<boolean>;
@@ -19,14 +20,17 @@ export interface iMemberActions {
     inviteMember(iduser: any, idgroup: number, userIDs: Array<number>): Promise<boolean>;
     leaveGroup(iduser: number, idgroup: number): Promise<boolean>;
     getLastViewMember(idgroup: number): Promise<LastViewGroup[]>;
+    isExistInvidualGroup(iduser : number, idUserAddressee : number) : Promise<boolean>
+    getInvidualGroup(iduser : number, idUserAddressee : number) : Promise<number>
   }
   
   export interface iGroupActions {
+    createInvidualGroup(iduser: number, users: number): Promise<number>;
     getInformationMember(iduser: number, idmember: number, idgroup: number): Promise<User>;
     getTotalMember(idgroup : number) : Promise<number>
     getAllGroup(iduser: number): Promise<Array<Group>>;
     getSomeGroup(iduser: number, cursor : number, limit : number): Promise<ListGroupDTO>;
-    createGroup(name: string, iduser: number, users: Array<number>): Promise<Group>;
+    createCommunityGroup(name: string, iduser: number, users: Array<number>): Promise<Group>;
     getOneGroup(idgroup: number): Promise<Group | null>;
     getAllMember(idgroup: number): Promise<MemberDTO[]>;
     changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File): Promise<DataFileDrive | null>;
