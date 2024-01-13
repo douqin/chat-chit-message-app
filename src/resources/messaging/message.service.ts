@@ -24,10 +24,13 @@ export default class MessageService implements iMessageServiceBehavior {
 
     constructor(@inject(MessageRepository) private messageRepository: iMessageRepositoryBehavior) {
     }
-    async getAllTagFromMessage(idmessage: number): Promise<any[]> {
-        return (await this.messageRepository.getAllTagFromMessage(idmessage)).map((value: any, index: number, array: any[]) => {
+    async getAllManipulateUser(idmessage: number): Promise<User[]> {
+        return (await this.messageRepository.getAllManipulateUser(idmessage)).map((value: any, index: number, array: any[]) => {
             return User.fromRawData(value)
-        })
+        });
+    }
+    async getAllTagFromMessage(idmessage: number): Promise<MemberInfo[]> {
+        return (await this.messageRepository.getAllTagFromMessage(idmessage));
     }
     async getAllReactFromMessage(idmessage: number): Promise<any[]> {
         return (await this.messageRepository.getAllReactFromMessage(idmessage)).map((value: any, index: number, array: any[]) => {
@@ -108,6 +111,7 @@ export default class MessageService implements iMessageServiceBehavior {
             for (let message of messages) {
                 message.reacts = await this.getAllReactFromMessage(message.idmessage)
                 message.tags = await this.getAllTagFromMessage(message.idmessage)
+                message.manipulates = await this.getAllManipulateUser(message.idmessage)
             }
             return ListMessageResponseDTO.rawToData(messages)
         }

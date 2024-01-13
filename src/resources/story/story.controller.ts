@@ -7,9 +7,8 @@ import MotherController from "@/utils/interface/controller.interface";
 import { Response, Request, NextFunction } from "express";
 import multer from "multer";
 import { Server } from "socket.io";
-import iStoryServiceBehavior from "./interfaces/story.service.interface";
 import validVariable from "@/utils/extension/vailid_variable";
-import { inject, injectable, singleton } from "tsyringe";
+import { inject} from "tsyringe";
 import Controller from "@/utils/decorator/controller";
 import StoryService from "./story.service";
 

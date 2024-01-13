@@ -13,6 +13,11 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
     
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private database: iDatabase) {
     }
+    async getAllManipulateUser(idmessage: number): Promise<any[]> {
+        const query = `SELECT user.* FROM manipulate_user JOIN user ON manipulate_user.iduser = user.iduser WHERE manipulate_user.idmessage = ?`
+        let [row, inforColumn] = await this.database.excuteQuery(query, [idmessage]) as any
+        return row
+    }
 
     async getNumMessageUnread(idgroup: number): Promise<number> {
         return Promise.resolve(0)

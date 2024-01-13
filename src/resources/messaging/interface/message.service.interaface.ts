@@ -24,4 +24,5 @@ export interface iMessageInformation{
     getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO>
     getAllTagFromMessage(idmessage: number): Promise<any[]>
     getAllReactFromMessage(idmessage: number): Promise<any[]>
+    getAllManipulateUser(idmessage: number): Promise<any[]>
 }

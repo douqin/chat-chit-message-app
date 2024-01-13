@@ -1,5 +1,6 @@
 import { User } from "@/models/user.model"
 import Reaction from "../resources/messaging/dtos/react.dto"
+import { MemberInfo } from "@/resources/group/interface/group.repository.interface"
 
 export default class Message {
     idmember : string
@@ -13,7 +14,7 @@ export default class Message {
     type: number
     public reacts : Array<Reaction>
     public manipulates : Array<User> = []
-    public tags : Array<User> = []
+    public tags : Array<MemberInfo> = []
     constructor(content: string,
         createat: Date,
         idgroup: number,
