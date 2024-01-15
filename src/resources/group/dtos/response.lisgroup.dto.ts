@@ -20,14 +20,14 @@ export class ListGroupDTO {
 }
 export class GroupChatDTO extends Group {
     constructor(
-        idgroup: number, name: string, avatar: string, status: number, createAt: Date, type: number, link: string, role: string,
+        idgroup: number, name: string, avatar: string, status: number, createAt: Date, type: number, link: string, access: number,
         public lastMessage: Message,
         public totalMember: number,
         public numMessageUnread: number
     ) {
-        super(idgroup, name, avatar, status, createAt, type, link, role);
+        super(idgroup, name, avatar, status, createAt, type, link, access);
     }
     static fromBase(gr: Group, lastMessage: Message, totalMember: number, numMessageUnread: number): GroupChatDTO {
-        return new GroupChatDTO(gr.idgroup, gr.name, gr.avatar, gr.status, gr.createAt, gr.type, gr.link, gr.role, lastMessage, totalMember, numMessageUnread)
+        return new GroupChatDTO(gr.idgroup, gr.name, gr.avatar, gr.status, gr.createAt, gr.type, gr.link, gr.access, lastMessage, totalMember, numMessageUnread)
     }
 }

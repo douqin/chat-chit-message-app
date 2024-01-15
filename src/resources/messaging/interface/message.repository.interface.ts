@@ -2,6 +2,7 @@ import { ReactMessage } from "../enum/message.react.enum";
 import { MessageStatus } from "../enum/message.status.enum";
 
 export interface iMessageRepositoryBehavior extends iMessageInformation, iMessageAction {
+    getOneMessage(idmessage: number): any;
     getAllManipulateUser(idmessage: number): Promise<any[]>;
     getAllTagFromMessage(idmessage: number): Promise<any[]>
     getAllMessageFromGroup(idgroup: number,  cursor: number, limit: number):  Promise<any[]>;

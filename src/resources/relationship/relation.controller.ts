@@ -9,7 +9,7 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import multer from "multer";
-import validVariable from "@/utils/extension/vailid_variable";
+import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { User } from "@/models/user.model";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
@@ -22,24 +22,23 @@ export default class RelationshipController extends MotherController {
     }
     initRouter(): MotherController {
         this.router.get("/friends", AuthMiddleware.auth, this.getAllFriend);
-        this.router.get("/invites", AuthMiddleware.auth, this.getAllInvite)
+        this.router.get("/invites/me", AuthMiddleware.auth, this.getAllInvite)
         this.router.patch("/:iduser/unfriend", AuthMiddleware.auth, multer().none(), this.unFriend);
-        this.router.post("/invites", AuthMiddleware.auth, multer().none(), this.inviteToBecomeFriend)
+        this.router.post("/invites/me/:userId", AuthMiddleware.auth, multer().none(), this.inviteToBecomeFriend)
         this.router.post("/accept", AuthMiddleware.auth, multer().none(), this.acceptInviteFriend);
         this.router.delete("/invites/:invite", AuthMiddleware.auth, multer().none(), this.deleteInvite)
-        this.router.delete("/invites/:invite/myself", AuthMiddleware.auth, multer().none(), this.deleteMySentInvite)
+        this.router.delete("/invites/me/:invite/", AuthMiddleware.auth, multer().none(), this.deleteMySentInvite)
         this.router.get("/:iduser/relation", AuthMiddleware.auth, this.getRelationship)
         this.router.get("/friends/online", AuthMiddleware.auth, this.getFriendOnline)
-        this.router.get(":iduser/block", AuthMiddleware.auth, this.blockUser)
+        this.router.post("/:iduser/block", AuthMiddleware.auth, this.blockUser)
         return this;
 
     }
-
     private blockUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserBlock = Number(req.params.iduser)
-            if (validVariable(iduserBlock) && iduser !== iduserBlock) {
+            if (isValidNumberVariable(iduserBlock) && iduser !== iduserBlock) {
                 let data = await this.relationService.blockUser(iduser, iduserBlock)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -57,8 +56,6 @@ export default class RelationshipController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-
-
     private getAllFriend = async (
         req: Request,
         res: Response,
@@ -68,7 +65,7 @@ export default class RelationshipController extends MotherController {
             const iduser = Number(req.headers.iduser)
             const cursor = Number(req.query.cursor)
             const limit = Number(req.query.limit)
-            if (validVariable(cursor) && validVariable(limit)) {
+            if (isValidNumberVariable(cursor) && isValidNumberVariable(limit)) {
                 let data = await this.relationService.getAllFriend(iduser, cursor, limit)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -113,6 +110,7 @@ export default class RelationshipController extends MotherController {
             console.log(error)
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -144,7 +142,7 @@ export default class RelationshipController extends MotherController {
     ) => {
         try {
             let iduser = Number(req.headers["iduser"]);
-            let idreceiver = Number(req.body.receiver)
+            let idreceiver = Number(req.params.userId)
             if (idreceiver) {
                 if (iduser === idreceiver) next(new BadRequestException("Agurment is invalid"))
                 await this.relationService.inviteToBecomeFriend(iduser, idreceiver);
@@ -183,7 +181,7 @@ export default class RelationshipController extends MotherController {
         try {
             const iduser: number = Number(req.headers.iduser)
             const idInvite: number = Number(req.body.idInvite)
-            if (validVariable(idInvite)) {
+            if (isValidNumberVariable(idInvite)) {
                 await this.relationService.acceptInviteFriend(iduser, idInvite)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -220,7 +218,7 @@ export default class RelationshipController extends MotherController {
         try {
             const iduser = Number(req.headers.iduser)
             const idInvite = Number(req.params.invite)
-            if (validVariable(idInvite)) {
+            if (isValidNumberVariable(idInvite)) {
                 const data = await this.relationService.deleteInvite(iduser, idInvite)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     data,
@@ -271,7 +269,7 @@ export default class RelationshipController extends MotherController {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserWGet = Number(req.params.iduser)
-            if (validVariable(iduserWGet)) {
+            if (isValidNumberVariable(iduserWGet)) {
                 const data = await this.relationService.getRelationship(iduser, iduserWGet)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,

@@ -12,11 +12,41 @@ import { GroupType } from './enum/group.type.enum';
 import { Database, iDatabase } from '@/config/database/database';
 import { Constant } from './constant/group.constant';
 import { inject, injectable } from 'tsyringe';
+import Group from '@/models/group.model';
+import { GroupAccess } from './enum/group.access';
 
 @injectable()
 export default class GroupRepository implements GroupRepositoryBehavior {
 
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
+    }
+    async getAccessGroup(idgroup: number): Promise<GroupAccess> {
+        const sql = 'SELECT groupchat.access FROM groupchat WHERE groupchat.idgroup = ?'
+        const [data] = await this.db.excuteQuery(sql, [idgroup]) as any;
+        return data[0].access as GroupAccess
+    }
+    async getBaseInformationGroupFromLink(link: string): Promise<Group | null> {
+        let sql = `SELECT * FROM groupchat WHERE groupchat.link = ?`
+        let [data] = await this.db.excuteQuery(sql, [link]) as any;
+        if (data.length == 0) return null
+        else if(data[0].type == GroupType.INVIDIAL) return null
+        else if(data[0].access == GroupAccess.PRIVATE) return null
+        return data[0]
+    }
+    async deleteGroup(idgroup: number): Promise<boolean> {
+        const query = 'DELETE FROM groupchat WHERE groupchat.idgroup = ?'
+        await this.db.excuteQuery(query, [idgroup])
+        return true
+    }
+    async getTypeGroup(idgroup: number): Promise<GroupStatus> {
+        let sql = `SELECT groupchat.type FROM groupchat WHERE groupchat.idgroup = ?`
+        const [data] = await this.db.excuteQuery(sql, [idgroup]) as any;
+        return data[0].type as GroupStatus  
+    }
+    async changeNickname(iduser: number, userIdChange: number, idgroup: number, nickname: string): Promise<boolean> {
+        let sql = `UPDATE member SET member.nickname = ? WHERE member.iduser = ? AND member.idgroup = ?`
+        await this.db.excuteQuery(sql, [nickname, userIdChange, idgroup])
+        return true
     }
     async isExistInvidualGroup(iduser: number, idUserAddressee: number): Promise<boolean> {
         let get = `SELECT * FROM groupchat as g JOIN member as m1 ON g.idgroup = m1.idgroup 
@@ -44,14 +74,13 @@ export default class GroupRepository implements GroupRepositoryBehavior {
             await this.joinGroup(users, idgroup, PositionInGrop.MEMBER)
         }
         catch (e) {
-            console.log("🚀 ~ file: group.repository.ts:163 ~ GroupRepository ~ createGroup ~ e:", e)
             throw new MyException("Có lỗi xảy ra, không thể tạo nhóm").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
         }
         return idgroup;
     }
 
     async getInformationMember(idmember: number, idgroup: number): Promise<any> {
-        const query = 'SELECT * from (user JOIN member ON user.iduser = member.iduser) WHERE member.id = ? AND member.idgroup = ? AND member.status = ?'
+        const query = 'SELECT * from (user JOIN member ON user.iduser = member.iduser) WHERE user.iduser = ? AND member.idgroup = ? AND member.status = ?'
         const [data, inforC] = await this.db.excuteQuery(query, [idmember, idgroup, MemberStatus.DEFAULT]) as any
         return data[0]
     }
@@ -101,23 +130,22 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         try {
             let query = 'SELECT ' + permisstion + ' FROM groupchat_member_permission WHERE groupchat_member_permission.idgroup = ? LIMIT 1'
             const [_permisstion] = await this.db.excuteQuery(query, [idgroup]) as any
-            console.log("🚀 ~ file: group.repository.ts:22 ~ GroupRepository ~ checkMemberPermisstion ~ _permisstion:", _permisstion)
             let a = Boolean(Number(_permisstion[0].autoapproval))
-            console.log("🚀 ~ file: group.repository.ts:23 ~ GroupRepository ~ checkMemberPermisstion ~ a:", a)
             return a
         }
         catch (e: any) {
-            console.log("🚀 ~ file: group.repository.ts:28 ~ GroupRepository ~ checkMemberPermisstion ~ e:", e)
-            throw new MyException("Không thể tham gia group này").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
+            console.log("🚀 ~ GroupRepository ~ checkMemberPermisstion ~ e:", e)
+            throw new MyException("Unable to join this group").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
     async addUserToApprovalQueue(iduser: number, idgroup: number): Promise<void> {
         try {
             let query = "INSERT INTO member(member.idgroup, member.iduser, member.position, member.status) VALUES (?, ?, ?, ?) "
-            let [data] = await this.db.excuteQuery(query, [idgroup, iduser, PositionInGrop.MEMBER, MemberStatus.PENDING])
+            let [data] = await this.db.excuteQuery(query, [idgroup, iduser, PositionInGrop.CON_CAC, MemberStatus.PENDING])
         }
         catch (e: any) {
-            throw new MyException("Không thể tham gia group này").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
+            console.log("🚀 ~ GroupRepository ~ addUserToApprovalQueue ~ e:", e)
+            throw new MyException("Unable to join this group").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
     async joinGroup(iduser: number, idgroup: number, positionUser: number = PositionInGrop.MEMBER): Promise<boolean> {
@@ -127,31 +155,36 @@ export default class GroupRepository implements GroupRepositoryBehavior {
             return true
         }
         catch (e: any) {
-            throw new MyException("Không thể tham gia group này")
+            throw new MyException("Unable to join this group")
         }
     }
     async isContainInGroup(iduser: number, idgroup: number, status_check?: MemberStatus): Promise<boolean> {
         let sql = `SELECT COUNT(*) FROM member WHERE member.iduser = ? AND member.idgroup = ? ${((status_check) ? 'AND member.status = ?' : '')}`
         let [data] = await this.db.excuteQuery(sql, [iduser, idgroup, status_check]);
-        console.log("🚀 ~ GroupRepository ~ isContainInGroup ~ sql:", sql)
         const [{ 'COUNT(*)': count }] = data as any;
-        console.log("🚀 ~ GroupRepository ~ isContainInGroup ~ data:", data)
-        return Boolean(Number(count) === 1)
+        let  a = Boolean(Number(count) === 1)
+        return a
     }
     async changeAvatarGroup(iduser: number, idgroup: number, file: Express.Multer.File) {
         let position = await this.getPosition(idgroup, iduser)
         if (position == PositionInGrop.CREATOR || PositionInGrop.ADMIN) {
             const query = 'SELECT groupchat.avatar FROM groupchat WHERE groupchat.idgroup = ? '
-            const [[{ 'avatar': avatar }], column] = this.db.excuteQuery(query, [idgroup]) as any;
+            const [[{ 'avatar': avatar }], column] = await this.db.excuteQuery(query, [idgroup]) as any;
             if (avatar) {
                 await this.drive.delete(avatar)
             }
             return this.drive.uploadFile(file.filename, file.buffer);
-        } else throw new MyException("Bạn không có quyền này").withExceptionCode(HttpStatus.FORBIDDEN)
+        } else throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async getAllMember(idgroup: number): Promise<object[]> {
         let query = "SELECT * from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ? AND member.status = ?"
         let [rows] = await this.db.excuteQuery(query, [idgroup, MemberStatus.DEFAULT])
+        console.log(rows)
+        return rows as object[];
+    }
+    async getAllUserPending(idgroup: number): Promise<object[]> {
+        let query = "SELECT * from (user JOIN member ON user.iduser = member.iduser) WHERE member.idgroup = ? AND member.status = ?"
+        let [rows] = await this.db.excuteQuery(query, [idgroup, MemberStatus.PENDING])
         console.log(rows)
         return rows as object[];
     }

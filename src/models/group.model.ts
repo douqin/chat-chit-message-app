@@ -5,9 +5,9 @@ export default class Group {
     status: number
     createAt: Date
     type: number
-    role : string
+    access : number
     link : string
-    constructor(idgroup: number, name: string, avatar: string, status: number, createAt: Date, type: number,  link : string,  role : string) {
+    constructor(idgroup: number, name: string, avatar: string, status: number, createAt: Date, type: number,  link : string,  access : number) {
         this.idgroup = idgroup
         this.name = name
         this.avatar = avatar
@@ -15,12 +15,12 @@ export default class Group {
         this.createAt = createAt
         this.type = type
         this.link = link
-        this.role = role
+        this.access = access
     }
     static fromRawData(object: any): Group {
-        const { idgroup, name, avatar, status, createat, type , link, role} = object;
+        const { idgroup, name, avatar, status, createat, type , link,  access} = object;
         return new Group(
-            idgroup, name, avatar, status, createat, type, link, role
+            idgroup, name, avatar, status, createat, type, link, access
         );
     }
 }

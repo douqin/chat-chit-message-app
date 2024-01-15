@@ -7,7 +7,7 @@ export class Member {
             data.status,
             new Date(data.timejoin))
     }
-    id: number
+    memberId: number
     lastview: Date | null
     position: number
     status: number
@@ -20,7 +20,7 @@ export class Member {
         status: number,
         timejoin: Date
     ) {
-        this.id = id
+        this.memberId = id
         this.lastview = lastview
         this.position = position
         this.status = status

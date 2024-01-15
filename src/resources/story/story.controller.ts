@@ -7,7 +7,7 @@ import MotherController from "@/utils/interface/controller.interface";
 import { Response, Request, NextFunction } from "express";
 import multer from "multer";
 import { Server } from "socket.io";
-import validVariable from "@/utils/extension/vailid_variable";
+import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { inject} from "tsyringe";
 import Controller from "@/utils/decorator/controller";
 import StoryService from "./story.service";
@@ -124,7 +124,7 @@ export default class StoryController extends MotherController {
     private seeStoryFriend = async (req: Request, res: Response, next: NextFunction) => {
         try {
             let idstory = Number(req.params.idstory)
-            if (validVariable(idstory)) {
+            if (isValidNumberVariable(idstory)) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let story = await this.storyService.seeStory(iduser, idstory)
                 res.status(HttpStatus.OK).send(new ResponseBody(

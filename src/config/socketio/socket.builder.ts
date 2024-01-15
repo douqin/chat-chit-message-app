@@ -29,6 +29,7 @@ export default class SocketBuilder {
             socket.join(`${group.idgroup}_group`);
         }
     }
+
     private initConnection = (socket: Socket) => {
         const iduser = socket.handshake.headers.iduser
         this.joinGroup(Number(iduser), socket);

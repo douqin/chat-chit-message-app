@@ -3,15 +3,16 @@ import { User } from "@/models/user.model";
 
 export class MemberDTO extends Member {
 
-    constructor(id: number,
+    constructor(memberId: number,
         lastview: Date | null,
         position: number,
         status: number,
         timejoin: Date, public inforMember: User) {
         super(
-            id, lastview, position, status, timejoin
+            memberId, lastview, position, status, timejoin
         );
     }
+    // FIXME:  add get background
     static fromRawData(data: any): MemberDTO {
         return new MemberDTO(
             data.id,

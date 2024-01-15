@@ -19,116 +19,149 @@
   - body: {username: String, otp: String, password: String}.
 - `[GET] /users/:username`: get thông tin tóm tắt của user.
   - result: {name: String, username:String, avatar:String, isActived: boolean }
+- `[DELETE] /revoke-token`: đăng xuất tất cả, socket cho user đang đăng nhập tài khoản.
+  - body: {password: String, key: String}.
+  - result: {token: String, refreshToken: String}.
+  - socket: io.emit('revoke-token', {key: String}).
+- `[PATCH] /password`: đổi mật khẩu.
+  - body: {oldPassword: String, newPassword: String}.
 
 ### Me `/me`
 
 - `[GET] /profile`: get thông tin.
   - result: {\_id: String, name: String, username: String, birthday: Date(JS) -> String,
-    gender: boolean, avatar: String, avatarColor: String, coverImage: String}.
-- `[PUT] /profile`: update thông tin.
+    gender: number, avatar: String, background: String}.
+- `[PATCH] /profile`: update thông tin.
   - body: {name: String, birthday: Date(JS) -> String, gender: int (0: nam, 1 nữ)}.
 - `[PATCH] /avatar`: update avatar.
   - body: {file: File}.
   - result: {avatar: String}.
-- `[PATCH] /cover-image`: update ảnh bìa.
+- `[PATCH] /background`: update ảnh bìa.
   - body: {file: File}.
-  - result: {coverImage: String}
-- `[PATCH] /avatar/base64`: update avatar base64.
-  - body: {fileName, fileExtension, fileBase64}.
-  - result: {avatar: String}.
-- `[PATCH] /cover-image/base64`: update ảnh bìa base64.
-  - body: {fileName, fileExtension, fileBase64}.
   - result: {coverImage: String}
 - `[GET] /phone-books`: get danh bạ.
   - result: [{_id, name, username, birthday: Date(JS) -> String, gender, avatar, avatarColor: String, background, status(gồm 4 trạng thái: FRIEND, FOLLOWER, YOU_FOLLOW, NO RELATIONSHIP), numberCommonGroup: int, numberCommonFriend: int, isExists: true}].
   - nếu không có {name, username, isExists: false}.
 - `[POST] /phone-books`: đồng bộ danh bạ.
   - body: {phones: [{name: String, phone: String}]}.
-- `[PATCH] /password`: đổi mật khẩu.
-  - body: {oldPassword: String, newPassword: String}.
-- `[DELETE] /revoke-token`: đăng xuất tất cả, socket cho user đang đăng nhập tài khoản.
-  - body: {password: String, key: String}.
-  - result: {token: String, refreshToken: String}.
-  - socket: io.emit('revoke-token', {key: String}).
 
-### User `/users`
+### User `/user`
 
 - `[GET] /search?phone=`: tìm kiếm bằng phone.
   - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage}.
 - `[GET] /user/:username`: tim kiem user voi full thong tin
   - result: {\_id, name, username, birthday: Date(JS) -> String, gender, avatar, coverImage, status(gồm 4 trạng thái), numberCommonFriend: int}.
 
-### Friend `/friends`
+### Relationship `/relationship`
 
-- `[GET] `: get danh sách bạn bè.
+- `[GET] /friends`: get danh sách bạn bè.
   - param: {name: String}.
   - result: [{_id: String, name: String, username: String, avatar: String, isOnline: boolean, lastLogin: Date }].
-- `[POST] /:userId`: chấp nhận kết bạn, socket cho user đc kết bạn.
+- `[POST] /accept`: chấp nhận kết bạn, socket cho user đc kết bạn.
+  - body: { idInvite : }
   - socket: io.emit('accept-friend', {\_id, name, avatar }).
   - socket (TH lạ, thì cả 2 sẽ nhận được): io.emit('create-individual-group-when-was-friend', groupId).
   - socket(TH đã có nhắn tin, thì cả 2 sẽ nhận được): io.emit('new-message', groupId, message).
-- `[DELETE] /:userId`: xóa kết bạn (socket bắn tới thằng bị xóa).
+- `[DELETE] /:iduser/unfriend`: xóa kết bạn (socket bắn tới thằng bị xóa).
   - socket: io.emit('deleted-friend', \_id);
 - `[GET] /invites`: get danh sách lời mời kết bạn của bản thân.
   - result: [{_id: String, name: String, username: String, avatar: String, numberCommonGroup: int, numberCommonFriend: int }].
-- `[DELETE] /invites/:userId`: Xóa lời mời kết bạn (socket bắn tới thằng bị xóa).
+- `[DELETE] /invites/:invite`: Xóa lời mời kết bạn (socket bắn tới thằng bị xóa).
+  - params: invite tương ứng với id invite
   - socket: io.emit('deleted-friend-invite', \_id);
 - `[GET] /invites/me`: get danh sách lời mời kết bạn của mình đã gởi.
   - result: [{_id: String, name: String, username: String, avatar: String, numberCommonGroup: int, numberCommonFriend: int }].
 - `[POST] /invites/me/:userId`: gởi lời mời kết bạn cho người khác, socket cho user đc gởi lời mời kết bạn.
   - socket: io.emit('send-friend-invite', { \_id, name, avatar });
-- `[DELETE] /invites/me/:userId`: xóa gởi lời mời kết bạn cho người khác (socket bắn tới thằng bị xóa).
+- `[DELETE] /invites/me/:invite`: xóa gởi lời mời kết bạn cho người khác (socket bắn tới thằng bị xóa).
   - socket: io.emit('deleted-invite-was-send', \_id);
-- `[GET] /suggest`: danh sách đề xuất bạn bè.
-  - params: {page (default: 0), size (default: 12)}.
-  - result: [{_id: String, name, username, avatar, numberCommonGroup: int, numberCommonFriend: int }].
+  <!-- - `[GET] /suggest`: danh sách đề xuất bạn bè.
+  - result: [{_id: String, name, username, avatar, numberCommonGroup: int, numberCommonFriend: int }]. -->
+- `[POST] /:iduser/block` : block user
+- `[DELETE] /invites/me/:invite/` : xóa lời mời kết bạn mà chính bản thân đã gửi
+- `[GET] /friends/online`: lấy tất cả friend online
+- `[GET] /:iduser/relation`: lấy ra mối quan hệ giữa user vs user
 
 ### Group `/groups`
 
 - `[GET] `: get danh sách trò chuyện mới nhất.
 
-  - params: {name: String (default: '') , type: int (0: tất cả, không tìm tên ;1: cá nhân; 2: nhóm) (default: 0) }.
-  - body : { cursor , limit}
+  - query : cursor , limit
     - P/s: cursor = -1 để lấy list gr mới nhất.
-  - result: [{_id: String, name: String, avatar: String, userId: String, friendStatus: String , type: boolean, numberUnread: int, isNotify, isJoinFromLink,
-    lastMessage: {
-    _id: String,
-    content: String,
-    type: String (TEXT, IMAGE, VIDEO,FILE),
-    createdAt: String,
-    user: {
-    _id: String,
-    name: String,
-    avatar: String
-    }
-    }
-    }].
+  - result:
+  - ```
+      {
+        "listGroup": [
+            {
+                "idgroup": number,
+                "name": string,
+                "avatar": string,
+                "status": GroupStatus,
+                "createAt": string,
+                "type": GroupType,
+                "link": string,
+                "role": string,
+                "lastMessage": {
+                    "manipulates": [] (iduser[] ),
+                    "tags": [] (idmember[] ),
+                    "content": string,
+                    "createat": string,
+                    "idgroup": number,
+                    "idmessage": number,
+                    "iduser": number,
+                    "replyidmessage": idmessage or null,
+                    "status": MessageStatus,
+                    "type": number,
+                    "idmember": number,
+                    "reacts": [] (idmember[])
+                },
+                "totalMember": number,
+                "numMessageUnread": number
+            }
+        ],
+        "nextCursor": 194,
+        "totalSize": 0
+      }
+    ```
+
+  ```
+
+  ```
 
 - `[GET] /:id`: get một group.
 - `[POST] /individual-group/:userId`: tạo cuộc trò chuyện cá nhân (socket tới userId, nhận được socket này thì bắn socket join-group).
-  - result: { Group.Object }.
-    - nếu group tồn tại trả về status code 400
+  - result: { groupId : number, isExisted : boolean }
+    - p/s: trong trường hợp đã có rồi thì sẽ lấy ra group đã tồn tại
   - socket: io.emit('create-individual-group', groupId).
 - `[POST] /groups/community-group`: tạo cuộc trò chuyện nhóm.
   - body: {name:String, userIds: [String]}.
   - socket: io.emit('create-group', groupId).
   - result: {\_id: String}.
-- `[PATCH] /:id/name`: đổi biệt danh cá nhân hoặc đổi tên nhóm (nếu là nhóm thì có socket).
+- `[PATCH] /:id/renickname`: đổi biệt danh cá nhân
   - body: {name: String}.
-  - socket: io.emit('rename-group', groupId, groupName, message).
+  - socket: io.emit('change_nickname', message (mesage type noti) )
 - `[PATCH] /:id/avatar`: thay ảnh nhóm.
-  - body: {file: File}.
+  - req: {avatar: File}. - form data
   - socket: io.emit('update-avatar-group', groupId, groupAvatar, message).
-  - socket: io.emit('new-message', groupId, message).
-- `[PATCH] /:id/avatar/base64`: thay ảnh nhóm.
-  - body: {fileName, fileExtension, fileBase64}.
-  - socket: io.emit('update-avatar-group', groupId, groupAvatar, message).
-  - socket: io.emit('new-message', groupId, message).
-- `[DELETE] /:id/messages`: xóa tất cả tin nhắn.
+  - socket: io.emit('new-message', message (Message Noti) ).
 - `[GET] /:id/members`: danh sách thành viên.
+  - res:
+    ```
+    [
+        {
+            "memberId": number,
+            "lastview": null or number (messageId),
+            "position": PositionInGrop,
+            "status": MemberStatus,
+            "timejoin": string,
+            "inforMember": User
+        }
+    ]
+    ```
 - `[POST] /:id/members`: thêm nhiều thành viên.
+  - p/s: gr private thì chỉ có admin mới add được còn group public thì sẽ cho vô hàng chờ duyệt hoặc duyệt ( phụ thuộc vào group có auto approval hay không) thì ai đều add được //TODO:
   - body: {userIds: [String]}.
-  - socket (đối với thành viên trong nhóm) : io.emit('new-message', groupId, message).
+  - socket (đối với thành viên trong nhóm) : io.emit('new-message', message).
   - socket (đối với user đc add): io.emit('added-group', groupId).
   - socket: io.emit('update-member', groupId).
 - `[DELETE] /:id/members/:userId`: xóa thành viên.
@@ -138,13 +171,11 @@
 - `[DELETE] /:id/members/leave`: Rời nhóm.
   - socket: io.emit('new-message', groupId, message )
   - socket: io.emit('update-member', groupId).
-- `[DELETE] /:id`: xóa nhóm.
-  - socket: io.emit('delete-group', groupId ).
+- `[DELETE] /:id`: xóa nhóm. //TODO:
 - `[POST] /:id/members/join-from-link`: tham gia từ link.
   - socket (đối với thành viên trong nhóm) : io.emit('new-message', groupId, message) (nội dung: 'Tham gia từ link').
   - socket (đối với user đc add): io.emit('added-group', groupId).
   - socket: io.emit('update-member', groupId).
-- `[PATCH] /:id/join-from-link/:isStatus`: trạng thái co cho tham gia vào link không (chỉ chủ nhóm) (isStatus: 0 or 1).
 - `[GET] /:id/summary`: thông tin khi vào nhóm.
   - result: {\_id, name, avatar, users: [{name, avatar}] }.
 - `[GET] /:id/last-view`: danh sách last view của danh sách members.
@@ -157,6 +188,90 @@
   - body: {managerIds: [String]}.
   - socket: io.emit('delete-managers', {groupId, managerIds})
   - socket: io.emit('new-message', groupId, message) (content: DELETE_MANAGERS).
+- `[GET] /:id/community-group` get one community group
+  - res :
+  ````
+    {
+                "idgroup": number,
+                "name": string,
+                "avatar": string,
+                "status": GroupStatus,
+                "createAt": string,
+                "type": GroupType,
+                "link": string,
+                "role": string,
+                "lastMessage": {
+                    "manipulates": [] (iduser[] ),
+                    "tags": [] (idmember[] ),
+                    "content": string,
+                    "createat": string,
+                    "idgroup": number,
+                    "idmessage": number,
+                    "iduser": number,
+                    "replyidmessage": idmessage or null,
+                    "status": MessageStatus,
+                    "type": number,
+                    "idmember": number,
+                    "reacts": [] (idmember[])
+                },
+                "totalMember": number,
+                "numMessageUnread": number
+            }  ```
+  ````
+- `[GET] /:link ` lấy data cơ bản của group
+  - res:
+    ```
+    {
+              "idgroup": number,
+              "name": string,
+              "avatar": string,
+              "status": GroupStatus,
+              "createAt": string,
+              "type": GroupType,
+              "link": string,
+              "role": string,
+    }
+    ```
+- `[POST] /:link/request-join `: nếu join thành công thì emit tới group hoặc là vào hàng đợi pending chờ duyệt hoặc là đã tham gia hoặc bị block ở group sẽ trả lỗi
+  - io.emit("request-join-from-link", message (notify) )
+- `[GET] /:id/queue-wait`: lấy danh sách đang chờ duyệt
+
+  - res:
+
+    - ```
+
+      ```
+
+    - res:
+
+    ```
+    [
+        {
+            "memberId": number,
+            "lastview": null or number (messageId),
+            "position": PositionInGrop,
+            "status": MemberStatus,
+            "timejoin": string,
+            "inforMember": User
+        }
+    ]
+    ```
+
+    ```
+
+    ```
+- `[POST] /admin/:id/approval/:userId`: duyệt thành viên
+  - io.emit('approval-member' , {userIds : number})
+  - io.emit('new-message', [Message])
+- `[DELETE] ` : remove manager
+  - io.emit("remove-manager",  { userId: number })
+  - io.emit("new-message", [Message])
+- `[DELETE] /admin/:id/member/:userId` : remove member
+  - io.emit("member_was_remove", { userId: number })
+  - io.emit("new-message", [Message])
+- `[PATCH] /admin/:id/rename`
+  - io.emit("rename-group", { name: string })
+  - io.emit("new-message", [Message])
 
 ### Message `/messages`.
 
@@ -223,8 +338,6 @@
   - body: {options: [String]}.
   - socket: io.emit('update-vote-message', groupId, voteMessage).
 
-## Admin
-
 ### User Manager `/admin/users-manager`.
 
 - `[GET] `: get list users.
@@ -271,9 +384,114 @@
   - update-last-view (user seen message):
   - recall message:
   - change pin:
-  
+
 - **friend**
-   -  handling 99%...
-  
+  - handling 99%...
 - **notification**
-   -  handling 99%...
+  - handling 99%...
+
+### Một số quy chuẩn dữ liệu
+
+```
+  RelationshipUser {
+    NO_RELATIONSHIP = -1,
+    /** user 1 wait reponse invite friend from user 2 */
+    WAIT_RESPONSE_REQUEST_FRIEND = 0,
+    //
+    FRIEND = 1,
+    /** user 1 block user 2 */
+    BLOCKED = 3,
+    /* user 1 block user 2 and user 2 block user 1*/
+    TWO_WAY_BLOCK = 5,
+    WAS_BLOCKED = 4,
+}
+```
+
+```
+ReactMessage {
+    HAHA = 1,
+    HUHU = 2,
+    LOVE = 3,
+    WOW = 4,
+    ANGRY = 5,
+    LIKE = 6
+}
+```
+
+```
+ MessageStatus {
+    DEFAULT = 0,
+    DEL_BY_ADMIN = 1,
+    DEL_BY_OWNER = 2
+}
+```
+
+```
+enum MessageType {
+    TEXT = 0,
+    IMAGE = 1,
+    VIDEO = 2,
+    GIF = 3,
+    VOTE = 4,
+    NOTIFY = 5
+}
+```
+
+```
+Gender {
+    Male = 1,
+    Female = 2,
+    Other = 3,
+}
+```
+
+```
+PositionInGrop {
+    MEMBER = 0,
+    ADMIN = 1,
+    CREATOR = 2
+}
+```
+
+```
+GroupStatus {
+    DEFAULT = 0,
+    STRANGE_PEOPLE = 1
+}
+```
+
+```
+MemberStatus {
+    DEFAULT = 0,
+    PENDING = 1,
+    BLOCKED = 2
+}
+```
+
+```
+GroupType {
+    COMMUNITY = 0,
+    INVIDIAL = 1,
+}
+
+```
+
+```
+ReactStory {
+    HAHA = 1,
+    HUHU = 2,
+    LOVE = 3,
+    WOW = 4,
+    ANGRY = 5,
+    LIKE = 6
+}
+```
+
+```
+EVENT_GROUP_SOCKET{
+    CHANGE_AVATAR = "avatar_change",
+    LEAVE_GROUP = "user_leave_group",
+    CREATE_INDIVIDUAL_GROUP = "create-individual-group",
+    CHANGE_NICKNAME = "change_nickname",
+}
+```

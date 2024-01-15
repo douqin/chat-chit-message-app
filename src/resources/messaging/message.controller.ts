@@ -11,9 +11,11 @@ import iMessageServiceBehavior from "./interface/message.service.interaface";
 import MyException from "@/utils/exceptions/my.exception";
 import AuthMiddleware from "@/middleware/auth.middleware";
 import { MessageStatus } from "./enum/message.status.enum";
-import validVariable from "@/utils/extension/vailid_variable";
+import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
+import { getRoomGroupIO } from "@/utils/extension/room.group";
+import { EventMessageIO } from "./constant/event.io";
 
 @Controller("/message")
 export default class MessageController extends MotherController {
@@ -92,7 +94,7 @@ export default class MessageController extends MotherController {
             const idgroup = Number(req.params.idgroup)
             const limit = Number(req.query.limit)
             const cursor = Number(req.query.cursor)
-            if (validVariable(idgroup)) {
+            if (isValidNumberVariable(idgroup)) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let data = await this.messageService.getAllMessageFromGroup(
                     Number(idgroup),
@@ -150,8 +152,8 @@ export default class MessageController extends MotherController {
                 ));
                 this.io
                     .to(`${idgroup}_group`)
-                    .emit("message",
-                        data
+                    .emit(EventMessageIO.NEW_MESSAGE,
+                        [data]
                     )
                 return;
             }
@@ -187,12 +189,12 @@ export default class MessageController extends MotherController {
             try {
                 tags = JSON.parse(req.body.tags)
             } catch { }
-            if (validVariable(idgroup) && message) {
+            if (isValidNumberVariable(idgroup) && message) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let messageModel = await this.messageService.sendTextMessage(idgroup, iduser, message, tags)
                 this.io
-                    .to(`${idgroup}_group`)
-                    .emit("message",
+                    .to(getRoomGroupIO(idgroup))
+                    .emit(EventMessageIO.NEW_MESSAGE,
                         [messageModel]
                     )
                 // const sockets = await this.io.in(`${idgroup}_group`).fetchSockets();
@@ -285,6 +287,7 @@ export default class MessageController extends MotherController {
         catch (error) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -308,6 +311,7 @@ export default class MessageController extends MotherController {
         catch (error) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }

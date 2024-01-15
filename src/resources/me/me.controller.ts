@@ -30,20 +30,10 @@ export default class MeController extends MotherController {
             AuthMiddleware.auth,
             this.updateMyprofile
         )
-
-        this.router.patch(
-            "/password",
-            AuthMiddleware.auth,
-            this.changePassword
-        )
         this.router.patch(
             "/avatar",
             AuthMiddleware.auth,
-            multer({
-                limits: {
-                    fieldSize: 7000
-                }
-            }).single('avatar'),
+            multer().single('avatar'),
             this.changeAvatar
         )
         this.router.patch(
@@ -73,6 +63,7 @@ export default class MeController extends MotherController {
         catch (e) {
             if (e instanceof MyException) {
                 next(new HttpException(e.status, e.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -98,6 +89,7 @@ export default class MeController extends MotherController {
             console.log("🚀 ~ file: me.controller.ts:95 ~ MeController ~ e:", e)
             if (e instanceof MyException) {
                 next(new HttpException(e.status, e.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -120,23 +112,6 @@ export default class MeController extends MotherController {
 
         }
     }
-    private changePassword = async (
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ) => {
-        try {
-            let iduser = Number(req.headers['iduser'])
-            const { password } = req.body
-            await this.meSerivce.changePassword(iduser, password)
-        }
-        catch (e) {
-            if (e instanceof MyException) {
-                next(new HttpException(e.status, e.message))
-            }
-            next(new InternalServerError("An error occurred, please try again later."))
-        }
-    }
     private updateMyprofile = async (
         req: Request,
         res: Response,
@@ -156,4 +131,5 @@ export default class MeController extends MotherController {
             next(new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "Có lỗi xảy ra vui long thử lại sau"))
         }
     }
+
 }

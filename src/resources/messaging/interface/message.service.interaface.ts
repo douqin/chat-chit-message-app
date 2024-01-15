@@ -25,4 +25,5 @@ export interface iMessageInformation{
     getAllTagFromMessage(idmessage: number): Promise<any[]>
     getAllReactFromMessage(idmessage: number): Promise<any[]>
     getAllManipulateUser(idmessage: number): Promise<any[]>
+    getOneMessage(idmessage: number): Promise<Message>
 }

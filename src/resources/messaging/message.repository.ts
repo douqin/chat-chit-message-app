@@ -4,7 +4,7 @@ import { ReactMessage } from "./enum/message.react.enum";
 import { iMessageRepositoryBehavior } from "./interface/message.repository.interface";
 import { MessageType } from "./enum/message.type.enum";
 import { MessageStatus } from "./enum/message.status.enum";
-import validVariable from "@/utils/extension/vailid_variable";
+import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { Database, iDatabase } from "@/config/database/database";
 import { inject, injectable } from "tsyringe";
 
@@ -12,6 +12,11 @@ import { inject, injectable } from "tsyringe";
 export default class MessageRepository implements iMessageRepositoryBehavior {
     
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private database: iDatabase) {
+    }
+    async getOneMessage(idmessage: number) {
+        const query = `SELECT * FROM message WHERE message.idmessage = ?`
+        let [data, inforColumn] = await this.database.excuteQuery(query, [idmessage]) as any
+        return data[0]
     }
     async getAllManipulateUser(idmessage: number): Promise<any[]> {
         const query = `SELECT user.* FROM manipulate_user JOIN user ON manipulate_user.iduser = user.iduser WHERE manipulate_user.idmessage = ?`
@@ -125,7 +130,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         return dataQuery[0];
     }
     async getAllMessageFromGroup(idgroup: number,cursor: number, limit: number): Promise<any[]> {
-        if (validVariable(limit) && Number.isNaN(cursor)) {
+        if (isValidNumberVariable(limit) && Number.isNaN(cursor)) {
             const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? ) ORDER BY message.createat DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.excuteQuery(
                 query, [idgroup, limit]
@@ -133,7 +138,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
             console.log("🚀 ~ file: message.repository.ts:129 ~ MessageRepository ~ getAllMessageFromGroup ~ dataQuery:", dataQuery)
             return dataQuery as any[];
         }
-        else if (validVariable(limit) && validVariable(cursor)) {
+        else if (isValidNumberVariable(limit) && isValidNumberVariable(cursor)) {
             console.log('1a')
             const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember) WHERE member.idgroup = ?  AND message.idmessage < ? ORDER BY message.createat DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.excuteQuery(

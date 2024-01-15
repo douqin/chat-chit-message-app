@@ -11,11 +11,14 @@ import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import AuthMiddleware from "@/middleware/auth.middleware";
-import validVariable from "@/utils/extension/vailid_variable";
+import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { User } from "../../models/user.model";
-import { EVENT_GROUP_SOCKET } from "./constant/group.constant";
+import { EventGroupIO } from "./constant/group.constant";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
+import { getRoomUserIO } from "@/utils/extension/room.user";
+import { getRoomGroupIO } from "@/utils/extension/room.group";
+import { EventMessageIO } from "../messaging/constant/event.io";
 @Controller("/group")
 export default class GroupController extends MotherController {
     constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
@@ -23,11 +26,11 @@ export default class GroupController extends MotherController {
     }
 
     initRouter(): MotherController {
-        this.router.get('',
+        this.router.get('/',
             AuthMiddleware.auth,
             this.getSomeGroup
         )
-        this.router.get('/:id',
+        this.router.get('/:id/community-group',
             AuthMiddleware.auth,
             this.getOneGroup
         )
@@ -41,10 +44,6 @@ export default class GroupController extends MotherController {
             AuthMiddleware.auth,
             this.createInvidualGroup
         )
-        this.router.get('/individual-group/:userId',
-            AuthMiddleware.auth,
-            this.getInvidualGroup
-        )
         this.router.patch("/:id/avatar",
             multer().single("avatar"),
             AuthMiddleware.auth,
@@ -52,95 +51,79 @@ export default class GroupController extends MotherController {
         this.router.post("/:id/lastview",
             multer().none(), AuthMiddleware.auth,
             this.getLastViewMember)
-        this.router.get("/:id/getallmembers", AuthMiddleware.auth, this.getAllMember)
-        this.router.post("/:id/invitemembers", multer().none(), AuthMiddleware.auth, this.inviteMember)
+        this.router.get("/:id/members", AuthMiddleware.auth, this.getAllMember)
+        this.router.post("/:id/invite-members", multer().none(), AuthMiddleware.auth, this.inviteMember)
         this.router.post("/:id/members/leave", multer().none(), AuthMiddleware.auth, this.leaveGroup)
-        this.router.post("/:id/members/join-from-link", multer().none(), AuthMiddleware.auth, this.joinfromLink)
-
-        this.router.patch("/admin/:id/rename",
-            multer().none(),
-            AuthMiddleware.auth,
-            // AuthMiddleware.authAdmin,
+        this.router.post("/:link/request-join", multer().none(), AuthMiddleware.auth, this.requestJoinFromLink)
+        this.router.get("/:link", multer().none(), AuthMiddleware.auth, this.getBaseInformationGroupFromLink)
+        this.router.patch("/admin/:id/rename", multer().none(), AuthMiddleware.auth,// AuthMiddleware.authAdmin,
             this.renameGroup)
-        this.router.delete(
-            '/admin/:id/manager',
-            multer().none(),
-            AuthMiddleware.auth,
+        this.router.delete('/admin/:id/manager', multer().none(), AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
-            this.removeManager
-        )
-        this.router.patch(
-            '/admin/:id/manager',
-            multer().none(),
-            AuthMiddleware.auth,
+            this.removeManager)
+        this.router.patch('/admin/:id/manager', multer().none(), AuthMiddleware.auth,// AuthMiddleware.authAdmin
+            this.addManager)
+        this.router.delete('/admin/:id/member/:userId', multer().none(), AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
-            this.addManager
-        )
-        this.router.delete(
-            '/admin/:id/member',
-            multer().none(),
-            AuthMiddleware.auth,
+            this.removeMember)
+        this.router.patch('/admin/:id/blockmember', multer().none(), AuthMiddleware.auth,
             // AuthMiddleware.authAdmin,
-            this.removeMember
-        )
-        this.router.post(
-            '/admin/:id/approval',
-            multer().none(),
-            AuthMiddleware.auth,
-            // AuthMiddleware.authAdmin,
-            this.approvalMember
-        )
-        this.router.patch(
-            '/admin/:id/blockmember',
-            multer().none(),
-            AuthMiddleware.auth,
-            // AuthMiddleware.authAdmin,
-            this.blockMember
-        )
-        this.router.get(
-            '/:idgroup/member/:idmember/infor',
-            AuthMiddleware.auth,
-            this.getInformationMember
-        )
+            this.blockMember)
+        this.router.get('/:idgroup/member/:userId/', AuthMiddleware.auth, this.getInformationMember)
+        this.router.patch("/:id/renickname", AuthMiddleware.auth, this.changeNickname)
+        this.router.post("/admin/:id/approval/:userId", AuthMiddleware.auth, this.approvalMember)
+        this.router.post("/:id/admin/pending", AuthMiddleware.auth, this.getListUserPending)
         return this
     }
-    private getInvidualGroup = async (req: Request, res: Response, next: NextFunction) => {
+    private getListUserPending = async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const idgroup = Number(req.params.id)
             const iduser = Number(req.headers['iduser'])
-            const idUserAddressee = Number(req.params.userId)
-            if (idUserAddressee) {
-                let data = await this.groupService.getInvidualGroup(iduser, idUserAddressee)
+            if (isValidNumberVariable(idgroup)) {
+                let data = await this.groupService.getListUserPending(iduser, idgroup)
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
-                    "OK",
+                    "",
                     data
                 ))
                 return
             }
             next(new BadRequestException("Agurment is invalid"))
-        }
-        catch (e: any) {
-            console.log(e)
+        } catch (e: any) {
             if (e instanceof MyException) {
                 next(new HttpException(e.status, e.message))
                 return
             }
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
+            console.log("🚀 ~ GroupController ~ getListUserPending= ~ e:", e)
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private joinfromLink = async (req: Request, res: Response, next: NextFunction) => {
+
+    private requestJoinFromLink = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'])
-            const idgroup = Number(req.params.id)
-            if (idgroup) {
-                let data = await this.groupService.joinfromLink(iduser, idgroup)
-                res.status(HttpStatus.OK).json(
-                    new ResponseBody(
-                        true,
-                        "",
-                        {}
+            const link = String(req.params.link)
+            if (link) {
+                let data = await this.groupService.requestJoinFromLink(iduser, link)
+                if (data.isJoin && data.message) {
+                    this.io.to(getRoomGroupIO(data.message.idgroup)).emit(EventGroupIO.REQUEST_JOIN_FROM_LINK, data)
+                    res.status(HttpStatus.OK).json(
+                        new ResponseBody(
+                            true,
+                            "You joined the group successfully",
+                            {}
+                        )
                     )
-                )
+                }
+                else {
+                    res.status(HttpStatus.OK).json(
+                        new ResponseBody(
+                            true,
+                            "You in queue and wait for admin approval",
+                            {}
+                        )
+                    )
+                }
                 return
             }
             next(new BadRequestException("Agurment is invalid"))
@@ -148,17 +131,44 @@ export default class GroupController extends MotherController {
         catch (error) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
+            console.log("🚀 ~ GroupController ~ requestJoinFromLink= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    // ?cursor&limit
+    private getBaseInformationGroupFromLink = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const iduser = Number(req.headers['iduser'])
+            const link = req.params.link
+            if (link) {
+                let data = await this.groupService.getBaseInformationGroupFromLink(link)
+                res.status(HttpStatus.OK).json(
+                    new ResponseBody(
+                        true,
+                        "",
+                        data
+                    )
+                )
+                return
+            }
+            next(new BadRequestException("Agurment is invalid"))
+        }
+        catch (e) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
+                return
+            }
+            console.log("🚀 ~ GroupController ~ changeNickname= ~ error:", e)
+            next(new InternalServerError("An error occurred, please try again later."))
+        }
+    }
     private getSomeGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const limit = Number(req.query.limit)
             const cursor = Number(req.query.cursor as string)
             const iduser = Number(req.headers['iduser'] as string)
-            if (validVariable(limit) && validVariable(cursor)) {
+            if (isValidNumberVariable(limit) && isValidNumberVariable(cursor)) {
                 let data = await this.groupService.getSomeGroup(iduser, cursor, limit)
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
@@ -167,6 +177,10 @@ export default class GroupController extends MotherController {
                 ))
             } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong"))
         } catch (error: any) {
+            if (error instanceof MyException) {
+                next(new HttpException(error.status, error.message))
+                return
+            }
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
@@ -200,47 +214,48 @@ export default class GroupController extends MotherController {
         }
 
     }
+    //FIXME: change status group to default or stranger
     private createInvidualGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const idUserAddressee = Number(req.params.userId)
             if (idUserAddressee) {
                 let data = await this.groupService.createInvidualGroup(iduser, idUserAddressee)
-                // FIXME: socker ?
-
+                if (!data.isExisted) {
+                    this.io.to(getRoomUserIO(iduser)).emit(EventGroupIO.CREATE_INDIVIDUAL_GROUP, data)
+                }
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
-                    { groupId: data }
+                    data
                 ))
                 return
             }
 
         }
         catch (e: any) {
-            console.log(e)
             if (e instanceof MyException) {
                 next(new HttpException(e.status, e.message))
                 return
             }
+            console.log("🚀 ~ GroupController ~ createInvidualGroup= ~ e:", e)
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
     private changeAvatarGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
-            const {
-                id
-            } = req.params
-            if (await this.groupService.isContainInGroup(iduser, Number(id))) {
+            const id = Number(req.params.id)
+            if (await this.groupService.isUserExistInGroup(iduser, Number(id))) {
                 let file = req.file;
                 if (file && file.mimetype.includes("image")) {
                     let data = await this.groupService.changeAvatarGroup(iduser, Number(id), file)
-                    this.io.to(id).emit(EVENT_GROUP_SOCKET.CHANGE_AVATAR, data?.url)
+                    this.io.to(getRoomGroupIO(id)).emit(EventGroupIO.CHANGE_AVATAR, { url: data?.url })
+                    this.io.to(getRoomGroupIO(id)).emit(EventMessageIO.NEW_MESSAGE, [data?.message])
                     res.status(HttpStatus.OK).json(new ResponseBody(
                         true,
                         "",
-                        data?.url
+                        {}
                     ))
                     return
                 }
@@ -249,23 +264,25 @@ export default class GroupController extends MotherController {
                     return
                 }
             } else {
-                next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "Bạn không có quyền thực hiện hành động này"))
-                return
+                next(new HttpException(HttpStatus.NOT_ACCEPTABLE, "You don't have permisson for action"))
             }
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
+            console.log("🚀 ~ GroupController ~ changeAvatarGroup= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
+    //edit logic
     private getLastViewMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const {
                 id
             } = req.params
-            if (await this.groupService.isContainInGroup(iduser, Number(id))) {
+            if (await this.groupService.isUserExistInGroup(iduser, Number(id))) {
                 let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
@@ -281,35 +298,36 @@ export default class GroupController extends MotherController {
     private getOneGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
-            const { id } = req.params;
-            if (await this.groupService.isContainInGroup(iduser, Number(id))) {
-                let data = await this.groupService.getOneGroup(Number(id))
-                res.status(HttpStatus.OK).json(new ResponseBody(true, "OK", data))
+            const id = req.params.id;
+            let data = await this.groupService.getOneGroup(iduser, Number(id))
+            res.status(HttpStatus.OK).json(new ResponseBody(true, "OK", data))
+            return
+        } catch (e: any) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
                 return
             }
-            else {
-                next(new HttpException(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"))
-                return
-            }
-        } catch (error: any) {
-            next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
+            console.log("🚀 ~ GroupController ~ changeNickname= ~ error:", e)
+            next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private getAllMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
-            const { id } = req.params;
-            if (await this.groupService.isContainInGroup(iduser, Number(id))) {
-                let data = await this.groupService.getAllMember(Number(id))
+            const id = Number(req.params.id);
+            if (isValidNumberVariable(id)) {
+                let data = await this.groupService.getAllMember(iduser, Number(id))
                 res.status(HttpStatus.OK).json(new ResponseBody(true, "OK", data))
                 return
             }
-            else {
-                next(new HttpException(HttpStatus.FORBIDDEN, "Bạn không có quyền thực hiện hành động này"))
+            next(new BadRequestException("Agurment is invalid"))
+
+        } catch (e: any) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
                 return
             }
-
-        } catch (error: any) {
+            console.log("🚀 ~ GroupController ~ createInvidualGroup= ~ e:", e)
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
@@ -317,38 +335,42 @@ export default class GroupController extends MotherController {
         try {
             const iduser = Number(req.headers['iduser'])
             const idgroup = Number(req.params.id)
-            const idusers: Array<any> = []
-            let isSuccessfully = await this.groupService.inviteMember(iduser, idgroup, idusers)
-            res.status(HttpStatus.OK).send(new ResponseBody(isSuccessfully, "OK", {}))
+            const idusers: Array<number> = req.body.userIds
+            let message = await this.groupService.inviteMember(iduser, idgroup, idusers)
+            if (message.length > 0) {
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [message])
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.UPDATE_MEMBER, [idusers])
+                //add noti for user
+            }
+            res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", {}))
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
             }
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
-    } //FIXME: socket ? 
+    }
     private leaveGroup = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers['iduser'] as string)
-            const {
-                id
-            } = req.params
-            if (await this.groupService.isContainInGroup(iduser, Number(id))) {
-                let isSuccessfully = await this.groupService.leaveGroup(iduser, Number(id))
-                if (isSuccessfully) {
-                    this.io.to(id).emit(EVENT_GROUP_SOCKET.LEAVE_GROUP, iduser);
-                    res.status(HttpStatus.OK).send(new ResponseBody(
-                        true,
-                        "OK",
-                        null
-                    ))
-                }
+            const id = Number(req.params.id)
+            if (isValidNumberVariable(iduser) && isValidNumberVariable(id)) {
+                let message = await this.groupService.leaveGroup(iduser, Number(id))
+                this.io.to(getRoomGroupIO(id)).emit(EventGroupIO.LEAVE_GROUP, iduser);
+                this.io.to(getRoomGroupIO(id)).emit(EventMessageIO.NEW_MESSAGE, [message]);
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    true,
+                    "OK",
+                    null
+                ))
                 return
             }
+            next(new BadRequestException("Agurment is invalid"))
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
             }
+            console.log("🚀 ~ GroupController ~ leaveGroup= ~ error:", error)
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
@@ -357,12 +379,14 @@ export default class GroupController extends MotherController {
             const iduser = Number(req.headers.iduser)
             const invitee = Number(req.body.invitee)
             const idgroup = Number(req.params.id)
-            if (invitee && idgroup && iduser !== invitee) {
+            if (isValidNumberVariable(invitee) && isValidNumberVariable(idgroup) && iduser !== invitee) {
                 //FIXME: socket ?
                 let data = await this.groupService.addManager(iduser, invitee, idgroup)
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.ADD_MANAGER, { userIds: invitee })
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
-                        data,
+                        true,
                         "",
                         {}
                     )
@@ -373,6 +397,7 @@ export default class GroupController extends MotherController {
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -382,12 +407,13 @@ export default class GroupController extends MotherController {
             const iduser = Number(req.headers.iduser)
             const manager = Number(req.body.manager)
             const idgroup = Number(req.params.id)
-            if (manager && idgroup && iduser !== manager) {
-                //FIXME: socket ?
+            if (isValidNumberVariable(manager) && isValidNumberVariable(idgroup) && iduser !== manager) {
                 let data = await this.groupService.removeManager(iduser, manager, idgroup)
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.REMOVE_MANAGER, { userId: manager })
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
-                        data,
+                        true,
                         "",
                         {}
                     )
@@ -398,6 +424,7 @@ export default class GroupController extends MotherController {
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -407,14 +434,15 @@ export default class GroupController extends MotherController {
     ) => {
         try {
             const iduser = Number(req.headers.iduser)
-            const iduserAdd = Number(req.body.member)
+            const iduserAdd = Number(req.params.userId)
             const idgroup = Number(req.params.id)
-            if (iduserAdd && idgroup && iduser !== iduserAdd) {
-                //FIXME: socket ?
+            if (isValidNumberVariable(iduserAdd) && isValidNumberVariable(idgroup) && iduser !== iduserAdd) {
                 let data = await this.groupService.removeMember(iduser, iduserAdd, idgroup)
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.MEMBER_WAS_REMOVE, { userId: iduserAdd })
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
-                        data,
+                        true,
                         "",
                         {}
                     )
@@ -425,6 +453,7 @@ export default class GroupController extends MotherController {
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
@@ -434,12 +463,13 @@ export default class GroupController extends MotherController {
             const iduser = Number(req.headers['iduser'])
             const name = req.body['name']
             const idgroup = Number(req.params.id)
-            if (idgroup) {
-                //FIXME: socket ?
-                let isOK = await this.groupService.renameGroup(iduser, idgroup, name)
+            if (isValidNumberVariable(idgroup)) {
+                let data = await this.groupService.renameGroup(iduser, idgroup, name)
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.RENAME_GROUP, { name: name })
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
-                        isOK,
+                        true,
                         "",
                         {}
                     )
@@ -450,11 +480,12 @@ export default class GroupController extends MotherController {
         catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
 
-    } //FIXME: socker ?
+    } 
     private blockMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers.iduser)
@@ -475,21 +506,24 @@ export default class GroupController extends MotherController {
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
+                return
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
-    } //FIXME: add check OK with POSTMAN
+    }
     private approvalMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers.iduser)
-            const iduserAdd = Number(req.body.member)
+            const iduserAdd = Number(req.params.userId)
             const idgroup = Number(req.params.id)
-            if (iduserAdd && idgroup && iduser !== iduserAdd) {
-                //FIXME: socket ?
+            if (isValidNumberVariable(iduserAdd) && isValidNumberVariable(idgroup) && iduser !== iduserAdd) {
                 let data = await this.groupService.approvalMember(iduser, iduserAdd, idgroup)
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.APPROVAL_MEMBER, { userIds: iduserAdd })
+                this.io.to(getRoomUserIO(iduserAdd)).emit(EventMessageIO.NEW_MESSAGE, [data])
+                //TODO: socket notification to user was approval
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
-                        data,
+                        true,
                         "",
                         {}
                     )
@@ -497,20 +531,22 @@ export default class GroupController extends MotherController {
                 return
             }
             next(new BadRequestException("Agurment is invalid"))
-        } catch (error: any) {
-            if (error instanceof MyException) {
-                next(new HttpException(error.status, error.message))
+        } catch (e: any) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
+                return
             }
+            console.log("🚀 ~ GroupController ~ approvalMember= ~ e:", e)
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
     private getInformationMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const iduser = Number(req.headers.iduser)
-            const idmember = Number(req.params.idmember)
+            const userId = Number(req.params.userId)
             const idgroup = Number(req.params.idgroup)
-            if (validVariable(idmember) && validVariable(idgroup)) {
-                let data = await this.groupService.getInformationMember(iduser, idmember, idgroup)
+            if (isValidNumberVariable(userId) && isValidNumberVariable(idgroup)) {
+                let data = await this.groupService.getInformationMember(iduser, userId, idgroup)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody<User>(
                         true,
@@ -525,8 +561,59 @@ export default class GroupController extends MotherController {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
                 return
-            } 
+            }
             console.log("🚀 ~ GroupController ~ getInformationMember= ~ error:", error)
+            next(new InternalServerError("An error occurred, please try again later."))
+        }
+    }
+    private changeNickname = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            let nickname = req.body.nickname
+            const iduser = Number(req.headers.iduser)
+            const idgroup = Number(req.params.id)
+            if (nickname && isValidNumberVariable(iduser) && isValidNumberVariable(idgroup)) {
+                let data = await this.groupService.changeNickname(iduser, iduser, idgroup, nickname)
+                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.CHANGE_NICKNAME, data)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        true,
+                        "",
+                        {}
+                    )
+                )
+            }
+        }
+        catch (e: any) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
+                return
+            }
+            console.log("🚀 ~ GroupController ~ changeNickname= ~ error:", e)
+            next(new InternalServerError("An error occurred, please try again later."))
+        }
+    }
+    // TODO: delete group
+    private deleteGroup = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = Number(req.params.id)
+            const iduser = Number(req.headers.iduser)
+            if (isValidNumberVariable(id)) {
+                let data = await this.groupService.deleteGroup(iduser, id)
+                res.status(HttpStatus.OK).send(
+                    new ResponseBody(
+                        true,
+                        "",
+                        {}
+                    )
+                )
+            }
+        }
+        catch (e: any) {
+            if (e instanceof MyException) {
+                next(new HttpException(e.status, e.message))
+                return
+            }
+            console.log("🚀 ~ GroupController ~ changeNickname= ~ error:", e)
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }

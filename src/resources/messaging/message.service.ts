@@ -24,6 +24,15 @@ export default class MessageService implements iMessageServiceBehavior {
 
     constructor(@inject(MessageRepository) private messageRepository: iMessageRepositoryBehavior) {
     }
+    async getOneMessage(idmessage: number): Promise<Message> {
+        let message = await TransformMessage.fromRawData(await this.messageRepository.getOneMessage(idmessage), async (id: string) => {
+            return await CloudDrive.gI().getUrlFile(id)
+        })
+        message.reacts = await this.getAllReactFromMessage(message.idmessage)
+        message.tags = await this.getAllTagFromMessage(message.idmessage)
+        message.manipulates = await this.getAllManipulateUser(message.idmessage)
+        return message;
+    }
     async getAllManipulateUser(idmessage: number): Promise<User[]> {
         return (await this.messageRepository.getAllManipulateUser(idmessage)).map((value: any, index: number, array: any[]) => {
             return User.fromRawData(value)
@@ -62,7 +71,7 @@ export default class MessageService implements iMessageServiceBehavior {
                 return await this.messageRepository.changeStatusMessage(idmessgae, MessageStatus.DEL_BY_ADMIN)
 
         }
-        throw new MyException("Bạn không có quyền này").withExceptionCode(HttpStatus.FORBIDDEN)
+        throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async changePinMessage(idmessage: number, iduser: number, isPin: number): Promise<boolean> {
         if (0 === isPin || isPin === 1) {
@@ -71,9 +80,9 @@ export default class MessageService implements iMessageServiceBehavior {
         else throw new MyException("Tham số không hợp lệ")
     }
     async reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup: number): Promise<Reaction> {
-        let memberInfor: MemberInfo = container.resolve(GroupService)
+        let memberInfor: iInformationMember = container.resolve(GroupService)
         if (await this.messageRepository.isMessageContainInGroup(idmessage, idgroup)) {
-            if (await memberInfor.isContainInGroup(iduser, idgroup)) {
+            if (await memberInfor.isUserExistInGroup(iduser, idgroup)) {
                 return TransformReaction.rawToModel(
                     await this.messageRepository.reactMessage(idmessage, react, iduser, idgroup)
                 )
@@ -94,16 +103,17 @@ export default class MessageService implements iMessageServiceBehavior {
     async sendTextMessage(idgroup: number, iduser: number, content: string, tags: Array<number>) {
         let group: iInformationMember = container.resolve(GroupService)
         for (let tag of tags) {
-            if (!await group.isContainInGroup(tag, idgroup)) {
+            if (!await group.isUserExistInGroup(tag, idgroup)) {
                 throw new MyException("Wrong argument").withExceptionCode(HttpStatus.BAD_REQUEST)
             }
         }
         let raw = await this.messageRepository.sendTextMessage(idgroup, iduser, content, tags)
         return TransformMessage.fromRawData(raw)
     }
+    //FIXME: edit logic bigO
     async getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO> {
         let groupAuthor: iInformationMember = container.resolve(GroupService)
-        if (await groupAuthor.isContainInGroup(iduser, idgroup)) {
+        if (await groupAuthor.isUserExistInGroup(iduser, idgroup)) {
             let data = await this.messageRepository.getAllMessageFromGroup(idgroup, cursor, limit)
             let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
                 return await CloudDrive.gI().getUrlFile(id)

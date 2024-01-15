@@ -1,3 +1,3 @@
-export default function validVariable(yourVariable: number): boolean {
+export default function isValidNumberVariable(yourVariable: number): boolean {
     return yourVariable !== null && yourVariable !== undefined && !isNaN(yourVariable)
 }
