@@ -124,10 +124,8 @@
       }
     ```
 
-  ```
 
-  ```
-
+    
 - `[GET] /:id`: get một group.
 - `[POST] /individual-group/:userId`: tạo cuộc trò chuyện cá nhân (socket tới userId, nhận được socket này thì bắn socket join-group).
   - result: { groupId : number, isExisted : boolean }
@@ -235,13 +233,6 @@
 - `[POST] /:link/request-join `: nếu join thành công thì emit tới group hoặc là vào hàng đợi pending chờ duyệt hoặc là đã tham gia hoặc bị block ở group sẽ trả lỗi
   - io.emit("request-join-from-link", message (notify) )
 - `[GET] /:id/queue-wait`: lấy danh sách đang chờ duyệt
-
-  - res:
-
-    - ```
-
-      ```
-
     - res:
 
     ```
@@ -255,10 +246,6 @@
             "inforMember": User
         }
     ]
-    ```
-
-    ```
-
     ```
 - `[POST] /admin/:id/approval/:userId`: duyệt thành viên
   - io.emit('approval-member' , {userIds : number})
