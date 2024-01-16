@@ -36,7 +36,6 @@
     "mysql2": "^2.3.3",
     "nodemailer": "^6.7.8",
     "rand-token": "^1.0.1",
-    "redis": "^4.6.5",
     "reflect-metadata": "^0.2.1",
     "socket.io": "^4.5.1",
     "ts-google-drive": "^0.0.6",

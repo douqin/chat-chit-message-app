@@ -1,3 +1,4 @@
 # chat-chit-message-app
-- run in cmd:
-  - docker compose up -d
+
+- run in terminal:
+  - docker compose up --build

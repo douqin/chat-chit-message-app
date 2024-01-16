@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: mysql-server
--- Generation Time: Jan 13, 2024 at 06:44 AM
+-- Generation Time: Jan 16, 2024 at 10:33 AM
 -- Server version: 8.2.0
--- PHP Version: 8.2.12
+-- PHP Version: 8.2.14
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -29,13 +29,13 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `groupchat` (
   `idgroup` int NOT NULL,
-  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `createat` datetime NOT NULL,
   `status` int NOT NULL,
-  `avatar` char(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `avatar` char(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `type` int NOT NULL,
-  `link` varchar(12) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `role` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
+  `link` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `role` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -122,7 +122,7 @@ CREATE TABLE `member` (
   `position` int DEFAULT '0',
   `status` int NOT NULL DEFAULT '0',
   `timejoin` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `nickname` varchar(100) COLLATE utf8mb4_general_ci NOT NULL
+  `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -149,7 +149,7 @@ INSERT INTO `member` (`id`, `idgroup`, `iduser`, `lastview`, `position`, `status
 
 CREATE TABLE `message` (
   `idmessage` int NOT NULL,
-  `content` char(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `content` char(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `createat` datetime NOT NULL,
   `type` int NOT NULL,
   `status` int NOT NULL DEFAULT '0',
@@ -225,7 +225,7 @@ CREATE TABLE `story` (
   `idstory` int NOT NULL,
   `iduserowner` int NOT NULL,
   `createat` datetime DEFAULT CURRENT_TIMESTAMP,
-  `content` varchar(70) COLLATE utf8mb4_general_ci NOT NULL
+  `content` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -260,7 +260,7 @@ CREATE TABLE `tagged_member` (
 
 CREATE TABLE `token` (
   `id` int NOT NULL,
-  `refreshtoken` char(200) COLLATE utf8mb4_general_ci NOT NULL,
+  `refreshtoken` char(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `iduser` int NOT NULL,
   `notificationtoken` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -299,18 +299,18 @@ INSERT INTO `token` (`id`, `refreshtoken`, `iduser`, `notificationtoken`) VALUES
 
 CREATE TABLE `user` (
   `iduser` int NOT NULL,
-  `email` char(30) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `phone` char(15) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` char(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` char(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone` char(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `password` char(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `lastname` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '',
   `birthday` datetime NOT NULL,
   `gender` int NOT NULL,
-  `avatar` char(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `background` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `firstname` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `bio` varchar(40) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `avatar` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `background` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `firstname` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `bio` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `username` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `address` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `address` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `isOnline` int NOT NULL DEFAULT '0',
   `isActive` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
