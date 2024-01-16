@@ -2,7 +2,10 @@ version: '3'
 
 services:
  api:
-  image: douqin/node-server-app-chat-chit:dev-v1.1.3
+  # image: douqin/node-server-app-chat-chit:dev-v1.1.3
+  build:
+   context: ./server-app-chat-chit/
+   dockerfile: Dockerfile
   container_name: chat-chit-node-api
   environment:
    - DATABASE_PORT=3306
@@ -34,7 +37,7 @@ services:
    - ./mysql:/docker-entrypoint-initdb.d
 
  phpmyadmin:
-  image: phpmyadmin
+  image: phpmyadmin:5
   container_name: phpmyadmin-container
   restart: always
   ports:
