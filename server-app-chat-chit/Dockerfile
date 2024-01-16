@@ -1,19 +1,23 @@
-FROM node:20-alpine
+FROM node:20-alpine 
 
-WORKDIR /user/src/app
+# Create app directory
+WORKDIR /usr/src/app
 
-COPY package*.json /user/src/app/
+COPY .env .env
 
-RUN npm install 
+# Install app dependencies
+COPY package*.json ./
+
+# RUN npm ci --production
+RUN npm ci
+
+COPY . .
 
 RUN npm run build
 
-COPY ./dist/ .
+# ENV NODE_ENV production
 
-COPY .env .
+# USER node
 
-COPY chat-chit-vn-firebase-adminsdk-s5ov2-a6005a3a63.json .
-
-EXPOSE 3000
-
-CMD ["node", "server.js"]
+EXPOSE 8080
+CMD [ "node", "dist/server.js" ]
