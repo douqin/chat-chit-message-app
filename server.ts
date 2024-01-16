@@ -11,8 +11,6 @@ moduleAlias.addAliases({
 
 import App from "./src/main.application";
 import validateEnv from "./src/utils/validateEnv";
-import { RegisterModuleController } from '@/utils/extension/controller.container.module';
-import controllers from '@/resources/module.controller';
 require('dotenv').config()
 validateEnv();
 App.gI().listen();

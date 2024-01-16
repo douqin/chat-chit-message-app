@@ -1,19 +1,24 @@
 import { HttpStatus } from './utils/extension/httpstatus.exception';
-import express, { Application } from "express";
+import express, { Application, NextFunction, Response, Request } from "express";
 import MotherController from "@/utils/interface/controller.interface";
 import ErrorMiddleware from "@/middleware/error.midleware";
 import helmet from "helmet";
+import cors from "cors";
 import compression from "compression";
 import morgan from "morgan";
 import { Server } from "socket.io";
 import bodyParser from "body-parser";
 import SocketBuilder from './config/socketio/socket.builder'
 import { ResponseBody } from './utils/definition/http.response';
-import { Database, MySqlBuilder } from './config/database/database';
+import { Database, MySqlBuilder, iDatabase } from './config/database/database';
 import { DatabaseCache } from './config/database/redis';
 import { container } from 'tsyringe';
 import { RegisterModuleController } from './utils/extension/controller.container.module';
 import ModuleController from './resources/module.controller';
+import { IRouteDefinition } from './utils/decorator/http.method/router.definition.interface';
+import multer from 'multer';
+import { constructor } from 'tsyringe/dist/typings/types';
+import { BaseMiddleware } from './middleware/base.middleware';
 class App {
     private server: any
     private io: Server
@@ -45,10 +50,31 @@ class App {
         this.express.use(ErrorMiddleware);
     }
     private initaliseController(controllers: MotherController[]) {
-
         controllers.forEach((controller: MotherController) => {
-            controller.initRouter();
-            this.express.use(controller.pathMain, controller.router);
+
+            // controller.initRouter();
+            // this.express.use(controller.pathMain, controller.router);
+
+            // Tương tự, lất ra tất cả các `routes`
+            const routes: IRouteDefinition[] = Reflect.getMetadata('routes', controller) || [];
+            console.log("🚀 ~ App ~ controllers.forEach ~ routes:", routes)
+
+            // Duyệt qua tất cả các routes và đăng ký chúng với express
+
+            routes.forEach((route) => {
+                const multerX = Reflect.getMetadata('multer', (controller as any)[route.methodName]) || undefined;
+                let middlewares: constructor<BaseMiddleware>[] = Reflect.getMetadata('middlewares', (controller as any)[route.methodName]) || []
+                if (multerX)
+                    this.express[route.requestMethod](controller.pathMain + route.path, multerX, middlewareDecorator(middlewares), (req: Request, res: Response, next: NextFunction) => {
+                        (controller as any)[route.methodName](req, res, next);
+                    });
+                else
+                    this.express[route.requestMethod](controller.pathMain + route.path, middlewareDecorator(middlewares), (req: Request, res: Response, next: NextFunction) => {
+                        // Thực thi phương thức xử lý request, truyền vào là request và response
+                        (controller as any)[route.methodName](req, res, next);
+                    });
+            });
+
         });
         this.express.use((
             req,
@@ -65,32 +91,7 @@ class App {
     }
     private initaliseMiddleware() {
         this.express.use(helmet());
-        this.express.use(function (req, res, next) {
-            // Website you wish to allow to connect
-            res.setHeader('Access-Control-Allow-Origin', "http://localhost:3003");
-        
-            // Request methods you wish to allow
-            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-        
-            // Request headers you wish to allow
-            res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type, Authorization');
-        
-            // Set to true if you need the website to include cookies in the requests sent
-            // to the API (e.g. in case you use sessions)
-            res.setHeader('Access-Control-Allow-Credentials', 'true');
-        
-            if (req.method === 'OPTIONS') {
-                return res.sendStatus(200);
-            }
-            // Pass to next layer of middleware
-            next();
-        });
-        // this.express.use(cors({
-        //     origin: 'http://localhost:3003',
-        //     credentials: true,
-        //     optionsSuccessStatus: 200
-        // }));
-
+        this.express.use(cors());
         this.express.use(morgan('dev'));
         this.express.use(bodyParser.json());
         this.express.use(bodyParser.urlencoded({ extended: true }));
@@ -99,7 +100,7 @@ class App {
     }
     private initaliseDatabase() {
         container.register<Database>(Database, { useValue: new MySqlBuilder().initPool().build() })
-        // DatabaseCache.getInstance()
+        DatabaseCache.getInstance()
     }
     public listen(): void {
         this.server.listen(this.port, () => {
@@ -111,3 +112,17 @@ class App {
     }
 }
 export default App;
+function middlewareDecorator(middlewares: constructor<BaseMiddleware>[]) {
+    let _middlewares = middlewares;
+    return (req: Request, res: Response, next: NextFunction) => {
+        console.log("🚀 ~ a ~ middlewares:", middlewares)
+        if (middlewares.length == 0) {
+            next()
+            return
+        }
+        for (let i = 0; i < _middlewares.length; i++) {
+            let a = container.resolve(_middlewares[i]).use(req, res, next)
+        }
+    }
+    // return a
+}

@@ -3,7 +3,6 @@ import { Server } from "socket.io";
 import RelationService from "./relation.service";
 import Controller from "@/utils/decorator/controller";
 import { NextFunction, Request, Response } from "express";
-import AuthMiddleware from "@/middleware/auth.middleware";
 import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
@@ -13,6 +12,12 @@ import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { User } from "@/models/user.model";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
+import { GET } from "@/utils/decorator/http.method/get";
+import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
+import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
+import { PATCH } from "@/utils/decorator/http.method/patch";
+import { POST } from "@/utils/decorator/http.method/post";
+import { DELETE } from "@/utils/decorator/http.method/delete";
 
 @Controller("/relationship")
 export default class RelationshipController extends MotherController {
@@ -20,21 +25,10 @@ export default class RelationshipController extends MotherController {
     constructor(@inject(Server) io: Server, @inject(RelationService) private relationService: RelationService) {
         super(io);
     }
-    initRouter(): MotherController {
-        this.router.get("/friends", AuthMiddleware.auth, this.getAllFriend);
-        this.router.get("/invites/me", AuthMiddleware.auth, this.getAllInvite)
-        this.router.patch("/:iduser/unfriend", AuthMiddleware.auth, multer().none(), this.unFriend);
-        this.router.post("/invites/me/:userId", AuthMiddleware.auth, multer().none(), this.inviteToBecomeFriend)
-        this.router.post("/accept", AuthMiddleware.auth, multer().none(), this.acceptInviteFriend);
-        this.router.delete("/invites/:invite", AuthMiddleware.auth, multer().none(), this.deleteInvite)
-        this.router.delete("/invites/me/:invite/", AuthMiddleware.auth, multer().none(), this.deleteMySentInvite)
-        this.router.get("/:iduser/relation", AuthMiddleware.auth, this.getRelationship)
-        this.router.get("/friends/online", AuthMiddleware.auth, this.getFriendOnline)
-        this.router.post("/:iduser/block", AuthMiddleware.auth, this.blockUser)
-        return this;
 
-    }
-    private blockUser = async (req: Request, res: Response, next: NextFunction) => {
+    @POST("/:iduser/block")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async blockUser(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserBlock = Number(req.params.iduser)
@@ -56,11 +50,13 @@ export default class RelationshipController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private getAllFriend = async (
+    @GET("/friends")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getAllFriend(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             const iduser = Number(req.headers.iduser)
             const cursor = Number(req.query.cursor)
@@ -88,12 +84,14 @@ export default class RelationshipController extends MotherController {
             }
             next(new InternalServerError("An error occurred, please try again later."))
         }
-    };
-    private getAllInvite = async (
+    }
+    @GET("/invites/me")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getAllInvite(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             const cursor = Number(req.query.cursor)
             const limit = Number(req.query.limit)
@@ -115,7 +113,9 @@ export default class RelationshipController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     };
-    private unFriend = async (req: Request, res: Response, next: NextFunction) => {
+    @PATCH("/:iduser/unfriend")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async unFriend(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserUnFriend = Number(req.params.iduser)
@@ -135,11 +135,13 @@ export default class RelationshipController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     };
-    private inviteToBecomeFriend = async (
+    @POST("/invites/me/:userId")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async inviteToBecomeFriend(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             let iduser = Number(req.headers["iduser"]);
             let idreceiver = Number(req.params.userId)
@@ -173,11 +175,13 @@ export default class RelationshipController extends MotherController {
             );
         }
     };
-    private acceptInviteFriend = async (
+    @POST("/accept")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async acceptInviteFriend(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             const iduser: number = Number(req.headers.iduser)
             const idInvite: number = Number(req.body.idInvite)
@@ -210,11 +214,13 @@ export default class RelationshipController extends MotherController {
             );
         }
     };
-    private deleteInvite = async (
+    @DELETE("/invites/:invite")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async deleteInvite(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             const iduser = Number(req.headers.iduser)
             const idInvite = Number(req.params.invite)
@@ -243,11 +249,13 @@ export default class RelationshipController extends MotherController {
             );
         }
     };
-    private deleteMySentInvite = async (
+    @DELETE("/invites/me/:invite/")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async deleteMySentInvite(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             const iduser = Number(req.headers.iduser)
             const idInvite = Number(req.body.invite)
@@ -265,7 +273,9 @@ export default class RelationshipController extends MotherController {
 
         }
     };
-    private getRelationship = async (req: Request, res: Response, next: NextFunction) => {
+    @GET("/:iduser/relation")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getRelationship(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserWGet = Number(req.params.iduser)
@@ -289,7 +299,9 @@ export default class RelationshipController extends MotherController {
             else next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private getFriendOnline = async (req: Request, res: Response, next: NextFunction) => {
+    @GET("/friends/online")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getFriendOnline(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const data: User[] = await this.relationService.getFriendOnline(iduser)

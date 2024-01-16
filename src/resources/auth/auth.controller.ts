@@ -2,19 +2,19 @@ import MotherController from "@/utils/interface/controller.interface"
 import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { NextFunction, Response, Request } from "express";
-import { Server, Socket } from "socket.io";
-import LoginMiddleware from "./middleware/auth.validation";
+import { Server } from "socket.io";
 import AuthService from "./auth.service";
 import Controller from "@/utils/decorator/controller";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
-import AuthMiddleware from "@/middleware/auth.middleware";
 import MyException from "@/utils/exceptions/my.exception";
 import Gender from "./enums/gender.enum";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { JsonWebTokenError, JwtPayload, NotBeforeError, TokenExpiredError } from "jsonwebtoken";
 import { container, inject } from "tsyringe";
 import { JwtService } from "../../component/jwt/jwt.service";
+import { POST } from "@/utils/decorator/http.method/post";
+import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
 
 @Controller("/auth")
 export default class AuthController extends MotherController {
@@ -23,41 +23,15 @@ export default class AuthController extends MotherController {
         super(io);
     }
 
-    initRouter(): MotherController {
 
-        this.router.post(
-            "/login",
-            multer().none(),
-            // LoginMiddleware.checkAuth(),
-            this.login
-        )
-        this.router.post(
-            "/refreshtoken",
-            multer().none(),
-            this.getNewAccessToken
-        )
-        this.router.post(
-            "/register",
-            multer().none(),
-            LoginMiddleware.checkAuth(),
-            this.registerAccount
-        )
-        this.router.post(
-            "/logout",
-            multer().none(),
-            AuthMiddleware.auth,
-            this.logout
-        )
-        return this
-    }
-
-    private login = async (
+    @POST("/login")
+    @FileUpload(multer().none())
+    private async login(
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> => {
+    ): Promise<Response | void> {
         try {
-            console.log("🚀 ~ file: auth.controller.ts:71 ~ AuthController ~ login ~ req.body", req.body)
             const phone = String(req.body.phone)
             const password = String(req.body.password)
             const notificationToken = String(req.body.notification)
@@ -83,9 +57,11 @@ export default class AuthController extends MotherController {
             next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }
-    private registerAccount = async (
+    @POST("/register")
+    @FileUpload(multer().none())
+    private async registerAccount(
         req: Request, res: Response, next: NextFunction
-    ) => {
+    ) {
         try {
             const firstname = req.body.firstname
             const phone = req.body.phone
@@ -122,11 +98,13 @@ export default class AuthController extends MotherController {
             next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }
-    private logout = async (
+
+    @POST("/logout")
+    private async logout(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             let iduser = Number(req.headers['iduser'])
             let refreshToken = req.body.refreshToken
@@ -148,43 +126,45 @@ export default class AuthController extends MotherController {
             next(next(new InternalServerError("An error occurred, please try again later.")))
         }
     }
-    private getNewAccessToken = async (
+
+    @POST("/refreshtoken")
+    private async getNewAccessToken(
         req: Request,
         res: Response,
         next: NextFunction
-    ): Promise<Response | void> => {
-        try {
-            const refreshToken = String(req.body.refreshtoken)
-            let token = req.headers["authorization"] as string
-            const jwtPayload = await container.resolve(JwtService).decodeRefreshToken(refreshToken) as JwtPayload;
-            const { iduser } = jwtPayload.payload;
-            if (iduser && refreshToken && token) {
-                let newAccessToken = await this.authService.getNewAccessToken(iduser, token, refreshToken)
-                res.status(HttpStatus.OK).json(new ResponseBody(
-                    true,
-                    "",
-                    {
-                        accessToken: newAccessToken
-                    }
-                ))
-                return
-            }
-            next(new BadRequestException("Agurment is invalid"))
+    ): Promise<Response | void> {
+    try {
+        const refreshToken = String(req.body.refreshtoken)
+        let token = req.headers["authorization"] as string
+        const jwtPayload = await container.resolve(JwtService).decodeRefreshToken(refreshToken) as JwtPayload;
+        const { iduser } = jwtPayload.payload;
+        if (iduser && refreshToken && token) {
+            let newAccessToken = await this.authService.getNewAccessToken(iduser, token, refreshToken)
+            res.status(HttpStatus.OK).json(new ResponseBody(
+                true,
+                "",
+                {
+                    accessToken: newAccessToken
+                }
+            ))
+            return
         }
-        catch (e) {
-            if (e instanceof MyException) {
-                next(new HttpException(e.status, e.message))
-            } else if (e instanceof TokenExpiredError) {
-                next(new BadRequestException("Token expired"))
-            } else if (e instanceof JsonWebTokenError) {
-                next(new BadRequestException("Token invalid"))
-            } else if (e instanceof NotBeforeError) {
-                next(new BadRequestException("Token invalid"))
-            }
-            console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e)
-            next(next(new InternalServerError("An error occurred, please try again later.")))
-        }
+        next(new BadRequestException("Agurment is invalid"))
     }
+    catch (e) {
+        if (e instanceof MyException) {
+            next(new HttpException(e.status, e.message))
+        } else if (e instanceof TokenExpiredError) {
+            next(new BadRequestException("Token expired"))
+        } else if (e instanceof JsonWebTokenError) {
+            next(new BadRequestException("Token invalid"))
+        } else if (e instanceof NotBeforeError) {
+            next(new BadRequestException("Token invalid"))
+        }
+        console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e)
+        next(next(new InternalServerError("An error occurred, please try again later.")))
+    }
+}
     // TODO: confirm account
     // TODO: reset otp: confirm account
 }

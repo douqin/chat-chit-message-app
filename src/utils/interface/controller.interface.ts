@@ -12,5 +12,4 @@ export default abstract class MotherController {
             
         })
     }
-    abstract initRouter(): MotherController
 }
