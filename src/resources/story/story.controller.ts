@@ -1,4 +1,4 @@
-import AuthMiddleware from "@/middleware/auth.middleware";
+import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
 import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
@@ -8,28 +8,29 @@ import { Response, Request, NextFunction } from "express";
 import multer from "multer";
 import { Server } from "socket.io";
 import isValidNumberVariable from "@/utils/extension/vailid_variable";
-import { inject} from "tsyringe";
+import { inject } from "tsyringe";
 import Controller from "@/utils/decorator/controller";
 import StoryService from "./story.service";
+import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
+import { GET } from "@/utils/decorator/http.method/get";
+import { POST } from "@/utils/decorator/http.method/post";
+import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
+import { DELETE } from "@/utils/decorator/http.method/delete";
 
-@Controller("story")
+@Controller("/story")
 export default class StoryController extends MotherController {
-    
+
     constructor(@inject(Server) io: Server, @inject(StoryService) private storyService: StoryService) {
         super(io);
     }
 
     initRouter(): MotherController {
-        this.router.get("/:idstory/react", AuthMiddleware.auth, this.reacStory)
-        this.router.get("", AuthMiddleware.auth, this.getAllStoryFromFriends)
-        this.router.post("/upload", AuthMiddleware.auth, multer().single("story"), this.uploadStory)
-        this.router.delete("/delete", AuthMiddleware.auth, multer().none(), this.deleteStory)
-        this.router.post("/see", AuthMiddleware.auth, multer().none(), this.seeStoryFriend)
-        this.router.post("/getviewedstory", AuthMiddleware.auth, multer().none(), this.getViewedStory)
         return this;
     }
     // upload story
-    private uploadStory = async (req: Request, res: Response, next: NextFunction) => {
+    @POST("/upload")
+    @FileUpload(multer().single("story"))
+    private async uploadStory(req: Request, res: Response, next: NextFunction) {
         try {
             if (req.file) {
                 const iduser = Number(req.headers['iduser'] as string)
@@ -62,8 +63,9 @@ export default class StoryController extends MotherController {
             );
         }
     }
-    // get story friends
-    private getAllStoryFromFriends = async (req: Request, res: Response, next: NextFunction) => {
+    @GET('')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getAllStoryFromFriends(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             let story = await this.storyService.getAllStoryFromFriends(iduser)
@@ -91,7 +93,9 @@ export default class StoryController extends MotherController {
         }
     }
     // del story
-    private deleteStory = async (req: Request, res: Response, next: NextFunction) => {
+    @DELETE("/delete")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async deleteStory(req: Request, res: Response, next: NextFunction) {
         try {
             let idstory = Number(req.body.idstory)
             const iduser = Number(req.headers['iduser'] as string)
@@ -121,7 +125,9 @@ export default class StoryController extends MotherController {
         }
     }
     // seen story
-    private seeStoryFriend = async (req: Request, res: Response, next: NextFunction) => {
+    @POST("/see")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async seeStoryFriend(req: Request, res: Response, next: NextFunction) {
         try {
             let idstory = Number(req.params.idstory)
             if (isValidNumberVariable(idstory)) {
@@ -157,8 +163,9 @@ export default class StoryController extends MotherController {
             );
         }
     }
-
-    private getViewedStory = async (req: Request, res: Response, next: NextFunction) => {
+    @GET("/getviewedstory")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getViewedStory(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             let story = await this.storyService.getViewedStory(iduser)
@@ -186,8 +193,9 @@ export default class StoryController extends MotherController {
             );
         }
     }
-
-    private reacStory = async (req: Request, res: Response, next: NextFunction) => {
+    @GET("/:idstory/react")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async reacStory(req: Request, res: Response, next: NextFunction) {
         try {
             let idstory = Number(req.params.idstory)
             let react = Number(req.body.react)

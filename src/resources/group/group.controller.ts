@@ -10,7 +10,7 @@ import iGroupServiceBehavior from "@/resources/group/interface/group.service.int
 import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
-import AuthMiddleware from "@/middleware/auth.middleware";
+import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
 import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { User } from "../../models/user.model";
 import { EventGroupIO } from "./constant/group.constant";
@@ -19,63 +19,21 @@ import { inject } from "tsyringe";
 import { getRoomUserIO } from "@/utils/extension/room.user";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "../messaging/constant/event.io";
+import { GET } from "@/utils/decorator/http.method/get";
+import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
+import { POST } from "@/utils/decorator/http.method/post";
+import { PATCH } from "@/utils/decorator/http.method/patch";
+import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
+import { DELETE } from "@/utils/decorator/http.method/delete";
 @Controller("/group")
 export default class GroupController extends MotherController {
     constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
         super(io)
     }
 
-    initRouter(): MotherController {
-        this.router.get('/',
-            AuthMiddleware.auth,
-            this.getSomeGroup
-        )
-        this.router.get('/:id/community-group',
-            AuthMiddleware.auth,
-            this.getOneGroup
-        )
-        this.router.post('/community-group',
-            multer().none(),
-            AuthMiddleware.auth,
-            this.createCommunityGroup
-        )
-        this.router.post('/individual-group/:userId',
-            multer().none(),
-            AuthMiddleware.auth,
-            this.createInvidualGroup
-        )
-        this.router.patch("/:id/avatar",
-            multer().single("avatar"),
-            AuthMiddleware.auth,
-            this.changeAvatarGroup)
-        this.router.post("/:id/lastview",
-            multer().none(), AuthMiddleware.auth,
-            this.getLastViewMember)
-        this.router.get("/:id/members", AuthMiddleware.auth, this.getAllMember)
-        this.router.post("/:id/invite-members", multer().none(), AuthMiddleware.auth, this.inviteMember)
-        this.router.post("/:id/members/leave", multer().none(), AuthMiddleware.auth, this.leaveGroup)
-        this.router.post("/:link/request-join", multer().none(), AuthMiddleware.auth, this.requestJoinFromLink)
-        this.router.get("/:link", multer().none(), AuthMiddleware.auth, this.getBaseInformationGroupFromLink)
-        this.router.patch("/admin/:id/rename", multer().none(), AuthMiddleware.auth,// AuthMiddleware.authAdmin,
-            this.renameGroup)
-        this.router.delete('/admin/:id/manager', multer().none(), AuthMiddleware.auth,
-            // AuthMiddleware.authAdmin,
-            this.removeManager)
-        this.router.patch('/admin/:id/manager', multer().none(), AuthMiddleware.auth,// AuthMiddleware.authAdmin
-            this.addManager)
-        this.router.delete('/admin/:id/member/:userId', multer().none(), AuthMiddleware.auth,
-            // AuthMiddleware.authAdmin,
-            this.removeMember)
-        this.router.patch('/admin/:id/blockmember', multer().none(), AuthMiddleware.auth,
-            // AuthMiddleware.authAdmin,
-            this.blockMember)
-        this.router.get('/:idgroup/member/:userId/', AuthMiddleware.auth, this.getInformationMember)
-        this.router.patch("/:id/renickname", AuthMiddleware.auth, this.changeNickname)
-        this.router.post("/admin/:id/approval/:userId", AuthMiddleware.auth, this.approvalMember)
-        this.router.post("/:id/admin/pending", AuthMiddleware.auth, this.getListUserPending)
-        return this
-    }
-    private getListUserPending = async (req: Request, res: Response, next: NextFunction) => {
+    @POST('/:id/admin/pending')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getListUserPending(req: Request, res: Response, next: NextFunction) {
         try {
             const idgroup = Number(req.params.id)
             const iduser = Number(req.headers['iduser'])
@@ -98,8 +56,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-
-    private requestJoinFromLink = async (req: Request, res: Response, next: NextFunction) => {
+    @POST("/:link/request-join")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async requestJoinFromLink(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'])
             const link = String(req.params.link)
@@ -137,7 +96,10 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private getBaseInformationGroupFromLink = async (req: Request, res: Response, next: NextFunction) => {
+
+    @GET("/:link")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getBaseInformationGroupFromLink(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'])
             const link = req.params.link
@@ -163,7 +125,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private getSomeGroup = async (req: Request, res: Response, next: NextFunction) => {
+    @GET("/")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getSomeGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const limit = Number(req.query.limit)
             const cursor = Number(req.query.cursor as string)
@@ -184,7 +148,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private createCommunityGroup = async (req: Request, res: Response, next: NextFunction) => {
+    @POST('/community-group')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async createCommunityGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const name = String(req.body.name)
@@ -215,7 +181,9 @@ export default class GroupController extends MotherController {
 
     }
     //FIXME: change status group to default or stranger
-    private createInvidualGroup = async (req: Request, res: Response, next: NextFunction) => {
+    @POST('/individual-group/:userId')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async createInvidualGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const idUserAddressee = Number(req.params.userId)
@@ -242,7 +210,10 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private changeAvatarGroup = async (req: Request, res: Response, next: NextFunction) => {
+    @PATCH('/:id/avatar')
+    @FileUpload(multer().single("avatar"))
+    @UseMiddleware(AuthorizeMiddleware)
+    private async changeAvatarGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const id = Number(req.params.id)
@@ -275,8 +246,11 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    //edit logic
-    private getLastViewMember = async (req: Request, res: Response, next: NextFunction) => {
+
+    //FIXME:  logic
+    @GET('/:id/lastview')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getLastViewMember(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const {
@@ -295,7 +269,9 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private getOneGroup = async (req: Request, res: Response, next: NextFunction) => {
+    @GET('/:id/community-group')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getOneGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const id = req.params.id;
@@ -311,7 +287,10 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private getAllMember = async (req: Request, res: Response, next: NextFunction) => {
+
+    @GET('/:id/members')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getAllMember(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const id = Number(req.params.id);
@@ -331,7 +310,8 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private inviteMember = async (req: Request, res: Response, next: NextFunction) => {
+    @POST('/:id/invite-members')
+    private async inviteMember(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'])
             const idgroup = Number(req.params.id)
@@ -350,7 +330,9 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private leaveGroup = async (req: Request, res: Response, next: NextFunction) => {
+    @POST('/:id/members/leave')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async leaveGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'] as string)
             const id = Number(req.params.id)
@@ -374,7 +356,9 @@ export default class GroupController extends MotherController {
             next(new HttpException(HttpStatus.BAD_REQUEST, "Có lỗi xảy ra vui lòng thử lại sau"))
         }
     }
-    private addManager = async (req: Request, res: Response, next: NextFunction) => {
+    @PATCH('/admin/:id/manager')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async addManager(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const invitee = Number(req.body.invitee)
@@ -402,7 +386,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private removeManager = async (req: Request, res: Response, next: NextFunction) => {
+    @DELETE('/admin/:id/manager')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async removeManager(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const manager = Number(req.body.manager)
@@ -429,9 +415,11 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private removeMember = async (
+    @DELETE('/admin/:id/member/:userId')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async removeMember(
         req: Request, res: Response, next: NextFunction
-    ) => {
+    ) {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserAdd = Number(req.params.userId)
@@ -458,7 +446,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private renameGroup = async (req: Request, res: Response, next: NextFunction) => {
+    @PATCH('/admin/:id/rename')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async renameGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers['iduser'])
             const name = req.body['name']
@@ -485,8 +475,10 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
 
-    } 
-    private blockMember = async (req: Request, res: Response, next: NextFunction) => {
+    }
+    @PATCH('/admin/:id/blockmember')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async blockMember(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserAdd = Number(req.body.manager)
@@ -511,7 +503,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private approvalMember = async (req: Request, res: Response, next: NextFunction) => {
+    @POST("/admin/:id/approval/:userId")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async approvalMember(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const iduserAdd = Number(req.params.userId)
@@ -540,7 +534,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private getInformationMember = async (req: Request, res: Response, next: NextFunction) => {
+    @GET('/:idgroup/member/:userId/')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getInformationMember(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const userId = Number(req.params.userId)
@@ -566,7 +562,9 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private changeNickname = async (req: Request, res: Response, next: NextFunction) => {
+    @PATCH('/:id/renickname')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async changeNickname(req: Request, res: Response, next: NextFunction) {
         try {
             let nickname = req.body.nickname
             const iduser = Number(req.headers.iduser)
@@ -593,7 +591,7 @@ export default class GroupController extends MotherController {
         }
     }
     // TODO: delete group
-    private deleteGroup = async (req: Request, res: Response, next: NextFunction) => {
+    private async deleteGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const id = Number(req.params.id)
             const iduser = Number(req.headers.iduser)

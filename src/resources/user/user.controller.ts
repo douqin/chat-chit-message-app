@@ -8,23 +8,22 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
-import AuthMiddleware from "@/middleware/auth.middleware";
+import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
 import { inject, injectable, singleton } from "tsyringe";
 import Controller from "@/utils/decorator/controller";
+import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
+import { GET } from "@/utils/decorator/http.method/get";
 
 
 @Controller("user")
 export default class UserController extends MotherController {
-    
+
     constructor(@inject(Server) io: Server, @inject(UserService) private userSerivce: UserService) {
         super(io)
     }
-    initRouter(): MotherController {
-        this.router.get("/user/searchuser", AuthMiddleware.auth, this.searchUser)
-        this.router.get("/user/:username", AuthMiddleware.auth, this.inforUser)
-        return this
-    }
-    private searchUser = async (req: Request, res: Response, next: NextFunction) => {
+    @GET("/user/searchuser")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async searchUser(req: Request, res: Response, next: NextFunction) {
         try {
             let phone = String(req.query.phone)
             if (phone) {
@@ -46,8 +45,9 @@ export default class UserController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-
-    private inforUser = async (req: Request, res: Response, next: NextFunction) => {
+    @GET("/user/:username")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async inforUser(req: Request, res: Response, next: NextFunction) {
         try {
             let username = String(req.params.username)
             let iduser = Number(req.headers.iduser)

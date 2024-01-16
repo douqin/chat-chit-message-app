@@ -7,15 +7,19 @@ import MessageService from "./message.service";
 import HttpException from "@/utils/exceptions/http.exeception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
-import iMessageServiceBehavior from "./interface/message.service.interaface";
 import MyException from "@/utils/exceptions/my.exception";
-import AuthMiddleware from "@/middleware/auth.middleware";
+import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
 import { MessageStatus } from "./enum/message.status.enum";
 import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "./constant/event.io";
+import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
+import { GET } from "@/utils/decorator/http.method/get";
+import { POST } from "@/utils/decorator/http.method/post";
+import { PATCH } from "@/utils/decorator/http.method/patch";
+import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
 
 @Controller("/message")
 export default class MessageController extends MotherController {
@@ -23,31 +27,9 @@ export default class MessageController extends MotherController {
         super(io);
     }
 
-    initRouter(): MotherController {
-        this.router.get(
-            "/:idgroup",
-            AuthMiddleware.auth,
-            this.getMessageFromGroup
-        );
-        this.router.post(
-            "/:idgroup/text",
-            multer().none(),
-            AuthMiddleware.auth,
-            this.sendTextMessage
-        );
-        this.router.post(
-            "/:idgroup/file",
-            multer().array("files", 12),
-            AuthMiddleware.auth,
-            this.sendFileMessage
-        );
-        this.router.post("/:id/react", multer().none(), AuthMiddleware.auth, this.reactMessage);
-        this.router.patch("/:id/pin/:ispin", multer().none(), AuthMiddleware.auth, this.changePinMessage);
-        this.router.patch("/:id/removemessage", multer().none(), AuthMiddleware.auth, this.removeMessage)
-        this.router.patch("/:id/ ", multer().none(), AuthMiddleware.auth, this.updateLastView)
-        return this;
-    }
-    private  changePinMessage = async (req: Request, res: Response, next: NextFunction) => {
+    @POST("/:id/pin/:ispin")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async changePinMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const { id, ispin, idgroup } = req.params;
             if (id && Number(idgroup)) {
@@ -85,11 +67,14 @@ export default class MessageController extends MotherController {
             );
         }
     };
-    private getMessageFromGroup = async (
+
+    @GET("/:idgroup")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async getMessageFromGroup(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             const idgroup = Number(req.params.idgroup)
             const limit = Number(req.query.limit)
@@ -131,11 +116,14 @@ export default class MessageController extends MotherController {
             );
         }
     };
-    private sendFileMessage = async (
+    @POST("/:idgroup/file")
+    @UseMiddleware(AuthorizeMiddleware)
+    @FileUpload(multer().array("files", 12))
+    private async sendFileMessage(
         req: Request,
         res: Response,
         next: NextFunction
-    ) => {
+    ) {
         try {
             const idgroup = req.params.idgroup;
             if ((idgroup) && req.files) {
@@ -181,7 +169,9 @@ export default class MessageController extends MotherController {
             );
         }
     };
-    private sendTextMessage = async (req: Request, res: Response, next: NextFunction) => {
+    @POST("/:idgroup/text")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async sendTextMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const idgroup = Number(req.params.idgroup)
             const message = String(req.body.message)
@@ -200,7 +190,7 @@ export default class MessageController extends MotherController {
                 // const sockets = await this.io.in(`${idgroup}_group`).fetchSockets();
                 // let tokens = getAllNotificationTokenFromSockets(sockets)
                 // let tokenSaved = await getAllNotificationTokenFromServer(idgroup)
-                // tokens = await checkElementsInAnotInB<string>(tokens, tokenSaved.map<string>((value: TokenDb, index: number, array: TokenDb[]) => {
+                // tokens = await checkElementsInAnotInB<string>(tokens, tokenSaved.map<string>((value: TokenDb, index: number, array: TokenDb[])  {
                 //     return value.notificationtoken;
                 // }))
                 // if (tokens.length != 0) {
@@ -221,7 +211,9 @@ export default class MessageController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."));
         }
     };
-    private reactMessage = async (req: Request, res: Response, next: NextFunction) => {
+    @POST('/:id/react')
+    @UseMiddleware(AuthorizeMiddleware)
+    private async reactMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const idgroup = Number(req.body.idgroup);
             const type = Number(req.body.type);
@@ -263,7 +255,9 @@ export default class MessageController extends MotherController {
             );
         }
     };
-    private removeMessage = async (req: Request, res: Response, next: NextFunction) => { //FIXME: POSTMAN CHECK
+    @PATCH("/:id/removemessage")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async removeMessage(req: Request, res: Response, next: NextFunction) { //FIXME: POSTMAN CHECK
         try {
             const iduser = Number(req.headers.iduser)
             const idgroup = Number(req.body.idgroup)
@@ -292,7 +286,9 @@ export default class MessageController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    private updateLastView = async (req: Request, res: Response, next: NextFunction) => {
+    @PATCH("/:id/ ")
+    @UseMiddleware(AuthorizeMiddleware)
+    private async updateLastView(req: Request, res: Response, next: NextFunction) {
         try {
             const iduser = Number(req.headers.iduser)
             const idmessgae = Number(req.params.id)

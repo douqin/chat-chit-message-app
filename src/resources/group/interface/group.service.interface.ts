@@ -24,7 +24,7 @@ export interface iMemberActions {
   removeManager(iduser: number, iduserRemove: number, idgroup: number): Promise<Message>;
   addManager(iduser: number, iduserAdd: number, idgroup: number): Promise<Message>;
   requestJoinFromLink(iduser: number, link: string): Promise<RequestJoinFromLink>;
-  inviteMember(iduser: any, idgroup: number, userIDs: Array<number>): Promise<boolean>;
+  inviteMember(iduser: any, idgroup: number, userIDs: Array<number>): Promise<Message[]>;
   leaveGroup(iduser: number, idgroup: number): Promise<Message>;
   getLastViewMember(idgroup: number): Promise<LastViewGroup[]>;
   isExistInvidualGroup(iduser: number, idUserAddressee: number): Promise<boolean>
