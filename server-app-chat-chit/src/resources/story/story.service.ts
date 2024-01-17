@@ -16,9 +16,6 @@ export default class StoryService implements iStoryServiceBehavior {
     async reacStory(idstory: number, iduser: number, react: ReactStory): Promise<any> {
         await this.storyRepository.reacStory(idstory, iduser, react)
     }
-    async getViewedStory(iduser: number): Promise<any> {
-        return await this.getViewedStory(iduser)
-    }
     async uploadStory(file: any, iduser: number): Promise<any> {
         if (!file.mimetype.includes('image') && !file.mimetype.includes('video')) {
             throw new MyException("File không hợp lệ").withExceptionCode(HttpStatus.BAD_REQUEST)

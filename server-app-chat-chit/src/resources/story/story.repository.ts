@@ -96,9 +96,4 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         return true;
     }
 
-    async getViewedStory(iduser: number): Promise<any> {
-        let query = "SELECT * FROM storyview WHERE viewer = ?"
-        let [data] = await this.db.excuteQuery(query, [iduser])
-        return data;
-    }
 }
