@@ -24,10 +24,6 @@ export default class StoryController extends MotherController {
         super(io);
     }
 
-    initRouter(): MotherController {
-        return this;
-    }
-    // upload story
     @POST("/upload")
     @FileUpload(multer().single("story"))
     private async uploadStory(req: Request, res: Response, next: NextFunction) {
@@ -93,11 +89,11 @@ export default class StoryController extends MotherController {
         }
     }
     // del story
-    @DELETE("/delete")
+    @DELETE(":storyId/delete")
     @UseMiddleware(AuthorizeMiddleware)
     private async deleteStory(req: Request, res: Response, next: NextFunction) {
         try {
-            let idstory = Number(req.body.idstory)
+            let idstory = Number(req.params.storyId)
             const iduser = Number(req.headers['iduser'] as string)
             let story = await this.storyService.seeStory(iduser, idstory)
             res.status(HttpStatus.OK).send(new ResponseBody(
@@ -125,11 +121,11 @@ export default class StoryController extends MotherController {
         }
     }
     // seen story
-    @POST("/see")
+    @POST(":storyId/see")
     @UseMiddleware(AuthorizeMiddleware)
     private async seeStoryFriend(req: Request, res: Response, next: NextFunction) {
         try {
-            let idstory = Number(req.params.idstory)
+            let idstory = Number(req.params.storyId)
             if (isValidNumberVariable(idstory)) {
                 const iduser = Number(req.headers['iduser'] as string)
                 let story = await this.storyService.seeStory(iduser, idstory)
@@ -163,37 +159,8 @@ export default class StoryController extends MotherController {
             );
         }
     }
-    @GET("/getviewedstory")
-    @UseMiddleware(AuthorizeMiddleware)
-    private async getViewedStory(req: Request, res: Response, next: NextFunction) {
-        try {
-            const iduser = Number(req.headers['iduser'] as string)
-            let story = await this.storyService.getViewedStory(iduser)
-            res.status(HttpStatus.OK).send(new ResponseBody(
-                true,
-                "OK",
-                story
-            ));
-            return;
-        } catch (e: any) {
-            console.log("🚀 ~ file: story.controller.ts:121 ~ StoryController ~ getViewedStory=async ~ e:", e)
-            if (e instanceof MyException) {
-                next(
-                    new HttpException(
-                        e.status,
-                        e.message
-                    )
-                )
-            }
-            next(
-                new HttpException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Có lỗi xảy ra vui lòng thử lại sau"
-                )
-            );
-        }
-    }
-    @GET("/:idstory/react")
+
+    @GET("/:storyId/react")
     @UseMiddleware(AuthorizeMiddleware)
     private async reacStory(req: Request, res: Response, next: NextFunction) {
         try {
