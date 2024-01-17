@@ -31,10 +31,6 @@ interface iDatabase {
 class DatabaseBuilder {
     private pool!: mysql.Pool;
     constructor() {
-        console.log("🚀 ~ file: mysql.ts:10 ~ DATABASE_PASSWORD:", DATABASE_PASSWORD)
-        console.log("🚀 ~ file: mysql.ts:8 ~ DATABASE_USER:", DATABASE_USER)
-        console.log("🚀 ~ file: mysql.ts:6 ~ DATABASE_PORT:", DATABASE_PORT)
-        console.log("🚀 ~ file: mysql.ts:4 ~ DATABASE_NAME:", DATABASE_NAME)
     }
     initPool() {
         this.pool = mysql.createPool({
