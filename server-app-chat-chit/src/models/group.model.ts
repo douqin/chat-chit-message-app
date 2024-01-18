@@ -1,5 +1,5 @@
 export default class Group {
-    idgroup: number
+    groupId: number
     name: string
     avatar: string
     status: number
@@ -8,7 +8,7 @@ export default class Group {
     access : number
     link : string
     constructor(idgroup: number, name: string, avatar: string, status: number, createAt: Date, type: number,  link : string,  access : number) {
-        this.idgroup = idgroup
+        this.groupId = idgroup
         this.name = name
         this.avatar = avatar
         this.status = status

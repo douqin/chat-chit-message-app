@@ -11,7 +11,7 @@ export class ListFriendCommonDTO{
         for (let userRaw of arrRaw) {
             let user = User.fromRawData(userRaw);
             dto.listFriends.push(user)
-            dto.nextCursor = user.iduser
+            dto.nextCursor = user.userId
         }
         return dto
     }

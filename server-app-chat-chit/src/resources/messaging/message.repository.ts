@@ -7,34 +7,89 @@ import { MessageStatus } from "./enum/message.status.enum";
 import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { Database, iDatabase } from "@/config/database/database";
 import { inject, injectable } from "tsyringe";
+import { OkPacket } from "mysql2";
+import Message from "@/models/message.model";
+import MyException from "@/utils/exceptions/my.exception";
+import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 
 @injectable()
 export default class MessageRepository implements iMessageRepositoryBehavior {
-    
+
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private database: iDatabase) {
+    }
+    async getAllFileFromGroup(groupId: number, cursor: number, limit: number): Promise<any[]> {
+        if (cursor === -1) {
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? ) WHERE message.type = ? OR message.type = ? ORDER BY message.createat DESC limit ?`
+            const [dataQuery, inforColumn] = await this.database.excuteQuery(
+                query, [groupId, MessageType.IMAGE, MessageType.VIDEO, limit]
+            )
+            console.log("🚀 ~ file: message.repository.ts:129 ~ MessageRepository ~ getAllMessageFromGroup ~ dataQuery:", dataQuery)
+            return dataQuery as any[];
+        }
+        else {
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember) WHERE member.idgroup = ?  AND message.idmessage < ? AND (message.type = ? OR message.type = ?) ORDER BY message.createat DESC limit ?`
+            const [dataQuery, inforColumn] = await this.database.excuteQuery(
+                query, [groupId, cursor, MessageType.IMAGE, MessageType.VIDEO, limit]
+            )
+            return dataQuery as any[];
+        }
+    }
+    async getListPinMessage(groupId: number): Promise<any[]> {
+        const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.ispin = 1) ORDER BY message.createat DESC`
+        const [dataQuery, inforColumn] = await this.database.excuteQuery(
+            query, [groupId]
+        )
+        return dataQuery as any[];
+    }
+    async sendGifMessage(groupId: number, iduser: number, gifId: string, replyMessageId: number | null): Promise<number> {
+        const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+        const [[{ 'id': idmember }], data] = await this.database.excuteQuery(queryGetIDMem, [groupId, iduser]) as any;
+        const sql = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`;
+        const values = [idmember, gifId, MessageType.GIF, MessageStatus.DEFAULT]
+        const [rows] = await this.database.excuteQuery(sql, values) as any
+        const [dataQuery, inforColumn] = await this.database.excuteQuery(
+            "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)", [groupId, rows.insertId, idmember]
+        ) as any[]
+        return dataQuery[0].idmessage;
+    }
+    async forwardMessage(userId: number, groupIdAddressee: number, message: Message): Promise<number> {
+        if (message.type === MessageType.IMAGE || message.type === MessageType.VIDEO) {
+            let inforFile = await this.drive.copyFile(message.content)
+            const queryGetIDMem = "SELECT  member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+            const [[{ 'id': idmember }], column1] = await this.database.excuteQuery(queryGetIDMem, [groupIdAddressee, userId]) as any;
+            const querySaveId = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`
+            if (inforFile) {
+                let [data] = await this.database.excuteQuery(querySaveId, [idmember, inforFile, message.type, MessageStatus.DEFAULT]) as any
+                const [dataQuery, inforColumn] = await this.database.excuteQuery(
+                    "SELECT message.idmessage as messageId FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)", [groupIdAddressee, data.insertId, idmember]
+                ) as any[]
+                return dataQuery[0].messageId;
+            }
+        }
+        else if (message.type === MessageType.TEXT) {
+            return await this.sendTextMessage(groupIdAddressee, userId, message.content, message.manipulates, null)
+        }
+        else if (message.type === MessageType.GIF) {
+            return await this.sendGifMessage(groupIdAddressee, userId, message.content, null)
+        }
+        throw new MyException("Wrong argument").withExceptionCode(HttpStatus.BAD_REQUEST)
     }
     async getOneMessage(idmessage: number) {
         const query = `SELECT * FROM message WHERE message.idmessage = ?`
         let [data, inforColumn] = await this.database.excuteQuery(query, [idmessage]) as any
         return data[0]
     }
-    async getAllManipulateUser(idmessage: number): Promise<any[]> {
-        const query = `SELECT user.* FROM manipulate_user JOIN user ON manipulate_user.iduser = user.iduser WHERE manipulate_user.idmessage = ?`
+    async getAllManipulateUser(idmessage: number): Promise<number[]> {
+        const query = `SELECT user.iduser as userId FROM manipulate_user JOIN user ON manipulate_user.iduser = user.iduser WHERE manipulate_user.idmessage = ?`
         let [row, inforColumn] = await this.database.excuteQuery(query, [idmessage]) as any
-        return row
+        return row.map((value: any, index: number, array: any[]) => {
+            return value.userId
+        });
     }
 
     async getNumMessageUnread(idgroup: number): Promise<number> {
         return Promise.resolve(0)
         // FIXME: getNumMessageUnread complete func
-    }
-    async getAllTagFromMessage(idmessage: number): Promise<any[]> {
-        const query = `SELECT user.* FROM message JOIN tagged_member ON message.idmessage = tagged_member.idmessage 
-        JOIN member ON member.id = message.idmember
-        JOIN user ON member.iduser = user.iduser
-        WHERE message.idmessage = ?`
-        let [row, inforColumn] = await this.database.excuteQuery(query, [idmessage]) as any
-        return row
     }
     async sendNotitfyMessage(idgroup: number, iduser: number, content: string, manipulates: number[]): Promise<any> {
         const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
@@ -55,6 +110,24 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
             await this.database.excuteQuery(queryInsertMan, [dataQuery[0].idmessage, iduserMani])
         }
         return dataQuery[0];
+    }
+    async sendTextMessage(idgroup: number, iduser: number, content: string, manipulates: Array<number>, replyMessageId: number | null): Promise<number> {
+        console.log("🚀 ~ MessageRepository ~ sendTextMessage ~ replyMessageId:", replyMessageId)
+        const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
+        const [[{ 'id': idmember }], data] = await this.database.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
+        let date = new Date();
+        const sql = `INSERT INTO message (idmember,content, createat, type, status, replyidmessage) VALUES ( ?, ?, ?, ?, ?, ?)`;
+        const values = [idmember, content, date, MessageType.TEXT, MessageStatus.DEFAULT, replyMessageId]
+        const [rows] = await this.database.excuteQuery(sql, values) as OkPacket[]
+        const queryInsertMan = `
+            INSERT INTO manipulate_user (idmessage, iduser) VALUE(
+                ?, ?
+            )
+        `
+        for (let iduserMani of manipulates) {
+            await this.database.excuteQuery(queryInsertMan, [rows.insertId, iduserMani])
+        }
+        return rows.insertId;
     }
     async sendFileMessage(idgroup: number, iduser: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE) {
         let array = [];
@@ -83,11 +156,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         const [{ 'COUNT(*)': isExist }] = await this.database.excuteQuery(quert, [idmessage, iduser]) as any
         return Boolean(isExist)
     }
-    async updateLastView(iduser: number, idmessgae: number): Promise<boolean> {
-        const query = 'UPDATE member SET member.lastview = ? WHERE member.iduser = ?'
-        await this.database.excuteQuery(query, [idmessgae, iduser])
-        return true
-    }
+
     async isMessageContainInGroup(idmessage: Number, idgroup: Number): Promise<boolean> {
         const query = 'SELECT COUNT(*) From member JOIN message ON member.id = message.idmember AND message.idmessage = ? AND member.idgroup = ?'
         let [[{ 'COUNT(*)': isExist }], []] = await this.database.excuteQuery(query, [idmessage, idgroup]) as any
@@ -102,35 +171,15 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
             const queryChange = `UPDATE message
             SET message.ispin = ?
             WHERE message.idmessage = ?`
-            console.log(await this.database.excuteQuery(queryChange, [isPin, idmessage]))
         }
         else {
             return false
         }
         return true
     }
-    async sendTextMessage(idgroup: number, iduser: number, content: string, tags : Array<number>) {
-        // get idmember
-        const queryGetIDMem = "SELECT member.id FROM member WHERE member.idgroup = ? AND member.iduser = ? "
-        const [[{ 'id': idmember }], data] = await this.database.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
-        let date = new Date();
-        const sql = `INSERT INTO message (idmember,content, createat, type, status) VALUES ( ?, ?, ?, ?, ?)`;
-        const values = [idmember, content, date, MessageType.TEXT, MessageStatus.DEFAULT]
-        const [rows] = await this.database.excuteQuery(sql, values) as any
 
-        const queryInsertTags = "INSERT INTO tagged_member VALUES(?,?)"
-        for (let index = 0; index < tags.length; index++) {
-            const [[{ 'id': idmember2 }], data] = await this.database.excuteQuery(queryGetIDMem, [idgroup, tags[index]]) as any;
-            await this.database.excuteQuery(queryInsertTags,[rows.insertId, idmember2])
-        }
-        const [dataQuery, inforColumn] = await this.database.excuteQuery(
-            "SELECT message.* FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? AND message.idmessage = ? AND member.id = ?)",
-            [idgroup, rows.insertId, idmember]
-        ) as any
-        return dataQuery[0];
-    }
-    async getAllMessageFromGroup(idgroup: number,cursor: number, limit: number): Promise<any[]> {
-        if (isValidNumberVariable(limit) && Number.isNaN(cursor)) {
+    async getAllMessageFromGroup(idgroup: number, cursor: number, limit: number): Promise<any[]> {
+        if (cursor === -1) {
             const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ? ) ORDER BY message.createat DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.excuteQuery(
                 query, [idgroup, limit]
@@ -138,21 +187,13 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
             console.log("🚀 ~ file: message.repository.ts:129 ~ MessageRepository ~ getAllMessageFromGroup ~ dataQuery:", dataQuery)
             return dataQuery as any[];
         }
-        else if (isValidNumberVariable(limit) && isValidNumberVariable(cursor)) {
-            console.log('1a')
+        else {
             const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.idmember) WHERE member.idgroup = ?  AND message.idmessage < ? ORDER BY message.createat DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.excuteQuery(
                 query, [idgroup, cursor, limit]
             )
             return dataQuery as any[];
         }
-        const query = `
-            SELECT * FROM (member INNER JOIN message ON member.id = message.idmember AND member.idgroup = ?)
-             ORDER BY message.createat DESC`
-        const [dataQuery, inforColumn] = await this.database.excuteQuery(
-            query, [idgroup]
-        )
-        return dataQuery as any[];
     }
     async sendGiftMessage(idgroup: number, iduser: number, content: string) {
         // get idmember
@@ -168,7 +209,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         const [[{ 'id': idmember }], column1] = await this.database.excuteQuery(queryGetIDMem, [idgroup, iduser]) as any;
         let query = "INSERT INTO reaction(idmessage, type, idmember) VALUE(?,?,?)"
         let [dataInsert] = await this.database.excuteQuery(query, [idmessage, react, idmember]) as any
-        let qGetEntity = "SELECT * FROM reaction WHERE idreaction = ?"
+        let qGetEntity = `SELECT user.iduser, reaction.idreaction, reaction.idmessage, reaction.type FROM reaction JOIN member ON member.id = reaction.idmember JOIN user ON user.iduser = member.iduser WHERE idreaction = ?`
         let [data, inforColumn2] = await this.database.excuteQuery(qGetEntity, [dataInsert.insertId]) as any
         return data[0];
     }

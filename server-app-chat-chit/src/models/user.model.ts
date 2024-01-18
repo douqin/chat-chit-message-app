@@ -2,9 +2,9 @@ import Token from "@/utils/definition/token"
 
 export class User {
     constructor(
-        public iduser: number,
-        public lastname: string,
-        public firstname: string,
+        public userId: number,
+        public lastName: string,
+        public firstName: string,
         public phone: string,
         public birthday: Date,
         public gender: number,
