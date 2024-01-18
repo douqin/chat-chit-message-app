@@ -1,3 +1,5 @@
+# README
+
 ## Api
 
 ### Auth `/auth`
@@ -82,15 +84,15 @@
 - `[GET] /friends/online`: lấy tất cả friend online
 - `[GET] /:iduser/relation`: lấy ra mối quan hệ giữa user vs user
 
-### Group `/groups`
+### Group `/group`
 
-- `[GET] `: get danh sách trò chuyện mới nhất.
+- `[GET]`: get danh sách trò chuyện mới nhất.
 
   - query : cursor , limit
     - P/s: cursor = -1 để lấy list gr mới nhất.
   - result:
-  - ```
-      {
+
+    - ````{
         "listGroup": [
             {
                 "idgroup": number,
@@ -121,11 +123,9 @@
         ],
         "nextCursor": 194,
         "totalSize": 0
-      }
-    ```
+      }```
+      ````
 
-
-    
 - `[GET] /:id`: get một group.
 - `[POST] /individual-group/:userId`: tạo cuộc trò chuyện cá nhân (socket tới userId, nhận được socket này thì bắn socket join-group).
   - result: { groupId : number, isExisted : boolean }
@@ -143,9 +143,10 @@
   - socket: io.emit('update-avatar-group', groupId, groupAvatar, message).
   - socket: io.emit('new-message', message (Message Noti) ).
 - `[GET] /:id/members`: danh sách thành viên.
+
   - res:
-    ```
-    [
+
+  - ````[
         {
             "memberId": number,
             "lastview": null or number (messageId),
@@ -154,8 +155,9 @@
             "timejoin": string,
             "inforMember": User
         }
-    ]
-    ```
+    ]```
+    ````
+
 - `[POST] /:id/members`: thêm nhiều thành viên.
   - p/s: gr private thì chỉ có admin mới add được còn group public thì sẽ cho vô hàng chờ duyệt hoặc duyệt ( phụ thuộc vào group có auto approval hay không) thì ai đều add được //TODO:
   - body: {userIds: [String]}.
@@ -187,9 +189,10 @@
   - socket: io.emit('delete-managers', {groupId, managerIds})
   - socket: io.emit('new-message', groupId, message) (content: DELETE_MANAGERS).
 - `[GET] /:id/community-group` get one community group
+
   - res :
-  ````
-    {
+
+  - ````{
                 "idgroup": number,
                 "name": string,
                 "avatar": string,
@@ -215,11 +218,13 @@
                 "totalMember": number,
                 "numMessageUnread": number
             }  ```
-  ````
-- `[GET] /:link ` lấy data cơ bản của group
+    ````
+
+- `[GET] /:link` lấy data cơ bản của group
+
   - res:
-    ```
-    {
+
+  - ```{
               "idgroup": number,
               "name": string,
               "avatar": string,
@@ -230,13 +235,14 @@
               "role": string,
     }
     ```
-- `[POST] /:link/request-join `: nếu join thành công thì emit tới group hoặc là vào hàng đợi pending chờ duyệt hoặc là đã tham gia hoặc bị block ở group sẽ trả lỗi
+
+- `[POST] /:link/request-join`: nếu join thành công thì emit tới group hoặc là vào hàng đợi pending chờ duyệt hoặc là đã tham gia hoặc bị block ở group sẽ trả lỗi
   - io.emit("request-join-from-link", message (notify) )
 - `[GET] /:id/queue-wait`: lấy danh sách đang chờ duyệt
-    - res:
 
-    ```
-    [
+  - res:
+
+  - ```[
         {
             "memberId": number,
             "lastview": null or number (messageId),
@@ -247,11 +253,12 @@
         }
     ]
     ```
+
 - `[POST] /admin/:id/approval/:userId`: duyệt thành viên
   - io.emit('approval-member' , {userIds : number})
   - io.emit('new-message', [Message])
-- `[DELETE] ` : remove manager
-  - io.emit("remove-manager",  { userId: number })
+- `[DELETE]` : remove manager
+  - io.emit("remove-manager", { userId: number })
   - io.emit("new-message", [Message])
 - `[DELETE] /admin/:id/member/:userId` : remove member
   - io.emit("member_was_remove", { userId: number })
@@ -260,55 +267,58 @@
   - io.emit("rename-group", { name: string })
   - io.emit("new-message", [Message])
 
-### Message `/messages`.
+### Message `/message`
 
 - `[GET] /:groupId`: danh sách tin nhắn theo cuộc trò chuyện.
-  - params: {page: int(default: 0), size: int(default: 20) }.
-- `[GET] /channel/:channelId`: danh sách tin nhắn theo kênh.
-  - params: {page: int(default: 0), size: int(default: 20) }.
+  - params: cursor: number, size: number .
+    - p/s: cursor = -1 khi lấy danh sách lần đầu tiên.
 - `[GET] /:groupId/files`: danh sách tin nhắn dạng file.
-  - params: {type: String (default tìm theo từng phân loại: ALL) (ALL, IMAGE, VIDEO, FILE), senderId: String (không bắt buộc), startTime: String(yyyy-mm-dd)(không bắt buộc), endTime: String(yyyy-mm-dd)(không bắt buộc)}.
-- `[POST] /text`: send tin nhắn dạng text.
-  - body: {content: String, tags: [String] (không bắt buộc), replyMessageId: String (không bắt buộc), type: String (TEXT, HTML, NOTIFY, STICKER) , groupId: String, channelId: String}.
+  - req : params : cursor , size
+  - res :[Message]
+- `[POST] /:groupId/text`: send tin nhắn dạng text.
+  - body: {content: String, manipulates: [number] (không bắt buộc), replyMessageId: number (không bắt buộc)}.
+  - socket: io.emit('new-message', message).
+- `[POST] /:groupId/files`: send tin nhắn dạng file.
+  - req: 2 options
+    - body: {files: [File]}.
+    - form-data: files: [File]
   - socket: io.emit('new-message', groupId, message).
-  - socket (nếu là channel): io.emit('new-message-of-channel', groupId, channelId, message).
-- `[POST] /files`: send tin nhắn dạng file.
-  - body: {file: File}.
-  - params: {type: String ('IMAGE', 'VIDEO', 'FILE'), groupId: String, channelId: String }.
-  - socket: io.emit('new-message', groupId, message).
-  - socket (nếu là channel): io.emit('new-message-of-channel', groupId, channelId, message).
-  - các file hợp lệ (tối đa 20MB): .png, .jpeg, .jpg, .gif, .mp3, .mp4, .pdf, .doc, .docx, .ppt, .pptx, .rar, .zip .
-- `[POST] /files/base64`: send tin nhắn dạng file base64.
-  - body: {fileName, fileExtension, fileBase64}.
-  - params: {type: String ('IMAGE', 'VIDEO', 'FILE'), groupId: String, channelId: String }.
-  - socket: io.emit('new-message', groupId, message).
-  - socket (nếu là channel): io.emit('new-message-of-channel', groupId, channelId, message).
-  - các file hợp lệ (fileExtension) (tối đa 20MB): .png, .jpeg, .jpg, .gif, .mp3, .mp4, .pdf, .doc, .docx, .ppt, .pptx, .rar, .zip .
-- `[DELETE] /:id`: thu hồi tin nhắn.
-  - socket: io.emit('delete-message', {groupId, channelId, id}).
-- `[DELETE] /:id/only`: xóa tin nhắn ở phía tôi.
-- `[POST] /:id/reacts/:type`: thả reaction.
-  - socket: io.emit('add-reaction', {groupId, channelId, messageId, user, type});
-- `[GET] /:id/share/:groupId`: chuyển tiếp tin nhắn có id sang cuộc trò chuyện có groupId.
-  - socket: io.emit('new-message',groupId, message ).
-- `[PATCH] /:id/notify/:isNotify`: update thông báo (0 là tắt, 1 là bật).
-- `[GET] /:id/summary`: thông tin khi vào nhóm.
-  - result: {\_id, name, avatar, users: [{name, avatar}] }.
-
-### Pin Message `/pin-messages`.
-
-- `[GET] /:groupId`: list tin nhắn gim.
-- `[POST] /:messageId`: gim tin nhắn (tối đa là 3 tin nhắn đc gim).
-- `[DELETE] /:messageId`: xóa gim.
+  - các file hợp lệ gửi cùng lúc nhiều file và tối đa 7 file ( mỗi file tối đa 20MB): chỉ các file là ảnh và video mới được phép gửi không sẽ bị chặn.
+- `[PATCH] /:groupId/:id/recall`: thu hồi tin nhắn.
+  - socket: io.emit('delete-message', {
+    "userId": number,
+    "messageId": number,
+    "delby": number
+    }).
+- `[POST] /:groupId/:messageId/react/:type`: thả reaction.
+  - res: -`{
+    "reactionId": number,
+    "userId": number,
+    "messageId": number,
+    "type": ReactMessage
+}`
+  - socket: io.emit('react-message', {"reactionId":number,
+    "userId": number,
+    "messageId": number,
+    "type": ReactMessage});
+- `[POST] /:groupId/:messageId/forward/:groupIdAddressee/: chuyển tiếp tin nhắn có groupId sang groupIdAddressee
+  - socket: io.emit('new-message', message ).
+- `[POST] /:groupId/gif` : send tin nhắn dạng gif
+  - body: {content: String, replyMessageId: number (không bắt buộc)}.
+  - socket: io.emit('new-message', message).
+- `[GET] /pin/:groupId`: list tin nhắn gim.
+- `[PATCH] /:groupId/:messageId/pin/:ispin`: pin or unpin tin nhắn.
+  - params : ispin = 0 (unpin) or 1 (pin)
+  - p/s: (tối đa là 3 tin nhắn đc gim).
   - có 2 content (PIN_MESSAGE, NOT_PIN_MESSAGE).
-  - socket: io.emit('new-message', groupId, message).
-  - socket: io.emit('action-pin-message', groupId).
+  - socket: io.emit('unpin-message', {"messageId": number}).
+  - socket: io.emit('pin-message', "messageId": number).
 
-### Vote `/votes`.
+### Vote `/votes`
 
 - `[GET] /:groupId`: danh sách votes theo groupId.
   - params: { page, size }.
-- `[POST] `: tạo bình chọn.
+- `[POST]`: tạo bình chọn.
   - body: {content: String, options: [String], groupId: String}.
   - result: {\_id, user: {\_id, name, avatar},content, type: 'VOTE', options: [{name, userIds: [String]}], userOptions: [{_id, name, avatar}], createdAt}.
   - socket: io.emit('new-message', groupId, voteMessage).
@@ -325,15 +335,6 @@
   - body: {options: [String]}.
   - socket: io.emit('update-vote-message', groupId, voteMessage).
 
-### User Manager `/admin/users-manager`.
-
-- `[GET] `: get list users.
-
-  - params: {username: String (default: ''), page: int (default: 0), size: int(default: 20)}.
-  - result: [{_id, name, username, gender, isActived, isDeleted, isAdmin }].
-
-- `[PATCH] /:id/:isDeleted`: cập nhật trạng thái hoạt động (isDeleted là 0(kích hoạt) và 1(không kích hoạt) ).
-
 ### Socket Server nhận
 
 - socket.on('typing', (groupId, me) => {
@@ -348,39 +349,9 @@
 -
 - socket.on('group-last-view', (groupId) => {}): để cập nhật lại last view của mình ở group hoặc channel đó (nếu là channel thì phải truyền cả 2 tham số).
 
-### Socket Server trả về
-
-- **group**
-
-  - socket.emit('user-last-view', {groupId, channelId, userId, lastView: Date } ): user đã xem tin nhắn ở group hoặc channel.
-  - new member join group
-  - event: ''
-  - res data: {}
-  - invite group:
-  - member leave group:
-  - rename group:
-  - approval member:
-  - joinfromLink (socket to admin):
-
-- **message**
-
-  - receive message:
-  - file:
-  - text:
-  - react message:
-  - update-last-view (user seen message):
-  - recall message:
-  - change pin:
-
-- **friend**
-  - handling 99%...
-- **notification**
-  - handling 99%...
-
 ### Một số quy chuẩn dữ liệu
 
-```
-  RelationshipUser {
+```RelationshipUser {
     NO_RELATIONSHIP = -1,
     /** user 1 wait reponse invite friend from user 2 */
     WAIT_RESPONSE_REQUEST_FRIEND = 0,
@@ -394,8 +365,7 @@
 }
 ```
 
-```
-ReactMessage {
+```ReactMessage {
     HAHA = 1,
     HUHU = 2,
     LOVE = 3,
@@ -405,16 +375,14 @@ ReactMessage {
 }
 ```
 
-```
- MessageStatus {
+```MessageStatus {
     DEFAULT = 0,
     DEL_BY_ADMIN = 1,
     DEL_BY_OWNER = 2
 }
 ```
 
-```
-enum MessageType {
+```enum MessageType {
     TEXT = 0,
     IMAGE = 1,
     VIDEO = 2,
@@ -424,47 +392,41 @@ enum MessageType {
 }
 ```
 
-```
-Gender {
+```Gender {
     Male = 1,
     Female = 2,
     Other = 3,
 }
 ```
 
-```
-PositionInGrop {
+```PositionInGrop {
     MEMBER = 0,
     ADMIN = 1,
     CREATOR = 2
 }
 ```
 
-```
-GroupStatus {
+```GroupStatus {
     DEFAULT = 0,
     STRANGE_PEOPLE = 1
 }
 ```
 
-```
-MemberStatus {
+```MemberStatus {
     DEFAULT = 0,
     PENDING = 1,
     BLOCKED = 2
 }
 ```
 
-```
-GroupType {
+```GroupType {
     COMMUNITY = 0,
     INVIDIAL = 1,
 }
 
 ```
 
-```
-ReactStory {
+```ReactStory {
     HAHA = 1,
     HUHU = 2,
     LOVE = 3,
@@ -474,8 +436,7 @@ ReactStory {
 }
 ```
 
-```
-EVENT_GROUP_SOCKET{
+```EVENT_GROUP_SOCKET{
     CHANGE_AVATAR = "avatar_change",
     LEAVE_GROUP = "user_leave_group",
     CREATE_INDIVIDUAL_GROUP = "create-individual-group",

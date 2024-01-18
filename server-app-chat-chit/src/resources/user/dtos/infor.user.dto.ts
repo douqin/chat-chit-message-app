@@ -8,6 +8,6 @@ export class InforUserDto extends User{
         public numberCommonFriend: ListFriendCommonDTO,
         user : User
     ){
-        super(user.iduser, user.lastname, user.firstname, user.phone, user.birthday, user.gender, user.bio, user.username, user.avatar, user.background, user.email);
+        super(user.userId, user.lastName, user.firstName, user.phone, user.birthday, user.gender, user.bio, user.username, user.avatar, user.background, user.email);
     }
 }

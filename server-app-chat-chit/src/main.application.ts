@@ -50,14 +50,13 @@ class App {
         this.express.use(ErrorMiddleware);
     }
     private initaliseController(controllers: MotherController[]) {
-        controllers.forEach((controller: MotherController) => {
+        let router = express.Router({ /**caseSensitive: true, strict: true**/ })
 
-            // controller.initRouter();
-            // this.express.use(controller.pathMain, controller.router);
+        controllers.forEach((controller: MotherController) => {
 
             // Tương tự, lất ra tất cả các `routes`
             const routes: IRouteDefinition[] = Reflect.getMetadata('routes', controller) || [];
-            console.log("🚀 ~ App ~ controllers.forEach ~ routes:", routes)
+            console.log(routes)
 
             // Duyệt qua tất cả các routes và đăng ký chúng với express
 
@@ -65,24 +64,24 @@ class App {
                 const multerX = Reflect.getMetadata('multer', (controller as any)[route.methodName]) || undefined;
                 let middlewares: constructor<BaseMiddleware>[] = Reflect.getMetadata('middlewares', (controller as any)[route.methodName]) || []
                 if (multerX)
-                    this.express[route.requestMethod](controller.pathMain + route.path, multerX, middlewareDecorator(middlewares), (req: Request, res: Response, next: NextFunction) => {
+                    router[route.requestMethod](controller.pathMain + route.path, multerX, middlewareDecorator(middlewares), (req: Request, res: Response, next: NextFunction) => {
                         (controller as any)[route.methodName](req, res, next);
                     });
                 else
-                    this.express[route.requestMethod](controller.pathMain + route.path, middlewareDecorator(middlewares), (req: Request, res: Response, next: NextFunction) => {
-                        // Thực thi phương thức xử lý request, truyền vào là request và response
+                    router[route.requestMethod](controller.pathMain + route.path, middlewareDecorator(middlewares), (req: Request, res: Response, next: NextFunction) => {
                         (controller as any)[route.methodName](req, res, next);
                     });
             });
 
         });
+        this.express.use(router)
         this.express.use((
             req,
             res,
         ) => {
             res.status(HttpStatus.NOT_FOUND).send(new ResponseBody(
                 false,
-                "Không tìm thấy trang bạn yêu cầu",
+                "NOT FOUND",
                 {
                     "url": req.url
                 }
@@ -111,11 +110,9 @@ class App {
         return App._instance;
     }
 }
-export default App;
 function middlewareDecorator(middlewares: constructor<BaseMiddleware>[]) {
     let _middlewares = middlewares;
     return (req: Request, res: Response, next: NextFunction) => {
-        console.log("🚀 ~ a ~ middlewares:", middlewares)
         if (middlewares.length == 0) {
             next()
             return
@@ -124,5 +121,5 @@ function middlewareDecorator(middlewares: constructor<BaseMiddleware>[]) {
             let a = container.resolve(_middlewares[i]).use(req, res, next)
         }
     }
-    // return a
 }
+export default App;

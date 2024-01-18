@@ -12,7 +12,7 @@ export class ListGroupDTO {
         let dto = new ListGroupDTO([], null)
         for (let userRaw of raw) {
             let gr = Group.fromRawData(userRaw);
-            dto.listGroup.push(GroupChatDTO.fromBase(gr, await getlastMessage(gr.idgroup), await totalMember(gr.idgroup), await numMessageUnread(gr.idgroup) ))
+            dto.listGroup.push(GroupChatDTO.fromBase(gr, await getlastMessage(gr.groupId), await totalMember(gr.groupId), await numMessageUnread(gr.groupId) ))
             dto.nextCursor = userRaw._cursor
         }
         return dto
@@ -28,6 +28,6 @@ export class GroupChatDTO extends Group {
         super(idgroup, name, avatar, status, createAt, type, link, access);
     }
     static fromBase(gr: Group, lastMessage: Message, totalMember: number, numMessageUnread: number): GroupChatDTO {
-        return new GroupChatDTO(gr.idgroup, gr.name, gr.avatar, gr.status, gr.createAt, gr.type, gr.link, gr.access, lastMessage, totalMember, numMessageUnread)
+        return new GroupChatDTO(gr.groupId, gr.name, gr.avatar, gr.status, gr.createAt, gr.type, gr.link, gr.access, lastMessage, totalMember, numMessageUnread)
     }
 }

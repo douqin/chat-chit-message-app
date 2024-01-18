@@ -26,7 +26,7 @@ export default class SocketBuilder {
         let serivce: iGroupActions = container.resolve(GroupService);
         let groups = await serivce.getAllGroup(iduser);
         for (let group of groups) {
-            socket.join(`${group.idgroup}_group`);
+            socket.join(`${group.groupId}_group`);
         }
     }
 

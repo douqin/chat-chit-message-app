@@ -13,6 +13,4 @@ export default interface iStoryServiceBehavior {
 
     seeStory(idstory : number, iduser : number) : Promise<any>
 
-    getViewedStory(iduser : number) : Promise<any>
-
 }

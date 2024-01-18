@@ -2,7 +2,7 @@ import MyException from "@/utils/exceptions/my.exception"
 import { HttpStatus } from "@/utils/extension/httpstatus.exception"
 import DataFileDrive from "component/cloud/dtos/file.drive.dtos"
 import Group from "./../../models/group.model"
-import iMessageServiceBehavior, { iMessageAction, iMessageInformation } from "../messaging/interface/message.service.interaface"
+import iMessageServiceBehavior, { iMessageAction, iMessageInformation } from "../messaging/interface/message.service.interface"
 import MessageService from "../messaging/message.service"
 import { RelationServiceBehavior } from "../relationship/interface/relation.service.interface"
 import RelationService from "../relationship/relation.service"
@@ -60,7 +60,7 @@ export default class GroupService implements iGroupServiceBehavior {
             await this.groupRepsitory.changeNickname(iduser, userIdChange, idgroup, nickname)
             let messageBehavior: iMessageServiceBehavior = container.resolve(MessageService)
             let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " change nickname {{@}} to " + nickname, [userIdChange])
-            return await messageBehavior.getOneMessage(mess.idmessage)
+            return await messageBehavior.getOneMessage(mess.messageId)
         }
         else {
             throw new MyException("You don't have permisstion for action").withExceptionCode(HttpStatus.FORBIDDEN)
@@ -145,7 +145,7 @@ export default class GroupService implements iGroupServiceBehavior {
             let messageBehavior: iMessageAction = container.resolve(MessageService)
             let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " approved member {{@}}", [iduserAdd])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
-            return await iMessageInformation.getOneMessage(mess.idmessage)
+            return await iMessageInformation.getOneMessage(mess.messageId)
         }
         else {
             throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
@@ -157,7 +157,7 @@ export default class GroupService implements iGroupServiceBehavior {
             let messageBehavior: iMessageAction = container.resolve(MessageService)
             let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " removed member {{@}}", [iduserRemove])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
-            return await iMessageInformation.getOneMessage(mess.idmessage)
+            return await iMessageInformation.getOneMessage(mess.messageId)
         }
         else {
             throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
@@ -169,7 +169,7 @@ export default class GroupService implements iGroupServiceBehavior {
             let messageBehavior: iMessageAction = container.resolve(MessageService)
             let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " removed manager {{@}}", [manager])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
-            return await iMessageInformation.getOneMessage(mess.idmessage)
+            return await iMessageInformation.getOneMessage(mess.messageId)
         }
         else {
             throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
@@ -181,7 +181,7 @@ export default class GroupService implements iGroupServiceBehavior {
             let messageBehavior: iMessageAction = container.resolve(MessageService)
             let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " added manager {{@}}", [invitee])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
-            return await iMessageInformation.getOneMessage(mess.idmessage)
+            return await iMessageInformation.getOneMessage(mess.messageId)
         }
         else {
             throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
@@ -193,7 +193,7 @@ export default class GroupService implements iGroupServiceBehavior {
             let messageBehavior: iMessageAction = container.resolve(MessageService)
             let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " renamed group to " + name, [])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
-            return await iMessageInformation.getOneMessage(mess.idmessage)
+            return await iMessageInformation.getOneMessage(mess.messageId)
         }
         else {
             throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
@@ -202,18 +202,18 @@ export default class GroupService implements iGroupServiceBehavior {
     async requestJoinFromLink(iduser: number, idgroup: string): Promise<RequestJoinFromLink> {
         let data = await this.groupRepsitory.getBaseInformationGroupFromLink(idgroup)
         if (data) {
-            if (!await this.groupRepsitory.isContainInGroup(iduser, data.idgroup)) {
-                if (await this.groupRepsitory.checkMemberPermisstion(MemberPermisstion.AUTO_APPROVAL, iduser, data.idgroup)) {
-                    await this.groupRepsitory.joinGroup(iduser, data.idgroup)
+            if (!await this.groupRepsitory.isContainInGroup(iduser, data.groupId)) {
+                if (await this.groupRepsitory.checkMemberPermisstion(MemberPermisstion.AUTO_APPROVAL, iduser, data.groupId)) {
+                    await this.groupRepsitory.joinGroup(iduser, data.groupId)
                     let messageBehavior: iMessageAction = container.resolve(MessageService)
-                    let mess = await messageBehavior.sendNotitfyMessage(data.idgroup, iduser, " joined group", [])
+                    let mess = await messageBehavior.sendNotitfyMessage(data.groupId, iduser, " joined group", [])
                     let messInfor: iMessageInformation = container.resolve(MessageService)
                     return {
                         isJoin: true,
-                        message: await messInfor.getOneMessage(mess.idmessage)
+                        message: await messInfor.getOneMessage(mess.messageId)
                     }
                 } else {
-                    await this.groupRepsitory.addUserToApprovalQueue(iduser, data.idgroup)
+                    await this.groupRepsitory.addUserToApprovalQueue(iduser, data.groupId)
                     return {
                         isJoin: false,
                         message: null
@@ -237,7 +237,7 @@ export default class GroupService implements iGroupServiceBehavior {
                 let messageBehavior2: iMessageInformation = container.resolve(MessageService)
                 return {
                     url: data.url,
-                    message: await messageBehavior2.getOneMessage(mess.idmessage)
+                    message: await messageBehavior2.getOneMessage(mess.messageId)
                 }
             }
             else throw new Error("Can't change avatar")
@@ -284,8 +284,8 @@ export default class GroupService implements iGroupServiceBehavior {
                 let messageBehavior2 = container.resolve(MessageService)
                 for (let _iduser of userIDs) {
                     await this.groupRepsitory.joinGroup(_iduser, idgroup)
-                    let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " invited member {{" + userIDs.length + "}}", userIDs)
-                    message.push(await messageBehavior2.getOneMessage(mess.idmessage))
+                    let mess = await messageBehavior.sendNotitfyMessage(idgroup, iduser, " invited member {{@}}", userIDs)
+                    message.push(await messageBehavior2.getOneMessage(mess.messageId))
                 }
                 // return await messageBehavior.getOneMessage(mess.idmessage)
             } else if (position === PositionInGrop.MEMBER) {
@@ -339,14 +339,13 @@ export default class GroupService implements iGroupServiceBehavior {
         }
         let group = Group.fromRawData(await this.groupRepsitory.createGroup(name, iduser, users))
         let messageBehavior: iMessageAction = container.resolve(MessageService)
-        await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, "created group", [])
+        await messageBehavior.sendNotitfyMessage(group.groupId, iduser, "created group", [])
         if (users.length > 0) {
-            let strMessage = "added member {{"
+            let strMessage = "added member "
             for (let i = 0; i < users.length; i++) {
-                strMessage += "@"
+                strMessage += "{{@}}"
             }
-            strMessage += "}}"
-            await messageBehavior.sendNotitfyMessage(group.idgroup, iduser, strMessage, users)
+            await messageBehavior.sendNotitfyMessage(group.groupId, iduser, strMessage, users)
         } else throw new MyException("Total users > 2").withExceptionCode(HttpStatus.BAD_GATEWAY)
         return group;
     }

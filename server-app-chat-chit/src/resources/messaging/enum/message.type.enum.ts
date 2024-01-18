@@ -4,5 +4,5 @@ export enum MessageType {
     VIDEO = 2,
     GIF = 3,
     VOTE = 4,
-    NOTIFY = 5
+    NOTIFY = 5,
 }
