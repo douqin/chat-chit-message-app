@@ -11,7 +11,7 @@ export class Member {
     lastview: Date | null
     position: number
     status: number
-    timejoin: Date
+    timeJoin: Date
 
     constructor(
         id: number,
@@ -24,6 +24,6 @@ export class Member {
         this.lastview = lastview
         this.position = position
         this.status = status
-        this.timejoin = timejoin
+        this.timeJoin = timejoin
     }
 }

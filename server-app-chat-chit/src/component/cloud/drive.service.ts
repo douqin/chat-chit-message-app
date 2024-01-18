@@ -27,6 +27,15 @@ export class CloudDrive implements iDrive {
             auth: auth,
         });
     }
+    async copyFile(idFile: string): Promise<string | undefined | null> {
+        let file = (await this.drive.files.copy(
+            {
+                fileId: idFile,
+                fields: "webContentLink"
+            }
+        ));
+        return file.data.webContentLink
+    }
     async getUrlFile(idFile: string): Promise<string | null | undefined> {
         let file = (await this.drive.files.get(
             {
@@ -34,9 +43,9 @@ export class CloudDrive implements iDrive {
                 fields: "webContentLink"
             }
         ));
-        return file.data.webContentLink 
+        return file.data.webContentLink
     }
-    
+
     async delete(id: string): Promise<void> {
         let data = (await this.drive.files.delete({
             fileId: id

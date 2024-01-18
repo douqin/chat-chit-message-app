@@ -3,18 +3,17 @@ import Reaction from "../resources/messaging/dtos/react.dto"
 import { MemberInfo } from "@/resources/group/interface/group.repository.interface"
 
 export default class Message {
-    idmember : string
+    memberId : string
     content: string 
-    createat: Date
-    idgroup: number
-    idmessage: number
-    iduser: number
-    replyidmessage: number
+    createAt: Date
+    groupId: number
+    messageId: number
+    userId: number
+    replyMessageId: number
     status: number
     type: number
     public reacts : Array<Reaction>
-    public manipulates : Array<User> = []
-    public tags : Array<MemberInfo> = []
+    public manipulates : Array<number> = []
     constructor(content: string,
         createat: Date,
         idgroup: number,
@@ -25,14 +24,14 @@ export default class Message {
         type: number,
         idmember : string) {
         this.content = content
-        this.createat = createat
-        this.idgroup = idgroup
-        this.idmessage = idmessage
-        this.iduser = iduser
-        this.replyidmessage = replyidmessage
+        this.createAt = createat
+        this.groupId = idgroup
+        this.messageId = idmessage
+        this.userId = iduser
+        this.replyMessageId = replyidmessage
         this.status = status
         this.type = type
-        this.idmember = idmember
+        this.memberId = idmember
         this.reacts = [];
     }
 }

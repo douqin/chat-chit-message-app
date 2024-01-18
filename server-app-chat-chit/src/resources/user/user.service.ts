@@ -21,8 +21,8 @@ export default class UserService implements UserServiceBehavior {
                 dataUser
             )
             let relationship: RelationServiceBehavior = container.resolve(RelationService);
-            let relation: RelationshipUser = await relationship.getRelationship(iduser, user.iduser);
-            let friendsCommon = await relationship.getSomeFriendCommon(iduser, user.iduser, 0, 10);
+            let relation: RelationshipUser = await relationship.getRelationship(iduser, user.userId);
+            let friendsCommon = await relationship.getSomeFriendCommon(iduser, user.userId, 0, 10);
             return new InforUserDto(relation, friendsCommon, user);
         } else {
             throw new NotFoundException("User not found")

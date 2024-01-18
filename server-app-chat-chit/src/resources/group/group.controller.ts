@@ -65,7 +65,7 @@ export default class GroupController extends MotherController {
             if (link) {
                 let data = await this.groupService.requestJoinFromLink(iduser, link)
                 if (data.isJoin && data.message) {
-                    this.io.to(getRoomGroupIO(data.message.idgroup)).emit(EventGroupIO.REQUEST_JOIN_FROM_LINK, data)
+                    this.io.to(getRoomGroupIO(data.message.groupId)).emit(EventGroupIO.REQUEST_JOIN_FROM_LINK, data)
                     res.status(HttpStatus.OK).json(
                         new ResponseBody(
                             true,
