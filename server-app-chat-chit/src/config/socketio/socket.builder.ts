@@ -3,8 +3,8 @@ import GroupService from '@/resources/group/group.service';
 import { iGroupActions } from '@/resources/group/interface/group.service.interface';
 import { Server, Socket } from 'socket.io';
 import { JwtPayload } from 'jsonwebtoken';
-import { DatabaseCache } from '../database/redis';
-import { ConstantRedis } from '../database/constant';
+import { DatabaseCache } from '../../../lib/database/redis/redis';
+import { ConstantRedis } from '../../../lib/database/constant';
 import { container } from 'tsyringe';
 export default class SocketBuilder {
     private io: Server;

@@ -1,6 +1,6 @@
-import Controller from "@/utils/decorator/controller";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/base";
+
 import { NextFunction, Request, Response } from "express";
 import { Server } from "socket.io";
 import MessageService from "./message.service";
@@ -15,12 +15,8 @@ import { BadRequestException, InternalServerError } from "@/utils/exceptions/bad
 import { inject } from "tsyringe";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "./constant/event.io";
-import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
-import { GET } from "@/utils/decorator/http.method/get";
-import { POST } from "@/utils/decorator/http.method/post";
-import { PATCH } from "@/utils/decorator/http.method/patch";
-import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
 import { ReactMessage } from "./enum/message.react.enum";
+import { Controller, GET, UseMiddleware, POST, FileUpload, PATCH } from "@/lib/decorator";
 
 @Controller("/message")
 export default class MessageController extends MotherController {

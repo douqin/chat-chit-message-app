@@ -1,6 +1,6 @@
 import { singleton } from "tsyringe";
 
-export default function Controller(router: string) {
+export function Controller(router: string) {
     return function <T extends {
         new(...args: any[]): {
         }

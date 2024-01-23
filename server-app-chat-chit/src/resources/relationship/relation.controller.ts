@@ -1,7 +1,7 @@
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/base";
+
 import { Server } from "socket.io";
 import RelationService from "./relation.service";
-import Controller from "@/utils/decorator/controller";
 import { NextFunction, Request, Response } from "express";
 import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
@@ -12,12 +12,8 @@ import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { User } from "@/models/user.model";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
-import { GET } from "@/utils/decorator/http.method/get";
 import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
-import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
-import { PATCH } from "@/utils/decorator/http.method/patch";
-import { POST } from "@/utils/decorator/http.method/post";
-import { DELETE } from "@/utils/decorator/http.method/delete";
+import { Controller, POST, UseMiddleware, GET, PATCH, DELETE } from "@/lib/decorator";
 
 @Controller("/relationship")
 export default class RelationshipController extends MotherController {

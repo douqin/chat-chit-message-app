@@ -40,7 +40,8 @@
     "socket.io": "^4.5.1",
     "ts-google-drive": "^0.0.6",
     "tsyringe": "^4.8.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@googleapis/drive": "^3.0.1",

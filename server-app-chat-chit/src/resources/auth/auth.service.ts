@@ -1,12 +1,12 @@
-import { JwtService } from "../../component/jwt/jwt.service";
+import { JwtService } from "../../services/jwt/jwt.service";
 import { type LoginSuccessfully, User } from "../../models/user.model";
 import AuthRepository from "./auth.repository";
+import { RegisterAccountDTO } from "./dtos/register.account.dto";
 import Gender from "./enums/gender.enum";
 import { container, inject, injectable } from "tsyringe";
-import iServiceBeahvior from "./interface/service.interface";
 
 @injectable()
-export default class AuthService implements iServiceBeahvior {
+export default class AuthService {
 
     constructor(@inject(AuthRepository) private authRepository: AuthRepository) {
         
@@ -44,8 +44,8 @@ export default class AuthService implements iServiceBeahvior {
         }
         return undefined
     }
-    async registerAccount(firstname: string, phone: any, password: any, birthday: Date, gender: Gender, lastname?: string, email?: string, address?: string) {
-        return await this.authRepository.registerAccount(firstname, phone, password, birthday, gender, lastname, email, address)
+    async registerAccount( registerData : RegisterAccountDTO) {
+        return await this.authRepository.registerAccount(registerData)
     }
 
 }

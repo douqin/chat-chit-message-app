@@ -1,19 +1,19 @@
 import { PositionInGrop } from './enum/group.position.enum';
-import { CloudDrive } from './../../component/cloud/drive.service';
+import { CloudDrive } from '../../services/cloud/drive.service';
 
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
 import MyException from "@/utils/exceptions/my.exception";
-import { iDrive } from '../../component/cloud/drive.interface';
+import { iDrive } from '../../services/cloud/drive.interface';
 import { ResultSetHeader } from 'mysql2';
 import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import { MemberStatus } from './enum/member.status.enum';
 import { GroupStatus } from './enum/group.status.dto.enum';
 import { GroupType } from './enum/group.type.enum';
-import { Database, iDatabase } from '@/config/database/database';
 import { Constant } from './constant/group.constant';
 import { inject, injectable } from 'tsyringe';
 import Group from '@/models/group.model';
 import { GroupAccess } from './enum/group.access';
+import { Database, iDatabase } from '@/lib/database';
 
 @injectable()
 export default class GroupRepository implements GroupRepositoryBehavior {

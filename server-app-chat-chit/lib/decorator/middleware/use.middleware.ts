@@ -1,7 +1,7 @@
-import { BaseMiddleware } from "@/middleware/base.middleware";
+import { BaseMiddleware } from "@/lib/base";
 import { constructor } from "tsyringe/dist/typings/types";
 
-export default function UseMiddleware(middleware: constructor<BaseMiddleware>) {
+export function UseMiddleware(middleware: constructor<BaseMiddleware>) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!Reflect.hasMetadata('middlewares', target[propertyKey])) {
             Reflect.defineMetadata('middlewares', [], target[propertyKey]);

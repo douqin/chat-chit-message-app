@@ -1,4 +1,4 @@
-import { IRouteDefinition, RequestMethod } from "./router.definition.interface";
+import { IRouteDefinition, RequestMethod } from "./definition/router.definition.interface";
 
 export function POST(url: string) {
     return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {

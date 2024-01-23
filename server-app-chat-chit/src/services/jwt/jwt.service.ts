@@ -1,5 +1,4 @@
-
-import { Database } from '@/config/database/database';
+import { Database } from '@/lib/database';
 import Token from '@/utils/definition/token';
 import jwt, {sign as _sign, verify as _verify } from 'jsonwebtoken';
 import { inject, injectable } from 'tsyringe';

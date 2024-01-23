@@ -1,12 +1,10 @@
-import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
-import { JwtService } from "../component/jwt/jwt.service";
 import { NextFunction, Request, Response } from "express"
-import { ForbiddenException, UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
+import {  UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
 import { container } from "tsyringe";
-import { Middleware } from "@/utils/decorator/middleware/middleware";
-import { BaseMiddleware } from "./base.middleware";
+import { Middleware } from "../../lib/decorator";
+import { JwtService } from "src/services/jwt/jwt.service";
+import { BaseMiddleware } from "@/lib/base";
 
 @Middleware()
 export class AuthorizeMiddleware extends BaseMiddleware {

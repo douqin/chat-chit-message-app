@@ -1,8 +1,8 @@
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/base";
+
 import UserService from "./user.service";
 import { Server } from "socket.io";
 import { NextFunction, Request, Response } from "express";
-import { UserServiceBehavior } from "./interface/user.service.interface";
 import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
@@ -10,9 +10,7 @@ import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
 import { inject, injectable, singleton } from "tsyringe";
-import Controller from "@/utils/decorator/controller";
-import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
-import { GET } from "@/utils/decorator/http.method/get";
+import { Controller, GET, UseMiddleware } from "@/lib/decorator";
 
 
 @Controller("user")

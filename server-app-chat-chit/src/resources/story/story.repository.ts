@@ -1,11 +1,11 @@
-import { CloudDrive } from "../../component/cloud/drive.service";
-import { iDrive } from "../../component/cloud/drive.interface";
+import { CloudDrive } from "../../services/cloud/drive.service";
+import { iDrive } from "../../services/cloud/drive.interface";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { ReactStory } from "./enums/story.react.enum";
-import { Database, iDatabase } from "@/config/database/database";
 import { inject, injectable } from "tsyringe";
+import { Database, iDatabase } from "@/lib/database";
 
 
 

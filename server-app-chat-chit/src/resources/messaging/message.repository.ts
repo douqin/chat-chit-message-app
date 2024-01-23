@@ -1,16 +1,16 @@
-import { iDrive } from "../../component/cloud/drive.interface";
-import { CloudDrive } from "../../component/cloud/drive.service";
+import { iDrive } from "../../services/cloud/drive.interface";
+import { CloudDrive } from "../../services/cloud/drive.service";
 import { ReactMessage } from "./enum/message.react.enum";
 import { iMessageRepositoryBehavior } from "./interface/message.repository.interface";
 import { MessageType } from "./enum/message.type.enum";
 import { MessageStatus } from "./enum/message.status.enum";
 import isValidNumberVariable from "@/utils/extension/vailid_variable";
-import { Database, iDatabase } from "@/config/database/database";
 import { inject, injectable } from "tsyringe";
 import { OkPacket } from "mysql2";
 import Message from "@/models/message.model";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
+import { Database, iDatabase } from "@/lib/database";
 
 @injectable()
 export default class MessageRepository implements iMessageRepositoryBehavior {

@@ -1,4 +1,4 @@
-import { iParam } from "./params.interface";
+import { Type, iParam } from "./definition/params.interface";
 
 export const requiredMetadataKeyRes = Symbol("Res");
 export function Res() {
@@ -6,7 +6,8 @@ export function Res() {
         let existingRequiredParameters: iParam[] = Reflect.getOwnMetadata(requiredMetadataKeyRes, target, propertyKey) || [];
         existingRequiredParameters.push({
           nameVariable: undefined,
-          parameterIndex: parameterIndex
+          parameterIndex: parameterIndex,
+          type: Type.Param
         });
         Reflect.defineMetadata(requiredMetadataKeyRes, existingRequiredParameters, target[propertyKey], propertyKey)
     }

@@ -1,5 +1,6 @@
 import { HttpStatus } from './../../utils/extension/httpstatus.exception';
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/base";
+
 import MeService from "./me.service";
 import { Server } from "socket.io";
 import { NextFunction, Request, Response } from "express";
@@ -9,11 +10,7 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import { ResponseBody } from '@/utils/definition/http.response';
 import { InternalServerError } from '@/utils/exceptions/badrequest.expception';
 import { inject } from 'tsyringe';
-import Controller from '@/utils/decorator/controller';
-import UseMiddleware from '@/utils/decorator/middleware/use.middleware';
-import { GET } from '@/utils/decorator/http.method/get';
-import { PATCH } from '@/utils/decorator/http.method/patch';
-import { FileUpload } from '@/utils/decorator/file.upload/multer.upload';
+import { Controller, PATCH, FileUpload, UseMiddleware, GET } from '@/lib/decorator';
 import { AuthorizeMiddleware } from '@/middleware/auth.middleware';
 
 @Controller("/me")

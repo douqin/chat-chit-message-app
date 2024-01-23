@@ -1,6 +1,6 @@
-import { IRouteDefinition, RequestMethod } from "./router.definition.interface";
+import { IRouteDefinition, RequestMethod } from "./definition/router.definition.interface";
 
-export function GET(url: string) {
+export function PATCH(url: string) {
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         if (!Reflect.hasMetadata('routes', target)) {
             Reflect.defineMetadata('routes', [], target);
@@ -8,7 +8,7 @@ export function GET(url: string) {
           // Lấy giá trị routes đã được lưu trước đó, thêm vào một route mới và set lại vào metadata.
           const routes: IRouteDefinition[] = Reflect.getMetadata('routes', target);
           routes.push({
-            requestMethod: RequestMethod.GET,
+            requestMethod: RequestMethod.PATCH,
             path : url,
             methodName: propertyKey,
           });

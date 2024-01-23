@@ -10,7 +10,7 @@ import { iMessageRepositoryBehavior } from "./interface/message.repository.inter
 import { MessageStatus } from "./enum/message.status.enum";
 import Message from "../../models/message.model";
 import TransformMessage from "@/utils/transform/message.transform";
-import { CloudDrive } from "./../../component/cloud/drive.service";
+import { CloudDrive } from "../../services/cloud/drive.service";
 import Reaction from "./dtos/react.dto";
 import TransformReaction from "@/utils/transform/reaction.transform";
 import { iGroupActions, iInformationMember } from "../group/interface/group.service.interface";

@@ -1,7 +1,7 @@
+import { MotherController } from "@/lib/base";
 import { constructor } from "tsyringe/dist/typings/types";
-import MotherController from "../interface/controller.interface";
 
-export default function Module(con: constructor<MotherController>[]) {
+export function Module(con: constructor<MotherController>[]) {
     return function <T extends {
         new(...args: any[]): {
         }
