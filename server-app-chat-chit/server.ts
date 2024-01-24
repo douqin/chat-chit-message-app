@@ -12,7 +12,7 @@ moduleAlias.addAliases({
 });
 
 import App from "./src/main.application";
-import validateEnv from "./src/utils/validateEnv";
+import validateEnv from "./src/utils/validate/validate.env";
 require('dotenv').config()
 validateEnv();
 App.gI().listen();

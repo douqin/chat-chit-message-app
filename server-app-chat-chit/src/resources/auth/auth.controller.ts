@@ -2,7 +2,6 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { NextFunction, Response, Request } from "express";
 import { Server } from "socket.io";
-import AuthService from "./auth.service";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import MyException from "@/utils/exceptions/my.exception";
@@ -17,15 +16,14 @@ import {
   TokenExpiredError,
 } from "jsonwebtoken";
 import { container, inject } from "tsyringe";
-import {
-  RegisterAccountDTO,
-  RegisterAccountDTOSchema,
-} from "./dtos/register.account.dto";
 import { Controller } from "@/lib/decorator";
 import { FileUpload } from "@/lib/decorator";
 import { POST } from "@/lib/decorator";
-import { JwtService } from "src/services/jwt/jwt.service";
 import { MotherController } from "@/lib/base";
+import { RegisterAccountDTO } from "./dtos/register.account.dto";
+import AuthService from "./auth.service";
+import { JwtService } from "@/services/jwt/jwt.service";
+import { convertObject } from "@/utils/validate";
 @Controller("/auth")
 export default class AuthController extends MotherController {
   constructor(
@@ -91,15 +89,54 @@ export default class AuthController extends MotherController {
     next: NextFunction
   ) {
     try {
-      let data: RegisterAccountDTO = RegisterAccountDTOSchema.parse(req.body);
+      let data = await convertObject(RegisterAccountDTO, req.body as any, undefined, { validationError: { target: false } });
       await this.authService.registerAccount(data);
       res
-        .status(HttpStatus.OK)
-        .json(new ResponseBody(true, "Tạo tài khoản thành công", {}));
+        .status(HttpStatus.CREATED)
+        .json(new ResponseBody(true, "OK", {}));
     } catch (e) {
-      console.log("🚀 ~ file: auth.controller.ts:105 ~ AuthController ~ e:", e);
       if (e instanceof MyException) {
         next(new HttpException(e.status, e.message));
+      }
+      else if (Array.isArray(e)) {
+        next(new BadRequestException(JSON.parse(JSON.stringify(e))));
+      } else {
+        console.log("🚀 ~ AuthController ~ e:", e)
+        next(
+          next(
+            new InternalServerError("An error occurred, please try again later.")
+          )
+        );
+      }
+    }
+  }
+
+  @POST("/register/verify")
+  private async confirmAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction) {
+    try {
+
+    }
+    catch (e) {
+    }
+  }
+
+  @POST("/forgot-password")
+  private async forgotPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      let phone = String(req.body.phone);
+      // let data = await this.authService.forgotPassword(phone);
+      // res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", data));
+    } catch (e: any) {
+      console.log("🚀 ~ file: auth.controller.ts:144 ~ AuthController ~ e:", e);
+      if (e instanceof HttpException) {
+        next(e);
       }
       next(
         next(
@@ -116,10 +153,6 @@ export default class AuthController extends MotherController {
       let refreshToken = req.body.refreshToken;
       if (refreshToken) {
         let isOK = await this.authService.loguot(iduser, refreshToken);
-        console.log(
-          "🚀 ~ file: auth.controller.ts:137 ~ AuthController ~ req.cookies:",
-          res.cookie
-        );
         res.status(HttpStatus.OK).send(new ResponseBody(isOK, "", {}));
       } else next(new BadRequestException("Agurment is invalid"));
     } catch (e: any) {

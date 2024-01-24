@@ -2,9 +2,9 @@ import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express"
 import {  UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
 import { container } from "tsyringe";
-import { Middleware } from "../../lib/decorator";
-import { JwtService } from "src/services/jwt/jwt.service";
 import { BaseMiddleware } from "@/lib/base";
+import { Middleware } from "@/lib/decorator";
+import { JwtService } from "@/services/jwt/jwt.service";
 
 @Middleware()
 export class AuthorizeMiddleware extends BaseMiddleware {

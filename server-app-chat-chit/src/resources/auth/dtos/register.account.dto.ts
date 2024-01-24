@@ -1,27 +1,30 @@
-import { RefinementCtx, ZodIssueCode, z } from "zod";
+import { Type } from "class-transformer";
 import Gender from "../enums/gender.enum";
+import { IsDate, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, Length, isDate, isEnum, isNotEmpty } from "class-validator";
+import { number } from "zod";
 
-const RegisterAccountDTOSchema = z.object({
-  firstname: z.string().min(10).max(100),
-  email: z.string().email().optional(),
-  password: z.string().min(6).max(100),
-  phone: z.string().min(10).max(15),
-  address: z.string().min(10).max(100).optional(),
-  lastname: z.string().min(10).max(100),
-  gender: z.nativeEnum(Gender),
-  birthday: z.string().transform((value: string, ctx: RefinementCtx) => {
-    let date = new Date(value);
-    if (date) {
-      return date;
-    }
-    ctx.addIssue({
-      code: ZodIssueCode.invalid_date,
-      message: "birthday is invalid",
-      path: [],
-    });
-    return z.NEVER;
-  }),
-})
-
-type RegisterAccountDTO = z.infer<typeof RegisterAccountDTOSchema>;
-export { RegisterAccountDTOSchema, RegisterAccountDTO };
+export class RegisterAccountDTO {
+  @Length(4, 20)
+  firstname: string;
+  @IsEmail()
+  @IsOptional()
+  email: string;
+  @IsString()
+  @IsNotEmpty()
+  password: string;
+  @IsPhoneNumber('VN')
+  @IsNotEmpty()
+  phone: string;
+  @IsOptional()
+  address: string;
+  @IsString()
+  @IsNotEmpty()
+  lastname: string;
+  @IsNotEmpty()
+  @Type(() => Number)
+  @IsEnum(Gender)
+  gender: Gender;
+  @Type(() => Date)
+  @IsDate()
+  birthday: Date;
+}
