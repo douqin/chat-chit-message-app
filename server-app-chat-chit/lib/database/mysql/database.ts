@@ -15,7 +15,7 @@ class Database implements iDatabase {
     transaction(): void {
         throw new Error("Method not implemented.");
     }
-    async excuteQuery(query: string, a?: any[] | undefined): Promise<[mysql.OkPacket | mysql.ResultSetHeader | mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket[], mysql.FieldPacket[]]> {
+    async executeQuery(query: string, a?: any[] | undefined): Promise<[mysql.OkPacket | mysql.ResultSetHeader | mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket[], mysql.FieldPacket[]]> {
         return await this.pool.promise().query(
             query, a
         )
@@ -24,7 +24,7 @@ class Database implements iDatabase {
 }
 interface iDatabase {
 
-    excuteQuery(query: string, a?: any[]): Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
+    executeQuery(query: string, a?: any[]): Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]]>
 
     transaction(): void;
 }

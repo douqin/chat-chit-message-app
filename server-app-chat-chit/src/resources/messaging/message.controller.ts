@@ -8,9 +8,9 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import MyException from "@/utils/exceptions/my.exception";
-import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
+import { AuthorizeGuard } from "@/middleware/auth.middleware";
 import { MessageStatus } from "./enum/message.status.enum";
-import isValidNumberVariable from "@/utils/extension/vailid_variable";
+import { isValidNumberVariable } from "@/utils/validate";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
@@ -26,7 +26,7 @@ export default class MessageController extends MotherController {
 
 
     @GET("/:groupId/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getMessageFromGroup(
         req: Request,
         res: Response,
@@ -38,10 +38,10 @@ export default class MessageController extends MotherController {
             const limit = Number(req.query.limit)
             const cursor = Number(req.query.cursor)
             if (isValidNumberVariable(groupId) && isValidNumberVariable(limit) && isValidNumberVariable(cursor)) {
-                const iduser = Number(req.headers['iduser'] as string)
+                const userId = Number(req.headers['userId'] as string)
                 let data = await this.messageService.getAllMessageFromGroup(
                     Number(groupId),
-                    iduser, cursor, limit
+                    userId, cursor, limit
                 );
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -75,16 +75,16 @@ export default class MessageController extends MotherController {
         }
     };
     @POST("/:groupId/file")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     @FileUpload(multer().array("files", 7))
     private async sendFileMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const groupId = Number(req.params.groupId);
             if (isValidNumberVariable(groupId) && req.files) {
-                const iduser = Number(req.headers['iduser'] as string)
+                const userId = Number(req.headers['userId'] as string)
                 let data = await this.messageService.sendFileMessage(
                     Number(groupId),
-                    iduser,
+                    userId,
                     req.files
                 );
                 res.status(HttpStatus.OK).send(new ResponseBody(
@@ -124,7 +124,7 @@ export default class MessageController extends MotherController {
         }
     };
     @POST("/:groupId/text")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async sendTextMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const groupId = Number(req.params.groupId)
@@ -132,8 +132,8 @@ export default class MessageController extends MotherController {
             const message = String(req.body.content)
             let tags: Array<number> = req.body.manipulates || [];
             if (isValidNumberVariable(groupId) && message) {
-                const iduser = Number(req.headers['iduser'] as string)
-                let messageModel = await this.messageService.sendTextMessage(groupId, iduser, message, tags, replyMessageId)
+                const userId = Number(req.headers['userId'] as string)
+                let messageModel = await this.messageService.sendTextMessage(groupId, userId, message, tags, replyMessageId)
                 this.io
                     .to(getRoomGroupIO(groupId))
                     .emit(EventMessageIO.NEW_MESSAGE,
@@ -165,15 +165,15 @@ export default class MessageController extends MotherController {
         }
     };
     @POST('/:groupId/:messageId/react/:type')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async reactMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const groupId = Number(req.params.groupId);
             const type: ReactMessage = Number(req.params.type);
-            const idmessage = Number(req.params.messageId);
-            if (isValidNumberVariable(idmessage) && isValidNumberVariable(type) && isValidNumberVariable(groupId)) {
-                const iduser = Number(req.headers['iduser'] as string)
-                let model = await this.messageService.reactMessage(idmessage, type, iduser, groupId)
+            const messageId = Number(req.params.messageId);
+            if (isValidNumberVariable(messageId) && isValidNumberVariable(type) && isValidNumberVariable(groupId)) {
+                const userId = Number(req.headers['userId'] as string)
+                let model = await this.messageService.reactMessage(messageId, type, userId, groupId)
                 this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.REACT_MESSAGE, model)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -203,20 +203,20 @@ export default class MessageController extends MotherController {
         }
     };
     @PATCH("/:groupId/:messageId/recall")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async removeCall(req: Request, res: Response, next: NextFunction) { //FIXME: POSTMAN CHECK
         try {
-            const iduser = Number(req.headers.iduser)
-            console.log("🚀 ~ MessageController ~ removeCall ~ iduser:", iduser)
+            const userId = Number(req.headers.userId)
+            console.log("🚀 ~ MessageController ~ removeCall ~ userId:", userId)
             const groupId = Number(req.params.groupId)
             console.log("🚀 ~ MessageController ~ removeCall ~ groupId:", groupId)
             const idmessgae = Number(req.params.messageId)
             console.log("🚀 ~ MessageController ~ removeCall ~ idmessgae:", idmessgae)
-            if (isValidNumberVariable(iduser) && isValidNumberVariable(groupId) && isValidNumberVariable(idmessgae)) {
-                let whowasdel = await this.messageService.removeCall(iduser, groupId, idmessgae)
+            if (isValidNumberVariable(userId) && isValidNumberVariable(groupId) && isValidNumberVariable(idmessgae)) {
+                let whowasdel = await this.messageService.removeCall(userId, groupId, idmessgae)
                 this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.RECALL_MESSAGE,
                     {
-                        "userId": iduser,
+                        "userId": userId,
                         "messageId": idmessgae,
                         "delby": whowasdel
                     }
@@ -241,7 +241,7 @@ export default class MessageController extends MotherController {
     }
 
     @GET("/:groupId/:messageId/one/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getOneMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const groupId = Number(req.params.groupId)
@@ -273,10 +273,10 @@ export default class MessageController extends MotherController {
     }
 
     @POST("/:groupId/:messageId/forward/:groupIdAddressee/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async forwardMessage(req: Request, res: Response, next: NextFunction) {
         try {
-            const userId = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             const groupId = Number(req.params.groupId)
             const messageId = Number(req.params.messageId)
             const groupIdAddressee = Number(req.params.groupIdAddressee)
@@ -309,15 +309,15 @@ export default class MessageController extends MotherController {
 
 
     @POST("/:groupId/gif/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async sendGifMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const groupId = Number(req.params.groupId)
             const gifId = String(req.body.content)
             const replyMessageId = Number(req.body.replyMessageId) || null
             if (isValidNumberVariable(groupId) && gifId) {
-                const iduser = Number(req.headers['iduser'] as string)
-                let data = await this.messageService.sendGifMessage(groupId, iduser, gifId, replyMessageId)
+                const userId = Number(req.headers['userId'] as string)
+                let data = await this.messageService.sendGifMessage(groupId, userId, gifId, replyMessageId)
                 this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
@@ -344,7 +344,7 @@ export default class MessageController extends MotherController {
     }
 
     @PATCH("/:groupId/:messageId/pin/:ispin/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async changePinMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const messageId = Number(req.params.messageId)
@@ -353,8 +353,8 @@ export default class MessageController extends MotherController {
             console.log("🚀 ~ MessageController ~ changePinMessage ~ ispin:", ispin)
             const groupId = Number(req.params.groupId)
             if (isValidNumberVariable(messageId)) {
-                const iduser = Number(req.headers['iduser'] as string)
-                await this.messageService.changePinMessage(groupId, (messageId), (iduser), ispin)
+                const userId = Number(req.headers['userId'] as string)
+                await this.messageService.changePinMessage(groupId, (messageId), (userId), ispin)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
@@ -394,11 +394,11 @@ export default class MessageController extends MotherController {
     };
 
     @GET("/pin/:groupId/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getListPinMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const groupId = Number(req.params.groupId)
-            const userId = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             if (isValidNumberVariable(groupId)) {
                 let data = await this.messageService.getListPinMessage(userId, groupId)
                 res.status(HttpStatus.OK).json(new ResponseBody(
@@ -421,7 +421,7 @@ export default class MessageController extends MotherController {
     }
 
     @GET("/:groupId/files/all")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getAllFileFromGroup(req: Request, res: Response, next: NextFunction) {
         console.log("🚀 ~ MessageController ~ getAllFileFromGroup ~ req:", req)
         try {

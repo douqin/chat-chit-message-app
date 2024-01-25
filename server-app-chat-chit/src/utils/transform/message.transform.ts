@@ -4,29 +4,29 @@ import { MessageType } from "@/resources/messaging/enum/message.type.enum";
 import MyException from "../exceptions/my.exception";
 import { HttpStatus } from "../extension/httpstatus.exception";
 
-export default class TransformMessage {
+export class TransformMessage {
     static async fromRawsData(raws: any[], callback?: (id: string) => Promise<string | null | undefined>): Promise<Message[]> {
         let arrMessage: Array<Message> = [];
         for (let raw of raws) {
             const { content,
                 createat,
-                idgroup,
-                idmessage,
-                iduser,
-                replyidmessage,
+                groupId,
+                messageId,
+                userId,
+                replyMessageId,
                 status,
                 type,
-                idmember } = raw
+                memberId } = raw
             let value = new Message(
                 content,
                 createat,
-                idgroup,
-                idmessage,
-                iduser,
-                replyidmessage,
+                groupId,
+                messageId,
+                userId,
+                replyMessageId,
                 status,
                 type,
-                idmember
+                memberId
             );
             if (value.type == MessageType.IMAGE || value.type == MessageType.VIDEO) {
                 let url = await callback!(value.content)
@@ -41,23 +41,23 @@ export default class TransformMessage {
     static async fromRawData(object: any, callback? : (id: string) => Promise<string | null | undefined>): Promise<Message> {
         const { content,
             createat,
-            idgroup,
-            idmessage,
-            iduser,
-            replyidmessage,
+            groupId,
+            messageId,
+            userId,
+            replyMessageId,
             status,
             type,
-            idmember } = object;
+            memberId } = object;
         let value = new Message(
             content,
             createat,
-            idgroup,
-            idmessage,
-            iduser,
-            replyidmessage,
+            groupId,
+            messageId,
+            userId,
+            replyMessageId,
             status,
             type,
-            idmember
+            memberId
         );
         if (value.type == MessageType.IMAGE || value.type == MessageType.VIDEO) {
             let url = await callback!(value.content)

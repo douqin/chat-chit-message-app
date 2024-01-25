@@ -8,7 +8,7 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
-import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
+import { AuthorizeGuard } from "@/middleware/auth.middleware";
 import { inject, injectable, singleton } from "tsyringe";
 import { Controller, GET, UseMiddleware } from "@/lib/decorator";
 
@@ -20,7 +20,7 @@ export default class UserController extends MotherController {
         super(io)
     }
     @GET("/user/searchuser")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async searchUser(req: Request, res: Response, next: NextFunction) {
         try {
             let phone = String(req.query.phone)
@@ -44,12 +44,12 @@ export default class UserController extends MotherController {
         }
     }
     @GET("/user/:username")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async inforUser(req: Request, res: Response, next: NextFunction) {
         try {
             let username = String(req.params.username)
-            let iduser = Number(req.headers.iduser)
-            let data = await this.userSerivce.inforUser(iduser, username)
+            let userId = Number(req.headers.userId)
+            let data = await this.userSerivce.inforUser(userId, username)
             // TODO: add status(gồm 4 trạng thái), numberCommonFriend: int}.
             if (username) {
                 res.status(HttpStatus.OK).send(

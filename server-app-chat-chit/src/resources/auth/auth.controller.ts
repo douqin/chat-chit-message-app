@@ -23,7 +23,7 @@ import { MotherController } from "@/lib/base";
 import { RegisterAccountDTO } from "./dtos/register.account.dto";
 import AuthService from "./auth.service";
 import { JwtService } from "@/services/jwt/jwt.service";
-import { convertObject } from "@/utils/validate";
+import { convertToObjectDTO } from "@/utils/validate";
 import { ConfirmAccountDTO } from "./dtos/confirm.account.dto";
 @Controller("/auth")
 export default class AuthController extends MotherController {
@@ -90,7 +90,7 @@ export default class AuthController extends MotherController {
     next: NextFunction
   ) {
     try {
-      let data = await convertObject(RegisterAccountDTO, req.body as any, undefined, { validationError: { target: false } });
+      let data = await convertToObjectDTO(RegisterAccountDTO, req.body as any, undefined, { validationError: { target: false } });
       await this.authService.registerAccount(data);
       res
         .status(HttpStatus.CREATED)
@@ -118,7 +118,7 @@ export default class AuthController extends MotherController {
     res: Response,
     next: NextFunction) {
     try {
-      const dataOtp = await convertObject(ConfirmAccountDTO, req.body as any, undefined, { validationError: { target: false } });
+      const dataOtp = await convertToObjectDTO(ConfirmAccountDTO, req.body as any, undefined, { validationError: { target: false } });
       await this.authService.verifyAccount(dataOtp);
       res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", {}));
     }
@@ -179,10 +179,10 @@ export default class AuthController extends MotherController {
   @POST("/logout")
   private async logout(req: Request, res: Response, next: NextFunction) {
     try {
-      let iduser = Number(req.headers["iduser"]);
+      let userId = Number(req.headers["userId"]);
       let refreshToken = req.body.refreshToken;
       if (refreshToken) {
-        let isOK = await this.authService.loguot(iduser, refreshToken);
+        let isOK = await this.authService.loguot(userId, refreshToken);
         res.status(HttpStatus.OK).send(new ResponseBody(isOK, "", {}));
       } else next(new BadRequestException("Agurment is invalid"));
     } catch (e: any) {
@@ -210,10 +210,10 @@ export default class AuthController extends MotherController {
       const jwtPayload = (await container
         .resolve(JwtService)
         .decodeRefreshToken(refreshToken)) as JwtPayload;
-      const { iduser } = jwtPayload.payload;
-      if (iduser && refreshToken && token) {
+      const { userId } = jwtPayload.payload;
+      if (userId && refreshToken && token) {
         let newAccessToken = await this.authService.getNewAccessToken(
-          iduser,
+          userId,
           token,
           refreshToken
         );

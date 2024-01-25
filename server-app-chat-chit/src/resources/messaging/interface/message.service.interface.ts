@@ -11,25 +11,25 @@ export default interface iMessageServiceBehavior extends iMessageAction, iMessag
 export interface iMessageAction {
     getAllFileFromGroup(groupId: number, cursor: number, limit: number) : Promise<ListMessageResponseDTO>
     getListPinMessage(userId: number, groupId: number): Promise<Message[]>
-    sendGifMessage(groupId: number, iduser: number, gifId: string, replyMessageId: number): Promise<Message>
+    sendGifMessage(groupId: number, userId: number, gifId: string, replyMessageId: number): Promise<Message>
     forwardMessage(userId: number, groupId: number, messageId: number, groupIdAddressee : number): Promise<Message>
-    changeStatusMessage(idmessage: number, status: MessageStatus): Promise<boolean>
-    sendFileMessage(idgroup: number, iduser: number, content: {
+    changeStatusMessage(messageId: number, status: MessageStatus): Promise<boolean>
+    sendFileMessage(groupId: number, userId: number, content: {
         [fieldname: string]: Express.Multer.File[];
     } | Express.Multer.File[] | undefined): Promise<Message[]>
-    sendTextMessage(idgroup: number, iduser: number, content: string, tag: Array<Number>, replyMessageId: number | null): Promise<Message>
-    sendNotitfyMessage(idgroup: number, iduser: number, content: string, manipulates: Array<number>): Promise<Message>
-    reactMessage(idmessage: number, react: ReactMessage, iduser: number, idgroup: Number): Promise<Reaction>
-    removeCall(iduser: number, idgroup: number, messageId: number): Promise<number>
-    changePinMessage(groupId: number, idmessage: number, iduser: number, isPin: boolean): Promise<boolean>
-    getLastMessage(idgroup: number): Promise<Message>
-    getNumMessageUnread(idgroup: number, iduser: number): Promise<number>
+    sendTextMessage(groupId: number, userId: number, content: string, tag: Array<Number>, replyMessageId: number | null): Promise<Message>
+    sendNotitfyMessage(groupId: number, userId: number, content: string, manipulates: Array<number>): Promise<Message>
+    reactMessage(messageId: number, react: ReactMessage, userId: number, groupId: Number): Promise<Reaction>
+    removeCall(userId: number, groupId: number, messageId: number): Promise<number>
+    changePinMessage(groupId: number, messageId: number, userId: number, isPin: boolean): Promise<boolean>
+    getLastMessage(groupId: number): Promise<Message>
+    getNumMessageUnread(groupId: number, userId: number): Promise<number>
 }
 export interface iMessageInformation {
-    isMessageContainInGroup(idmessage: Number, idgroup: Number): Promise<boolean>
-    isMessageOfUser(idmessage: Number, iduser: Number): Promise<boolean>
-    getAllMessageFromGroup(idgroup: number, iduser: number, cursor: number, limit: number): Promise<ListMessageResponseDTO>
-    getAllReactFromMessage(idmessage: number): Promise<any[]>
-    getAllManipulateUser(idmessage: number): Promise<number[]>
-    getOneMessage(idmessage: number): Promise<Message>
+    isMessageContainInGroup(messageId: Number, groupId: Number): Promise<boolean>
+    isMessageOfUser(messageId: Number, userId: Number): Promise<boolean>
+    getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<ListMessageResponseDTO>
+    getAllReactFromMessage(messageId: number): Promise<any[]>
+    getAllManipulateUser(messageId: number): Promise<number[]>
+    getOneMessage(messageId: number): Promise<Message>
 }

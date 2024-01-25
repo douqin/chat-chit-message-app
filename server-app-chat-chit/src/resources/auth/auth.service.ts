@@ -21,12 +21,12 @@ export default class AuthService {
             } else throw new MyException("OTP is incorrect")
         } else throw new MyException("OTP is incorrect")
     }
-    async loguot(iduser: number, refreshToken: string) {
-        return await this.authRepository.loguot(iduser, refreshToken)
+    async loguot(userId: number, refreshToken: string) {
+        return await this.authRepository.loguot(userId, refreshToken)
     }
 
-    async getNewAccessToken(iduser: number, oldToken: string, refreshToken: string): Promise<string> {
-        let token = await container.resolve(JwtService).generateAccessToken(String(iduser))
+    async getNewAccessToken(userId: number, oldToken: string, refreshToken: string): Promise<string> {
+        let token = await container.resolve(JwtService).generateAccessToken(String(userId))
         if (token) {
             return token
         } else throw new Error("")
@@ -36,17 +36,17 @@ export default class AuthService {
         let userRaw = await this.authRepository.login(phone, password, notificationToken);
         if (userRaw) {
             const {
-                iduser
+                userId
             } = userRaw
             let user: User = User.fromRawData(userRaw)
             if (user) {
-                let fullToken = await container.resolve(JwtService).getFullToken(iduser, notificationToken)
+                let fullToken = await container.resolve(JwtService).getFullToken(userId, notificationToken)
                 if (fullToken) {
                     let response: LoginSuccessfully = {
                         user: user,
                         token: fullToken
                     }
-                    await this.authRepository.saveFullToken(iduser, fullToken, notificationToken)
+                    await this.authRepository.saveFullToken(userId, fullToken, notificationToken)
                     return response;
                 }
             }
@@ -56,8 +56,8 @@ export default class AuthService {
     async registerAccount(registerData: RegisterAccountDTO) {
         return await this.authRepository.registerAccount(registerData)
     }
-    async createKeyPair(iduser: number) {
+    async createKeyPair(userId: number) {
         crypto.randomUUID();
-        // return await this.authRepository.createKeyPair(iduser)
+        // return await this.authRepository.createKeyPair(userId)
     }
 }

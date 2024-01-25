@@ -4,12 +4,12 @@ export default class Reaction {
     messageId: Number;
     type: Number;
     constructor(idReaction: Number,
-        idMember: Number,
-        idMessage: Number,
+        memberId: Number,
+        messageId: Number,
         type: Number) {
         this.reactionId = idReaction;
-        this.userId = idMember;
-        this.messageId = idMessage;
+        this.userId = memberId;
+        this.messageId = messageId;
         this.type = type;
     }
 }

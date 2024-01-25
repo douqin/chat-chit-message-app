@@ -12,14 +12,14 @@ export class ServiceFCM implements NotificationService {
         return ServiceFCM.instance;
     } 
 
-    async sendMessageToUserOffInGroup(idgroup: number, iduser: number, data: any): Promise<void> {
+    async sendMessageToUserOffInGroup(groupId: number, userId: number, data: any): Promise<void> {
         const message : TopicMessage = {
             data: data,
-            topic: `${idgroup}`
+            topic: `${groupId}`
         };
         await this.firebase.messaging().send(message)
     }
-    async sendMessageToUser(iduser: number, iuserWantSend: number, data: any): Promise<void> {
+    async sendMessageToUser(userId: number, iuserWantSend: number, data: any): Promise<void> {
 
     }
     private firebase: typeof firebase = firebase;

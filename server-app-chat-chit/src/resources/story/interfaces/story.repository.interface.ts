@@ -1,16 +1,20 @@
 import { ReactMessage } from "@/resources/messaging/enum/message.react.enum"
 import { ReactStory } from "../enums/story.react.enum"
+import { RawDataMysql } from "@/models/raw.data"
+import { OptionUploadStoryDTO } from "../dtos/upload.stoty"
 
 export default interface iStoryRepositoryBehavior {
-    
-    reacStory(idstory : number, iduser : number, react : ReactStory) : Promise<any>
 
-    uploadStory(file : Express.Multer.File, iduser : number) : Promise<any>
+    reacStory(storyId: number, userId: number, react: ReactStory): Promise<true>
 
-    getAllStoryFromFriends(iduser: number) : Promise<any>
+    getStoryById(storyId: number): Promise<RawDataMysql>
 
-    deleteStory(idstory : number) : Promise<any>
+    uploadStory(file: Express.Multer.File, userId: number, option: OptionUploadStoryDTO): Promise<number>
 
-    seeStory(idstory : number, iduser : number) : Promise<any>
+    getAllStoryFromFriends(userId: number): Promise<RawDataMysql[]>
+
+    deleteStory(storyId: number): Promise<boolean>
+
+    seeStory(storyId: number, userId: number): Promise<boolean>
 
 }

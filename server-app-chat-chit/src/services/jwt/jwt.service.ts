@@ -31,9 +31,9 @@ export class JwtService {
             return null;
         }
     };
-    public generateAccessToken = async (iduser: string) => {
+    public generateAccessToken = async (userId: string) => {
         let dataForAccessToken = {
-            iduser: iduser,
+            userId: userId,
         }
         return await this.generateToken(
             dataForAccessToken,
@@ -41,9 +41,9 @@ export class JwtService {
             accessTokenLife,
         )
     };
-    private generateRefreshToken = async (iduser: string) => {
+    private generateRefreshToken = async (userId: string) => {
         let dataForToken = {
-            iduser: iduser,
+            userId: userId,
         }
         return await this.generateToken(
             dataForToken,
@@ -71,10 +71,10 @@ export class JwtService {
     public decodeRefreshToken = async (refreshToken: any) => {
         return await this.decodeToken(refreshToken, refreshTokenSecret);
     }
-    private async getRefreshTokenFromBD(iduser: number): Promise<string | null> {
-        let query: string = "SELECT refreshtoken FROM token WHERE iduser ='" + `${iduser}` + "'";
+    private async getRefreshTokenFromBD(userId: number): Promise<string | null> {
+        let query: string = "SELECT refreshtoken FROM token WHERE userId ='" + `${userId}` + "'";
         try {
-            let data2: any = await this.db.excuteQuery(query);
+            let data2: any = await this.db.executeQuery(query);
             if (data2.length === 0) {
                 return null;
             }
@@ -85,12 +85,12 @@ export class JwtService {
         }
         //	return await JSON.parse(JSON.stringify(data));;
     }
-    public async getFullToken(iduser: number, notificationToken: string): Promise<Token | undefined> {
-        let accessToken = await this.generateAccessToken(`${iduser}`);
+    public async getFullToken(userId: number, notificationToken: string): Promise<Token | undefined> {
+        let accessToken = await this.generateAccessToken(`${userId}`);
         if (!accessToken) {
             return undefined;
         }
-        let refreshToken = await this.generateRefreshToken(`${iduser}`);
+        let refreshToken = await this.generateRefreshToken(`${userId}`);
         if (refreshToken) {
             let token: Token = {
                 refreshToken: refreshToken,
@@ -100,10 +100,10 @@ export class JwtService {
         }
         return undefined;
     }
-    public checkHSDAccessToken = async (accessToken: any) => {
+    public IsAccessTokenExpire = async (accessToken: any) => {
         return await this.decodeToken2(accessToken, accessTokenSecret);
     }
-    public checkHSDRefreshToken = async (refreshToken: any) => {
+    public IsRefreshTokenExpire = async (refreshToken: any) => {
         return await this.decodeToken2(refreshToken, refreshTokenSecret);
     }
 }

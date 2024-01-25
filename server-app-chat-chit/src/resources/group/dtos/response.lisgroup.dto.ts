@@ -8,7 +8,7 @@ export class ListGroupDTO {
         public nextCursor: Date | null,
         public totalSize : number = 0
     ) { }
-    static async rawToDTO(raw: any[], getlastMessage : (idgroup : number) => Promise<Message> , totalMember : (idgroup : number) => Promise<number>, numMessageUnread : (idgroup : number) => Promise<number> ) {
+    static async rawToDTO(raw: any[], getlastMessage : (groupId : number) => Promise<Message> , totalMember : (groupId : number) => Promise<number>, numMessageUnread : (groupId : number) => Promise<number> ) {
         let dto = new ListGroupDTO([], null)
         for (let userRaw of raw) {
             let gr = Group.fromRawData(userRaw);
@@ -20,12 +20,12 @@ export class ListGroupDTO {
 }
 export class GroupChatDTO extends Group {
     constructor(
-        idgroup: number, name: string, avatar: string, status: number, createAt: Date, type: number, link: string, access: number,
+        groupId: number, name: string, avatar: string, status: number, createAt: Date, type: number, link: string, access: number,
         public lastMessage: Message,
         public totalMember: number,
         public numMessageUnread: number
     ) {
-        super(idgroup, name, avatar, status, createAt, type, link, access);
+        super(groupId, name, avatar, status, createAt, type, link, access);
     }
     static fromBase(gr: Group, lastMessage: Message, totalMember: number, numMessageUnread: number): GroupChatDTO {
         return new GroupChatDTO(gr.groupId, gr.name, gr.avatar, gr.status, gr.createAt, gr.type, gr.link, gr.access, lastMessage, totalMember, numMessageUnread)

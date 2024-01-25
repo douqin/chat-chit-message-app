@@ -1,3 +1,3 @@
-export function getRoomUserIO(iduser: number): string {
-    return `${iduser}_user`
+export function getRoomUserIO(userId: number): string {
+    return `${userId}_user`
 }

@@ -6,7 +6,7 @@
 
 - `[POST] /login`: login.
   - body: {username: String, password: String}.
-  - result: {user : {iduser","lastname","firstname","phone": "0842943637","birthday","gender","bio","username","avatar","background","email"} , token : {token: String, refreshToken: String}}.
+  - result: {user : {userId","lastname","firstname","phone": "0842943637","birthday","gender","bio","username","avatar","background","email"} , token : {token: String, refreshToken: String}}.
 - `[POST] /refresh-token`: refresh token.
   - body: {accessToken: String}.
   - result: {token: String}.
@@ -64,7 +64,7 @@
   - socket: io.emit('accept-friend', {\_id, name, avatar }).
   - socket (TH lạ, thì cả 2 sẽ nhận được): io.emit('create-individual-group-when-was-friend', groupId).
   - socket(TH đã có nhắn tin, thì cả 2 sẽ nhận được): io.emit('new-message', groupId, message).
-- `[DELETE] /:iduser/unfriend`: xóa kết bạn (socket bắn tới thằng bị xóa).
+- `[DELETE] /:userId/unfriend`: xóa kết bạn (socket bắn tới thằng bị xóa).
   - socket: io.emit('deleted-friend', \_id);
 - `[GET] /invites`: get danh sách lời mời kết bạn của bản thân.
   - result: [{_id: String, name: String, username: String, avatar: String, numberCommonGroup: int, numberCommonFriend: int }].
@@ -79,10 +79,10 @@
   - socket: io.emit('deleted-invite-was-send', \_id);
   <!-- - `[GET] /suggest`: danh sách đề xuất bạn bè.
   - result: [{_id: String, name, username, avatar, numberCommonGroup: int, numberCommonFriend: int }]. -->
-- `[POST] /:iduser/block` : block user
+- `[POST] /:userId/block` : block user
 - `[DELETE] /invites/me/:invite/` : xóa lời mời kết bạn mà chính bản thân đã gửi
 - `[GET] /friends/online`: lấy tất cả friend online
-- `[GET] /:iduser/relation`: lấy ra mối quan hệ giữa user vs user
+- `[GET] /:userId/relation`: lấy ra mối quan hệ giữa user vs user
 
 ### Group `/group`
 
@@ -95,7 +95,7 @@
     - ````{
         "listGroup": [
             {
-                "idgroup": number,
+                "groupId": number,
                 "name": string,
                 "avatar": string,
                 "status": GroupStatus,
@@ -104,18 +104,18 @@
                 "link": string,
                 "role": string,
                 "lastMessage": {
-                    "manipulates": [] (iduser[] ),
-                    "tags": [] (idmember[] ),
+                    "manipulates": [] (userId[] ),
+                    "tags": [] (memberId[] ),
                     "content": string,
                     "createat": string,
-                    "idgroup": number,
-                    "idmessage": number,
-                    "iduser": number,
-                    "replyidmessage": idmessage or null,
+                    "groupId": number,
+                    "messageId": number,
+                    "userId": number,
+                    "replyMessageId": messageId or null,
                     "status": MessageStatus,
                     "type": number,
-                    "idmember": number,
-                    "reacts": [] (idmember[])
+                    "memberId": number,
+                    "reacts": [] (memberId[])
                 },
                 "totalMember": number,
                 "numMessageUnread": number
@@ -193,7 +193,7 @@
   - res :
 
   - ````{
-                "idgroup": number,
+                "groupId": number,
                 "name": string,
                 "avatar": string,
                 "status": GroupStatus,
@@ -202,18 +202,18 @@
                 "link": string,
                 "role": string,
                 "lastMessage": {
-                    "manipulates": [] (iduser[] ),
-                    "tags": [] (idmember[] ),
+                    "manipulates": [] (userId[] ),
+                    "tags": [] (memberId[] ),
                     "content": string,
                     "createat": string,
-                    "idgroup": number,
-                    "idmessage": number,
-                    "iduser": number,
-                    "replyidmessage": idmessage or null,
+                    "groupId": number,
+                    "messageId": number,
+                    "userId": number,
+                    "replyMessageId": messageId or null,
                     "status": MessageStatus,
                     "type": number,
-                    "idmember": number,
-                    "reacts": [] (idmember[])
+                    "memberId": number,
+                    "reacts": [] (memberId[])
                 },
                 "totalMember": number,
                 "numMessageUnread": number
@@ -225,7 +225,7 @@
   - res:
 
   - ```{
-              "idgroup": number,
+              "groupId": number,
               "name": string,
               "avatar": string,
               "status": GroupStatus,

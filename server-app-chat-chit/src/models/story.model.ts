@@ -1,20 +1,18 @@
 export default class Story {
-
-    idstory: number
-    iduserowner: number
+    storyId: number
+    userIdOwner: number
     createat: Date
     content: string
     viewed : boolean 
 
-    constructor(idstory: number,
-        iduserowner: number,
+    constructor(storyId: number,
+        userIdOwner: number,
         createat: Date,
         content: string) {
         this.content = content
-        this.idstory = idstory
+        this.storyId = storyId
         this.createat = createat
-        this.iduserowner = iduserowner
+        this.userIdOwner = userIdOwner
         this.viewed = false
     }
-
 }

@@ -13,11 +13,11 @@ class SocketMiddleware {
             if (token && notificationToken) {
                 if (token) {
                     const jwtPayload = await container.resolve(JwtService).decodeAccessToken(token) as JwtPayload;
-                    const { iduser } = jwtPayload.payload;
-                    if (iduser) {
-                        socket.handshake.headers.iduser = iduser
-                        // DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, iduser)
-                        socket.join(`${iduser}_user`)
+                    const { userId } = jwtPayload.payload;
+                    if (userId) {
+                        socket.handshake.headers.userId = userId
+                        // DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, userId)
+                        socket.join(`${userId}_user`)
                     }
                     next()
                     return

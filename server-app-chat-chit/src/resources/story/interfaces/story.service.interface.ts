@@ -1,16 +1,18 @@
-import { ReactMessage } from "@/resources/messaging/enum/message.react.enum"
+import { OptionUploadStoryDTO } from "../dtos/upload.stoty"
 import { ReactStory } from "../enums/story.react.enum"
 
 export default interface iStoryServiceBehavior {
 
-    reacStory(idstory : number, iduser : number, react : ReactStory) : Promise<any>
-    
-    uploadStory(file : any, iduser : number) : Promise<any>
+    reacStory(storyId: number, userId: number, react: ReactStory): Promise<any>
 
-    getAllStoryFromFriends(iduser: number) : Promise<any>
+    uploadStory(userId: number, file: Express.Multer.File, option: OptionUploadStoryDTO): Promise<number>
 
-    deleteStory(idstory: number) : Promise<any>
+    getAllStoryFromFriends(userId: number): Promise<any>
 
-    seeStory(idstory : number, iduser : number) : Promise<any>
+    deleteStory(storyId: number): Promise<any>
+
+    seeStory(storyId: number, userId: number): Promise<any>
+
+    getStoryById(userIdOwnerStory: number, me: number, storyId: number): Promise<any>
 
 }
