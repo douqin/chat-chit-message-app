@@ -24,6 +24,7 @@ import { RegisterAccountDTO } from "./dtos/register.account.dto";
 import AuthService from "./auth.service";
 import { JwtService } from "@/services/jwt/jwt.service";
 import { convertObject } from "@/utils/validate";
+import { ConfirmAccountDTO } from "./dtos/confirm.account.dto";
 @Controller("/auth")
 export default class AuthController extends MotherController {
   constructor(
@@ -111,15 +112,29 @@ export default class AuthController extends MotherController {
     }
   }
 
-  @POST("/register/verify")
+  @POST("/verify-account")
   private async confirmAccount(
     req: Request,
     res: Response,
     next: NextFunction) {
     try {
-
+      const dataOtp = await convertObject(ConfirmAccountDTO, req.body as any, undefined, { validationError: { target: false } });
+      await this.authService.verifyAccount(dataOtp);
+      res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", {}));
     }
     catch (e) {
+      if (e instanceof MyException) {
+        next(new HttpException(e.status, e.message));
+      }
+      else if (Array.isArray(e)) {
+        next(new BadRequestException(JSON.parse(JSON.stringify(e))));
+      }
+      else {
+        console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e);
+        next(
+          new InternalServerError("An error occurred, please try again later.")
+        );
+      }
     }
   }
 
@@ -137,12 +152,27 @@ export default class AuthController extends MotherController {
       console.log("🚀 ~ file: auth.controller.ts:144 ~ AuthController ~ e:", e);
       if (e instanceof HttpException) {
         next(e);
-      }
-      next(
+      } else
         next(
           new InternalServerError("An error occurred, please try again later.")
-        )
-      );
+        );
+    }
+  }
+
+  @POST("/reset-otp")
+  private async resetOTP(req: Request, res: Response, next: NextFunction) {
+    try {
+      let phone = String(req.body.phone);
+      // let data = await this.authService.resetOTP(phone);
+      // res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", data));
+    } catch (e: any) {
+      console.log("🚀 ~ file: auth.controller.ts:144 ~ AuthController ~ e:", e);
+      if (e instanceof HttpException) {
+        next(e);
+      } else
+        next(
+          new InternalServerError("An error occurred, please try again later.")
+        );
     }
   }
 
@@ -204,13 +234,12 @@ export default class AuthController extends MotherController {
         next(new BadRequestException("Token invalid"));
       } else if (e instanceof NotBeforeError) {
         next(new BadRequestException("Token invalid"));
-      }
-      console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e);
-      next(
+      } else {
+        console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e);
         next(
           new InternalServerError("An error occurred, please try again later.")
-        )
-      );
+        );
+      }
     }
   }
 }

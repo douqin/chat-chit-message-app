@@ -111,7 +111,9 @@ class App {
     container.register<Database>(Database, {
       useValue: new MySqlBuilder().initPool().build(),
     });
-    // DatabaseCache.getInstance()
+    container.register<DatabaseCache>(DatabaseCache, {
+      useValue: new DatabaseCache(),
+    });
   }
   public listen(): void {
     this.server.listen(this.port, () => {

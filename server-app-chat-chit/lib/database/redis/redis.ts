@@ -5,11 +5,10 @@ const REDIS_PORT = process.env.REDIS_PORT || "";
 export class DatabaseCache {
   private static redis: Redis;
 
-  private constructor() {}
+  public constructor() {}
 
-  public static getInstance(): Redis {
+  public getInstance(): Redis {
     if (DatabaseCache.redis) return DatabaseCache.redis;
     return DatabaseCache.redis = new Redis();
-
   }
 }

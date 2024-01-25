@@ -6,15 +6,18 @@ import Token from '@/utils/definition/token';
 import { RegisterAccountDTO } from './dtos/register.account.dto';
 import { Database, iDatabase } from '@/lib/database';
 import { dateJSToMysql } from '@/utils/extension/date.transform';
+import { ConfirmAccountDTO } from './dtos/confirm.account.dto';
 
 @injectable()
 export default class AuthRepository {
+
     constructor(@inject(Database) private db: iDatabase) {
+
+    }
+    async confirmAccount(dataOtp: ConfirmAccountDTO) {
         
     }
     async loguot(iduser: number, refreshToken: string): Promise<boolean> {
-        console.log("🚀 ~ file: auth.repository.ts:15 ~ AuthRepository ~ loguot ~ refreshToken:", refreshToken)
-        console.log("🚀 ~ file: auth.repository.ts:15 ~ AuthRepository ~ loguot ~ iduser:", iduser)
         let query = `SELECT * FROM token WHERE iduser = ? and refreshtoken = ?`
         let [raw, inforColumn] = await this.db.excuteQuery(query, [iduser, refreshToken]) as any
         if (raw.length == 1) {
@@ -46,7 +49,7 @@ export default class AuthRepository {
         }
         return result;
     }
-    public async registerAccount(registerAccount : RegisterAccountDTO) {
+    public async registerAccount(registerAccount: RegisterAccountDTO) {
         let query = `SELECT COUNT(*) FROM user WHERE user.phone = (?);`
         let [data, inforColumn] = await this.db.excuteQuery(
             query, [registerAccount.phone]

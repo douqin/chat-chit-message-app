@@ -4,14 +4,23 @@ import AuthRepository from "./auth.repository";
 import { RegisterAccountDTO } from "./dtos/register.account.dto";
 import Gender from "./enums/gender.enum";
 import { container, inject, injectable } from "tsyringe";
+import { DatabaseCache } from "@/lib/database";
+import { ConfirmAccountDTO } from "./dtos/confirm.account.dto";
+import MyException from "@/utils/exceptions/my.exception";
 
 @injectable()
 export default class AuthService {
 
-    constructor(@inject(AuthRepository) private authRepository: AuthRepository) {
-        
+    constructor(@inject(AuthRepository) private authRepository: AuthRepository,
+        @inject(DatabaseCache) private databaseCache: DatabaseCache) { }
+    async verifyAccount(dataOtp: ConfirmAccountDTO) {
+        let key = await this.databaseCache.getInstance().hget("otp", dataOtp.phone);
+        if (key) {
+            if (key == dataOtp.otp) {
+                return await this.authRepository.confirmAccount(dataOtp)
+            } else throw new MyException("OTP is incorrect")
+        } else throw new MyException("OTP is incorrect")
     }
-
     async loguot(iduser: number, refreshToken: string) {
         return await this.authRepository.loguot(iduser, refreshToken)
     }
@@ -44,8 +53,11 @@ export default class AuthService {
         }
         return undefined
     }
-    async registerAccount( registerData : RegisterAccountDTO) {
+    async registerAccount(registerData: RegisterAccountDTO) {
         return await this.authRepository.registerAccount(registerData)
     }
-
+    async createKeyPair(iduser: number) {
+        crypto.randomUUID();
+        // return await this.authRepository.createKeyPair(iduser)
+    }
 }

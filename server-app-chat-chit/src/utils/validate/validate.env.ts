@@ -18,8 +18,9 @@ function validateEnv(): void {
         REFRESH_TOKEN_DRIVE: str(),
         REFRESH_TOKEN_GMAIL: str(),
         PORT: port({ default: 3000 }),
-        TWILIO_ACCOUNT_SID: str(),
-        TWILIO_AUTH_TOKEN: str(),
+        REDIS_HOST: str(),
+        REDIS_PORT: port({ default: 6379 }),
+        DATABASE_PORT: port({ default: 3306 }),
     });
 }
 
