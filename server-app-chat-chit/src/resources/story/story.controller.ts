@@ -3,19 +3,16 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/base";
+
 import { Response, Request, NextFunction } from "express";
 import multer from "multer";
 import { Server } from "socket.io";
 import isValidNumberVariable from "@/utils/extension/vailid_variable";
 import { inject } from "tsyringe";
-import Controller from "@/utils/decorator/controller";
 import StoryService from "./story.service";
-import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
-import { GET } from "@/utils/decorator/http.method/get";
-import { POST } from "@/utils/decorator/http.method/post";
-import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
-import { DELETE } from "@/utils/decorator/http.method/delete";
+import { Controller, POST, FileUpload, GET, UseMiddleware, DELETE } from "@/lib/decorator";
+import { BadRequestException } from "@/utils/exceptions/badrequest.expception";
 
 @Controller("/story")
 export default class StoryController extends MotherController {
@@ -39,18 +36,18 @@ export default class StoryController extends MotherController {
                 return;
             }
             next(
-                new HttpException(
-                    HttpStatus.BAD_REQUEST,
-                    "File lỗi"
+                new BadRequestException(
+                    "File's wrong"
                 )
             );
         } catch (e: any) {
-            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
             if (e instanceof MyException) {
                 next(
                     e
                 )
+                return
             }
+            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
             next(
                 new HttpException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -79,6 +76,7 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
+                return
             }
             next(
                 new HttpException(
@@ -111,6 +109,7 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
+                return
             }
             next(
                 new HttpException(
@@ -150,6 +149,7 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
+                return
             }
             next(
                 new HttpException(
@@ -183,6 +183,7 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
+                return 
             }
             next(
                 new HttpException(

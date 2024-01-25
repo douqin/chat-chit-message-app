@@ -2,7 +2,7 @@ import StoryRepository from "./story.repository";
 import iStoryServiceBehavior from "./interfaces/story.service.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import TransformStory from "@/utils/transform/story.transform";
-import { CloudDrive } from "../../component/cloud/drive.service";
+import { CloudDrive } from "../../services/cloud/drive.service";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { ReactMessage } from "../messaging/enum/message.react.enum";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";

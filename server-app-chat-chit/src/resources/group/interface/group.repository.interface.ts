@@ -1,10 +1,10 @@
 import { PositionInGrop } from '../enum/group.position.enum';
 import { MemberPermisstion } from "../enum/group.member.permisstion.enum"
 import { MemberStatus } from "../enum/member.status.enum"
-import DataFileDrive from 'component/cloud/dtos/file.drive.dtos';
 import { GroupStatus } from '../enum/group.status.dto.enum';
 import Group from '@/models/group.model';
 import { GroupAccess } from '../enum/group.access';
+import DataFileDrive from 'src/services/cloud/dtos/file.drive.dtos';
 
 export interface GroupRepositoryBehavior extends GroupManagement, GroupInfo, GroupActionMember, MemberInfo {
 }

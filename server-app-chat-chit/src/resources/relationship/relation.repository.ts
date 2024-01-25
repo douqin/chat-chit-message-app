@@ -1,4 +1,4 @@
-import { Database, QuerySuccessResult, iDatabase } from '@/config/database/database';
+import { Database, QuerySuccessResult, iDatabase } from '@/lib/database';
 import { RelationshipUser } from './enums/relationship.enum';
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface";
 import { inject, injectable } from 'tsyringe';

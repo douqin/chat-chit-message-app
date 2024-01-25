@@ -1,5 +1,4 @@
-import { Database } from "@/config/database/database";
-import { RemoteSocket, Socket } from "socket.io";
+import { RemoteSocket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
 export function getAllNotificationTokenFromSockets(sockets: RemoteSocket<DefaultEventsMap, any>[]) {

@@ -1,6 +1,4 @@
-
-import { Database, QuerySuccessResult, iDatabase } from "@/config/database/database";
-import { UserServiceBehavior } from "./interface/user.service.interface";
+import { Database, QuerySuccessResult, iDatabase } from "@/lib/database";
 import { iUserRepositoryBehavior } from "./interface/user.repository.interface";
 import { inject, injectable } from "tsyringe";
 

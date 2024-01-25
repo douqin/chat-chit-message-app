@@ -1,16 +1,14 @@
 
 import { RelationServiceBehavior } from "./interface/relation.service.interface"
 import RelationRepostory from "./relation.repository"
-import { InviteFriend, InviteFriendDTO } from "./dto/invite.dto"
+import {  InviteFriendDTO } from "./dto/invite.dto"
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface"
 import { RelationshipUser } from "./enums/relationship.enum"
 import { User } from "../../models/user.model"
 import { ListFriendDTO } from "./dto/listfriends.dto"
-import { DatabaseCache } from "@/config/database/redis"
-import { ConstantRedis } from "@/config/database/constant"
 import { ListFriendCommonDTO } from "./dto/list.friend.common.dto"
 import { inject, injectable } from "tsyringe"
-import { BadRequestException, ForbiddenException } from "@/utils/exceptions/badrequest.expception"
+import { BadRequestException } from "@/utils/exceptions/badrequest.expception"
 @injectable()
 export default class RelationService implements RelationServiceBehavior {
     async blockUser(iduser: number, iduserBlock: number): Promise<boolean> {
