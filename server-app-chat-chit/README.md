@@ -93,7 +93,7 @@
   - result:
 
     - ````{
-        "listGroup": [
+        "data": [
             {
                 "groupId": number,
                 "name": string,
@@ -107,7 +107,7 @@
                     "manipulates": [] (userId[] ),
                     "tags": [] (memberId[] ),
                     "content": string,
-                    "createat": string,
+                    "createAt": string,
                     "groupId": number,
                     "messageId": number,
                     "userId": number,
@@ -205,7 +205,7 @@
                     "manipulates": [] (userId[] ),
                     "tags": [] (memberId[] ),
                     "content": string,
-                    "createat": string,
+                    "createAt": string,
                     "groupId": number,
                     "messageId": number,
                     "userId": number,
@@ -314,7 +314,7 @@
   - socket: io.emit('unpin-message', {"messageId": number}).
   - socket: io.emit('pin-message', "messageId": number).
 
-### Vote `/votes`
+### Vote `/votes` Coming Soon
 
 - `[GET] /:groupId`: danh sách votes theo groupId.
   - params: { page, size }.
@@ -335,6 +335,33 @@
   - body: {options: [String]}.
   - socket: io.emit('update-vote-message', groupId, voteMessage).
 
+### Story `/story`
+
+- `[POST] /upload` upload story.
+  - req : form-data - { file : File (image or video), visibility : number(Visibility) } .
+  - res : { storyId: storyId} .
+
+- `[GET]: /explore` Lấy danh sách story của bạn bè trong 24h gần nhất.
+  - query : cursor&limit.
+  - p/s: cursor = -1 lấy mặc định từ đầu - req : [Story] .
+
+- `[GET] : /":userId/:storyId"`.
+  - req: params userId và storyId muốn lấy.
+  - res: Story.
+
+- `[DELETE] : /me/:storyId` delete story.
+  - req: params storyId muốn xóa.
+  
+- `[GET] : /me` lấy danh sách story của mình.
+  - query : cursor&limit.
+  - p/s: cursor = -1 lấy mặc định từ đầu.
+  - res: [Story] .
+
+- `[GET] : /:userId` lấy danh sách story của user.
+  - query : cursor&limit.
+    - p/s: cursor = -1 lấy mặc định từ đầu.
+  - res: [Story] . //TODO:
+  
 ### Socket Server nhận
 
 - socket.on('typing', (groupId, me) => {
@@ -441,5 +468,12 @@
     LEAVE_GROUP = "user_leave_group",
     CREATE_INDIVIDUAL_GROUP = "create-individual-group",
     CHANGE_NICKNAME = "change_nickname",
+}
+```
+
+```Visibility {
+    PUBLIC = 0,
+    FRIEND = 1,
+    PRIVATE = 2
 }
 ```

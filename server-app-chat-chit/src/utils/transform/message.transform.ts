@@ -9,7 +9,7 @@ export class TransformMessage {
         let arrMessage: Array<Message> = [];
         for (let raw of raws) {
             const { content,
-                createat,
+                createAt,
                 groupId,
                 messageId,
                 userId,
@@ -19,7 +19,7 @@ export class TransformMessage {
                 memberId } = raw
             let value = new Message(
                 content,
-                createat,
+                createAt,
                 groupId,
                 messageId,
                 userId,
@@ -40,7 +40,7 @@ export class TransformMessage {
     }
     static async fromRawData(object: any, callback? : (id: string) => Promise<string | null | undefined>): Promise<Message> {
         const { content,
-            createat,
+            createAt,
             groupId,
             messageId,
             userId,
@@ -50,7 +50,7 @@ export class TransformMessage {
             memberId } = object;
         let value = new Message(
             content,
-            createat,
+            createAt,
             groupId,
             messageId,
             userId,

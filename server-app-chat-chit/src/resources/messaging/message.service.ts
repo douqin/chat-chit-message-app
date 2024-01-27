@@ -13,19 +13,19 @@ import { CloudDrive } from "../../services/cloud/drive.service";
 import Reaction from "./dtos/react.dto";
 import { iGroupActions, iInformationMember } from "../group/interface/group.service.interface";
 import GroupService from "../group/group.service";
-import { ListMessageResponseDTO } from "./dtos/list.message.dto";
+import { dataResponseDTO } from "./dtos/list.message.dto";
 import { User } from "../../models/user.model";
 import { container, inject, injectable } from "tsyringe";
 import { TransformMessage, TransformReaction } from "@/utils/transform";
 
 @injectable()
 export default class MessageService implements iMessageServiceBehavior {
-    async getAllFileFromGroup(groupId: number, cursor: number, limit: number): Promise<ListMessageResponseDTO> {
+    async getAllFileFromGroup(groupId: number, cursor: number, limit: number): Promise<dataResponseDTO> {
         let data = await this.messageRepository.getAllFileFromGroup(groupId, cursor, limit)
         let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
             return await CloudDrive.gI().getUrlFile(id)
         })
-        return ListMessageResponseDTO.rawToData(messages)
+        return dataResponseDTO.rawToData(messages)
     }
     async getListPinMessage(userId: number, groupId: number): Promise<Message[]> {
         let memberInfor: iInformationMember = container.resolve(GroupService)
@@ -93,7 +93,7 @@ export default class MessageService implements iMessageServiceBehavior {
         return await this.messageRepository.getNumMessageUnread(groupId, userId);
     }
     async getLastMessage(groupId: number): Promise<Message> {
-        let data = await this.messageRepository.getAllMessageFromGroup(groupId, NaN, 1)
+        let data = await this.messageRepository.getMessagesFromGroup(groupId, -1, 1)
         return await TransformMessage.fromRawData(data[0], async (id: string) => {
             return await CloudDrive.gI().getUrlFile(id)
         })
@@ -169,10 +169,10 @@ export default class MessageService implements iMessageServiceBehavior {
         return raw
     }
     //FIXME: edit logic bigO
-    async getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<ListMessageResponseDTO> {
+    async getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<dataResponseDTO> {
         let groupAuthor: iInformationMember = container.resolve(GroupService)
         if (await groupAuthor.isUserExistInGroup(userId, groupId)) {
-            let data = await this.messageRepository.getAllMessageFromGroup(groupId, cursor, limit)
+            let data = await this.messageRepository.getMessagesFromGroup(groupId, cursor, limit)
             let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
                 return await CloudDrive.gI().getUrlFile(id)
             })
@@ -180,7 +180,7 @@ export default class MessageService implements iMessageServiceBehavior {
                 message.reacts = await this.getAllReactFromMessage(message.messageId)
                 message.manipulates = await this.getAllManipulateUser(message.messageId)
             }
-            return ListMessageResponseDTO.rawToData(messages)
+            return dataResponseDTO.rawToData(messages)
         }
         else {
             throw new MyException("Bạn không có quyền truy cập")

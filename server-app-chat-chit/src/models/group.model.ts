@@ -18,9 +18,9 @@ export default class Group {
         this.access = access
     }
     static fromRawData(object: any): Group {
-        const { groupId, name, avatar, status, createat, type , link,  access} = object;
+        const { groupId, name, avatar, status, createAt, type , link,  access} = object;
         return new Group(
-            groupId, name, avatar, status, createat, type, link, access
+            groupId, name, avatar, status, createAt, type, link, access
         );
     }
 }

@@ -8,23 +8,53 @@ import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
 import { ReactStory } from "./enums/story.react.enum";
 import { container, inject, injectable } from "tsyringe";
 import { ValidateErrorBuilder } from "@/utils/validate";
-import { OptionUploadStoryDTO } from "./dtos/upload.stoty";
+import { OptionUploadStoryDTO } from "./dtos/upload.story";
 import Story from "@/models/story.model";
 import RelationService from "../relationship/relation.service";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
+import { Visibility } from "./enums/visibility";
+import { ListStoryRes } from "./dtos/res.list.story";
 @injectable()
 export default class StoryService implements iStoryServiceBehavior {
 
+
     constructor(@inject(StoryRepository) private storyRepository: iStoryRepositoryBehavior) {
     }
-    async getStoryById(userIdOwnerStory: number, me: number, storyId: number): Promise<Story> {
-        //FIXME: check relationship between user and owner story and check story is public to see
-        return TransformStory.rawToModel(this.storyRepository.getStoryById(storyId), async (id: string) => {
+
+    async getMyListStory(me: number, cursor: number, limit: number): Promise<ListStoryRes> {
+        return ListStoryRes.rawToDTO(await TransformStory.rawsToModels(await this.storyRepository.exploreStoryFriends(me), async (id: string) => {
             return await CloudDrive.gI().getUrlFile(id);
-        })
+        }))
     }
-    async reacStory(storyId: number, userId: number, react: ReactStory): Promise<any> {
-        await this.storyRepository.reacStory(storyId, userId, react)
+
+    async getVisibleStory(storyId: number): Promise<Visibility> {
+        return this.storyRepository.getVisibleStory(storyId);
+    }
+    async isOwnerStory(userId: number, storyId: number): Promise<boolean> {
+        return this.storyRepository.isOwnerStory(userId, storyId)
+    }
+    async getStoryById(userIdOwnerStory: number, me: number, storyId: number): Promise<Story> {
+        let visibility = await this.getVisibleStory(storyId)
+        switch (visibility) {
+            case Visibility.PUBLIC:
+                return TransformStory.rawToModel(this.storyRepository.getStoryById(storyId), async (id: string) => {
+                    return await CloudDrive.gI().getUrlFile(id);
+                })
+            case Visibility.FRIEND:
+                let relation = container.resolve(RelationService)
+                if (!(await relation.getRelationship(userIdOwnerStory, me) === RelationshipUser.FRIEND) || userIdOwnerStory === me) {
+                    return TransformStory.rawToModel(this.storyRepository.getStoryById(storyId), async (id: string) => {
+                        return await CloudDrive.gI().getUrlFile(id);
+                    })
+                } else {
+                    throw new MyException("This story is private").withExceptionCode(HttpStatus.FORBIDDEN)
+                }
+            case Visibility.PRIVATE:
+                throw new MyException("This story is private").withExceptionCode(HttpStatus.FORBIDDEN)
+        }
+    }
+    async loveStory(storyId: number, userId: number, isLove: boolean): Promise<any> {
+        throw new Error('not imp ')
     }
     async uploadStory(userId: number, file: Express.Multer.File, option: OptionUploadStoryDTO): Promise<number> {
         if (!file.mimetype.includes('image') && !file.mimetype.includes('video')) {
@@ -37,13 +67,17 @@ export default class StoryService implements iStoryServiceBehavior {
         }
         return await this.storyRepository.uploadStory(file, userId, option)
     }
-    async getAllStoryFromFriends(userId: number): Promise<any> {
-        return TransformStory.rawsToModels(await this.storyRepository.getAllStoryFromFriends(userId), async (id: string) => {
+    async getStoryFromFriends(userId: number, cursor: number, limit: number): Promise<ListStoryRes> {
+        return ListStoryRes.rawToDTO(await TransformStory.rawsToModels(await this.storyRepository.exploreStoryFriends(userId), async (id: string) => {
             return await CloudDrive.gI().getUrlFile(id);
-        })
+        }))
     }
-    async deleteStory(storyId: number): Promise<any> {
-        return await this.storyRepository.deleteStory(storyId)
+    async deleteStory(userId: number, storyId: number): Promise<boolean> {
+        if (await this.isOwnerStory(userId, storyId)) {
+            return await this.storyRepository.deleteStory(storyId)
+        } else {
+            throw new MyException("You are not owner this story").withExceptionCode(HttpStatus.FORBIDDEN)
+        }
     }
     async seeStory(storyId: number, userId: number): Promise<any> {
         return await this.seeStory(storyId, userId)

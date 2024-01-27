@@ -14,6 +14,7 @@ import { inject, injectable } from 'tsyringe';
 import Group from '@/models/group.model';
 import { GroupAccess } from './enum/group.access';
 import { Database, iDatabase } from '@/lib/database';
+import { RawDataMysql } from '@/models/raw.data';
 
 @injectable()
 export default class GroupRepository implements GroupRepositoryBehavior {
@@ -65,7 +66,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
     async createInvidualGroup(userId: number, users: number, status: GroupStatus): Promise<number> {
         let groupId = -1;
         try {
-            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat) VALUES ( ?, ?, ?, now());`
+            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createAt) VALUES ( ?, ?, ?, now());`
             let data: [ResultSetHeader, any] = await this.db.executeQuery(
                 query, ["INVIDIAL", GroupType.INVIDIAL, status]
             ) as any
@@ -219,7 +220,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         }
         return []; this
     }
-    async getSomeGroup(userId: number, cursor: number, limit: number): Promise<object[]> {
+    async getSomeGroup(userId: number, cursor: number, limit: number): Promise<RawDataMysql[]> {
         if (cursor !== Constant.GET_GROUP_FROM_CURSOR_MAX) {
             let query = `
             SELECT
@@ -310,7 +311,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         let groupId = -1;
         let group = null;
         try {
-            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createat) VALUES ( ?, ?, ?, now());`
+            let query = `INSERT INTO groupchat( groupchat.name, groupchat.type, groupchat.status, groupchat.createAt) VALUES ( ?, ?, ?, now());`
             let data: [ResultSetHeader, any] = await this.db.executeQuery(
                 query, [name, typeGroup, GroupStatus.DEFAULT]
             ) as any

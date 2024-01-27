@@ -15,7 +15,7 @@ export default class Message {
     public reacts : Array<Reaction>
     public manipulates : Array<number> = []
     constructor(content: string,
-        createat: Date,
+        createAt: Date,
         groupId: number,
         messageId: number,
         userId: number,
@@ -24,7 +24,7 @@ export default class Message {
         type: number,
         memberId : string) {
         this.content = content
-        this.createAt = createat
+        this.createAt = createAt
         this.groupId = groupId
         this.messageId = messageId
         this.userId = userId

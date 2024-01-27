@@ -7,7 +7,7 @@ import { RelationServiceBehavior } from "../relationship/interface/relation.serv
 import RelationService from "../relationship/relation.service"
 import LastViewGroup from "./dtos/lastview.dto"
 import { MemberDTO } from "./dtos/member.dto"
-import { GroupChatDTO, ListGroupDTO } from "./dtos/response.lisgroup.dto"
+import { GroupChatDTO, dataDTO } from "./dtos/response.lisgroup.dto"
 import { MemberPermisstion } from "./enum/group.member.permisstion.enum"
 import { PositionInGrop } from "./enum/group.position.enum"
 import { MemberStatus } from "./enum/member.status.enum"
@@ -116,11 +116,11 @@ export default class GroupService implements iGroupServiceBehavior {
     async getTotalMember(groupId: number): Promise<number> {
         return await this.groupRepsitory.getTotalMember(groupId)
     }
-    async getSomeGroup(userId: number, cursor: number, limit: number): Promise<ListGroupDTO> {
+    async getSomeGroup(userId: number, cursor: number, limit: number): Promise<dataDTO> {
         let dataRaw = await this.groupRepsitory.getSomeGroup(userId, cursor, limit)
         if (dataRaw) {
             let message: iMessageAction = container.resolve(MessageService)
-            return ListGroupDTO.rawToDTO(dataRaw, async (groupId: number) => {
+            return dataDTO.rawToDTO(dataRaw, async (groupId: number) => {
                 return await message.getLastMessage(groupId)
             }, async (groupId: number) => {
                 return await this.getTotalMember(groupId)
@@ -128,7 +128,7 @@ export default class GroupService implements iGroupServiceBehavior {
                 return await message.getNumMessageUnread(groupId, userId)
             })
         }
-        return new ListGroupDTO([], null)
+        return new dataDTO([], null)
     }
     async blockMember(userId: number, userIdAdd: number, groupId: number): Promise<boolean> {
         if (await this.groupRepsitory.isContainInGroup(userIdAdd, groupId, MemberStatus.DEFAULT) && (((await this.groupRepsitory.getPosition(groupId, userId) == PositionInGrop.CREATOR || PositionInGrop.ADMIN)))) {

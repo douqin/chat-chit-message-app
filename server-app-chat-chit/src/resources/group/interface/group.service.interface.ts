@@ -1,6 +1,6 @@
 import Group from "../../../models/group.model";
 import LastViewGroup from "../dtos/lastview.dto";
-import { GroupChatDTO, ListGroupDTO } from "../dtos/response.lisgroup.dto";
+import { GroupChatDTO, dataDTO } from "../dtos/response.lisgroup.dto";
 import { MemberDTO } from "../dtos/member.dto";
 import { User } from "@/models/user.model";
 import { PositionInGrop } from "../enum/group.position.enum";
@@ -35,7 +35,7 @@ export interface iGroupActions {
   getInformationMember(userId: number, memberId: number, groupId: number): Promise<User>;
   getTotalMember(groupId: number): Promise<number>
   getAllGroup(userId: number): Promise<Array<Group>>;
-  getSomeGroup(userId: number, cursor: number, limit: number): Promise<ListGroupDTO>;
+  getSomeGroup(userId: number, cursor: number, limit: number): Promise<dataDTO>;
   createCommunityGroup(name: string, userId: number, users: Array<number>): Promise<Group>;
   getOneGroup(userId: number, groupId: number): Promise<GroupChatDTO>;
   getAllMember(userId : number, groupId: number): Promise<MemberDTO[]>;

@@ -10,7 +10,7 @@ import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import { AuthorizeGuard } from "@/middleware/auth.middleware";
-import { isValidNumberVariable } from "@/utils/validate";
+import { convertToObjectDTO, isValidNumberVariable } from "@/utils/validate";
 import { User } from "../../models/user.model";
 import { EventGroupIO } from "./constant/group.constant";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
@@ -18,7 +18,8 @@ import { inject } from "tsyringe";
 import { getRoomUserIO } from "@/utils/extension/room.user";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "../messaging/constant/event.io";
-import { Controller, DELETE, FileUpload, GET, PATCH, POST , UseMiddleware} from "@/lib/decorator";
+import { Controller, DELETE, FileUpload, GET, PATCH, POST, UseMiddleware } from "@/lib/decorator";
+import { PagingReq } from "@/utils/paging/paging.data";
 @Controller("/group")
 export default class GroupController extends MotherController {
     constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
@@ -123,23 +124,28 @@ export default class GroupController extends MotherController {
     @UseMiddleware(AuthorizeGuard)
     private async getSomeGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const limit = Number(req.query.limit)
-            const cursor = Number(req.query.cursor as string)
+            console.log("🚀 ~ GroupController ~ getSomeGroup ~ req.query:", req.query)
+            let pagingReq = await convertToObjectDTO(PagingReq, req.query, {}, { validationError: { target: false } })
             const userId = Number(req.headers['userId'] as string)
-            if (isValidNumberVariable(limit) && isValidNumberVariable(cursor)) {
-                let data = await this.groupService.getSomeGroup(userId, cursor, limit)
-                res.status(HttpStatus.OK).json(new ResponseBody(
-                    true,
-                    "OK",
-                    data
-                ))
-            } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong"))
+            let data = await this.groupService.getSomeGroup(userId, pagingReq.cursor, pagingReq.limit)
+            res.status(HttpStatus.OK).json(new ResponseBody(
+                true,
+                "OK",
+                data
+            ))
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
-                return
             }
-            next(new InternalServerError("An error occurred, please try again later."))
+            else if (Array.isArray(error)) {
+                next(
+                    new BadRequestException(JSON.parse(JSON.stringify(error)))
+                )
+            } else {
+                console.log("🚀 ~ GroupController ~ getSomeGroup ~ error:", error)
+                next(new InternalServerError("An error occurred, please try again later."))
+            }
+
         }
     }
     @POST('/community-group')

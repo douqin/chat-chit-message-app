@@ -1,18 +1,22 @@
 import Message from "@/models/message.model";
 import Group from "../../../models/group.model";
 import { num } from "envalid";
+import { PagingRes } from "@/utils/paging/paging.data";
+import { RawDataMysql } from "@/models/raw.data";
 
-export class ListGroupDTO {
+export class dataDTO extends PagingRes<GroupChatDTO, number | null>{
     constructor(
-        public listGroup: Array<GroupChatDTO>,
-        public nextCursor: Date | null,
-        public totalSize : number = 0
-    ) { }
-    static async rawToDTO(raw: any[], getlastMessage : (groupId : number) => Promise<Message> , totalMember : (groupId : number) => Promise<number>, numMessageUnread : (groupId : number) => Promise<number> ) {
-        let dto = new ListGroupDTO([], null)
+         data: Array<GroupChatDTO>,
+         nextCursor: number | null,
+         totalSize : number = 0
+    ) { 
+        super(data, nextCursor, totalSize)
+    }
+    static async rawToDTO(raw: RawDataMysql[], getlastMessage : (groupId : number) => Promise<Message> , totalMember : (groupId : number) => Promise<number>, numMessageUnread : (groupId : number) => Promise<number> ) {
+        let dto = new dataDTO([], null)
         for (let userRaw of raw) {
             let gr = Group.fromRawData(userRaw);
-            dto.listGroup.push(GroupChatDTO.fromBase(gr, await getlastMessage(gr.groupId), await totalMember(gr.groupId), await numMessageUnread(gr.groupId) ))
+            dto.data.push(GroupChatDTO.fromBase(gr, await getlastMessage(gr.groupId), await totalMember(gr.groupId), await numMessageUnread(gr.groupId) ))
             dto.nextCursor = userRaw._cursor
         }
         return dto

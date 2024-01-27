@@ -19,15 +19,15 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
     }
     async getAllFileFromGroup(groupId: number, cursor: number, limit: number): Promise<any[]> {
         if (cursor === -1) {
-            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? ) WHERE message.type = ? OR message.type = ? ORDER BY message.createat DESC limit ?`
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? ) WHERE message.type = ? OR message.type = ? ORDER BY message.createAt DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.executeQuery(
                 query, [groupId, MessageType.IMAGE, MessageType.VIDEO, limit]
             )
-            console.log("🚀 ~ file: message.repository.ts:129 ~ MessageRepository ~ getAllMessageFromGroup ~ dataQuery:", dataQuery)
+            console.log("🚀 ~ file: message.repository.ts:129 ~ MessageRepository ~ getAllFileFromGroup ~ dataQuery:", dataQuery)
             return dataQuery as any[];
         }
         else {
-            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId) WHERE member.groupId = ?  AND message.messageId < ? AND (message.type = ? OR message.type = ?) ORDER BY message.createat DESC limit ?`
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId) WHERE member.groupId = ?  AND message.messageId < ? AND (message.type = ? OR message.type = ?) ORDER BY message.createAt DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.executeQuery(
                 query, [groupId, cursor, MessageType.IMAGE, MessageType.VIDEO, limit]
             )
@@ -35,7 +35,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         }
     }
     async getListPinMessage(groupId: number): Promise<any[]> {
-        const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? AND message.ispin = 1) ORDER BY message.createat DESC`
+        const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? AND message.ispin = 1) ORDER BY message.createAt DESC`
         const [dataQuery, inforColumn] = await this.database.executeQuery(
             query, [groupId]
         )
@@ -44,7 +44,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
     async sendGifMessage(groupId: number, userId: number, gifId: string, replyMessageId: number | null): Promise<number> {
         const queryGetIDMem = "SELECT  member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
         const [[{ 'id': memberId }], data] = await this.database.executeQuery(queryGetIDMem, [groupId, userId]) as any;
-        const sql = `INSERT INTO message (memberId,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`;
+        const sql = `INSERT INTO message (memberId,content, createAt, type, status) VALUES ( ?, ?, now(), ?, ?)`;
         const values = [memberId, gifId, MessageType.GIF, MessageStatus.DEFAULT]
         const [rows] = await this.database.executeQuery(sql, values) as any
         const [dataQuery, inforColumn] = await this.database.executeQuery(
@@ -57,7 +57,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
             let inforFile = await this.drive.copyFile(message.content)
             const queryGetIDMem = "SELECT  member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
             const [[{ 'id': memberId }], column1] = await this.database.executeQuery(queryGetIDMem, [groupIdAddressee, userId]) as any;
-            const querySaveId = `INSERT INTO message (memberId,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`
+            const querySaveId = `INSERT INTO message (memberId,content, createAt, type, status) VALUES ( ?, ?, now(), ?, ?)`
             if (inforFile) {
                 let [data] = await this.database.executeQuery(querySaveId, [memberId, inforFile, message.type, MessageStatus.DEFAULT]) as any
                 const [dataQuery, inforColumn] = await this.database.executeQuery(
@@ -95,7 +95,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         const queryGetIDMem = "SELECT member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
         const [[{ 'id': memberId }], data] = await this.database.executeQuery(queryGetIDMem, [groupId, userId]) as any;
         let date = new Date();
-        const sql = `INSERT INTO message (memberId,content, createat, type, status) VALUES ( ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO message (memberId,content, createAt, type, status) VALUES ( ?, ?, ?, ?, ?)`;
         const values = [memberId, content, date, MessageType.NOTIFY, MessageStatus.DEFAULT]
         const [rows] = await this.database.executeQuery(sql, values) as any
         const [dataQuery, inforColumn] = await this.database.executeQuery(
@@ -116,7 +116,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         const queryGetIDMem = "SELECT member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
         const [[{ 'id': memberId }], data] = await this.database.executeQuery(queryGetIDMem, [groupId, userId]) as any;
         let date = new Date();
-        const sql = `INSERT INTO message (memberId,content, createat, type, status, replyMessageId) VALUES ( ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO message (memberId,content, createAt, type, status, replyMessageId) VALUES ( ?, ?, ?, ?, ?, ?)`;
         const values = [memberId, content, date, MessageType.TEXT, MessageStatus.DEFAULT, replyMessageId]
         const [rows] = await this.database.executeQuery(sql, values) as OkPacket[]
         const queryInsertMan = `
@@ -136,7 +136,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
                 let inforFile = await this.drive.uploadFile(content[i].filename, content[i].buffer)
                 const queryGetIDMem = "SELECT  member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
                 const [[{ 'id': memberId }], column1] = await this.database.executeQuery(queryGetIDMem, [groupId, userId]) as any;
-                const querySaveId = `INSERT INTO message (memberId,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`
+                const querySaveId = `INSERT INTO message (memberId,content, createAt, type, status) VALUES ( ?, ?, now(), ?, ?)`
                 if (inforFile) {
                     let [data] = await this.database.executeQuery(querySaveId, [memberId, inforFile?.id, (content[i].mimetype.includes("image")) ? MessageType.IMAGE : MessageType.VIDEO, MessageStatus.DEFAULT]) as any
                     const [dataQuery, inforColumn] = await this.database.executeQuery(
@@ -178,9 +178,10 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         return true
     }
 
-    async getAllMessageFromGroup(groupId: number, cursor: number, limit: number): Promise<any[]> {
+    async getMessagesFromGroup(groupId: number, cursor: number, limit: number): Promise<any[]> {
+        console.log("🚀 ~ MessageRepository ~ getAllMessageFromGroup ~ cursor:", cursor)
         if (cursor === -1) {
-            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? ) ORDER BY message.createat DESC limit ?`
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? ) ORDER BY message.createAt DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.executeQuery(
                 query, [groupId, limit]
             )
@@ -188,7 +189,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
             return dataQuery as any[];
         }
         else {
-            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId) WHERE member.groupId = ?  AND message.messageId < ? ORDER BY message.createat DESC limit ?`
+            const query = `SELECT * FROM (member INNER JOIN message ON member.id = message.memberId) WHERE member.groupId = ?  AND message.messageId < ? ORDER BY message.createAt DESC limit ?`
             const [dataQuery, inforColumn] = await this.database.executeQuery(
                 query, [groupId, cursor, limit]
             )
@@ -199,7 +200,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         // get memberId
         const queryGetIDMem = "SELECT  member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
         const [[{ 'id': memberId }], data] = await this.database.executeQuery(queryGetIDMem, [groupId, userId]) as any;
-        const sql = `INSERT INTO message (memberId,content, createat, type, status) VALUES ( ?, ?, now(), ?, ?)`;
+        const sql = `INSERT INTO message (memberId,content, createAt, type, status) VALUES ( ?, ?, now(), ?, ?)`;
         const values = [memberId, content, MessageType.GIF, MessageStatus.DEFAULT]
         const [rows] = await this.database.executeQuery(sql, values)
         return true;

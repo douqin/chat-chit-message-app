@@ -1,4 +1,4 @@
-import { ListMessageResponseDTO } from "../dtos/list.message.dto";
+import { dataResponseDTO } from "../dtos/list.message.dto";
 import Message from "../../../models/message.model";
 import Reaction from "../dtos/react.dto";
 import { ReactMessage } from "../enum/message.react.enum";
@@ -9,7 +9,7 @@ export default interface iMessageServiceBehavior extends iMessageAction, iMessag
 }
 
 export interface iMessageAction {
-    getAllFileFromGroup(groupId: number, cursor: number, limit: number) : Promise<ListMessageResponseDTO>
+    getAllFileFromGroup(groupId: number, cursor: number, limit: number) : Promise<dataResponseDTO>
     getListPinMessage(userId: number, groupId: number): Promise<Message[]>
     sendGifMessage(groupId: number, userId: number, gifId: string, replyMessageId: number): Promise<Message>
     forwardMessage(userId: number, groupId: number, messageId: number, groupIdAddressee : number): Promise<Message>
@@ -28,7 +28,7 @@ export interface iMessageAction {
 export interface iMessageInformation {
     isMessageContainInGroup(messageId: Number, groupId: Number): Promise<boolean>
     isMessageOfUser(messageId: Number, userId: Number): Promise<boolean>
-    getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<ListMessageResponseDTO>
+    getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<dataResponseDTO>
     getAllReactFromMessage(messageId: number): Promise<any[]>
     getAllManipulateUser(messageId: number): Promise<number[]>
     getOneMessage(messageId: number): Promise<Message>

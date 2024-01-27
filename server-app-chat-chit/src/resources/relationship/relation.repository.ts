@@ -39,7 +39,7 @@ export default class RelationRepostory implements RelationRepositoryBehavior {
         return true
     }
     async getAllInvite(userId: number, cursor: number, limit: number): Promise<any> {
-        const query = 'SELECT user.*, relationship.id, relationship.createat FROM relationship JOIN user ON relationship.requesterid= user.userId WHERE relationship.relation = ? AND relationship.addresseeid = ? AND relationship.id > ? ORDER BY relationship.id LIMIT ?;'
+        const query = 'SELECT user.*, relationship.id, relationship.createAt FROM relationship JOIN user ON relationship.requesterid= user.userId WHERE relationship.relation = ? AND relationship.addresseeid = ? AND relationship.id > ? ORDER BY relationship.id LIMIT ?;'
         let [data, inforC] = await this.db.executeQuery(query, [RelationshipUser.WAIT_RESPONSE_REQUEST_FRIEND, userId, cursor, limit]) as any
         return data as any[]
     }

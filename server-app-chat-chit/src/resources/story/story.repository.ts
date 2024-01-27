@@ -7,29 +7,47 @@ import { ReactStory } from "./enums/story.react.enum";
 import { inject, injectable } from "tsyringe";
 import { Database, iDatabase } from "@/lib/database";
 import { RawDataMysql } from "@/models/raw.data";
-import { OptionUploadStoryDTO } from "./dtos/upload.stoty";
+import { OptionUploadStoryDTO } from "./dtos/upload.story";
+import { Visibility } from "./enums/visibility";
 
 
 
 @injectable()
 export default class StoryRepository implements iStoryRepositoryBehavior {
 
-
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
     }
+    async getVisibleStory(storyId: number): Promise<Visibility> {
+        const query = `SELECT visibility FROM story WHERE storyId = ?`
+        const [raw, infoC] = await this.db.executeQuery(query, [storyId]) as any
+        if(raw.length == 0) throw new MyException("Story not found").withExceptionCode(404)
+        return raw[0].visibility
+    }
+    async getMyListStory(me: number): Promise<RawDataMysql[]> {
+        const query = `SELECT * FROM story WHERE story.userIdOwner = ?`
+        const [raw, infoC] = await this.db.executeQuery(query, [me]) as any
+        return raw
+    }
+    async isOwnerStory(userId : number, storyId : number): Promise<boolean> {
+        const query = `SELECT story.userIdOwner FROM story WHERE storyId = ? limit 1`
+        const [raw, infoC] = await this.db.executeQuery(query, [storyId]) as any
+        if(raw.length == 1){
+            return Number(raw[0].userIdOwner) === userId
+        }
+        return false
+    }
     async getStoryById(storyId: number): Promise<RawDataMysql> {
-        const query = `SELECT * FROM story WHERE storyId = ?`
+        const query = `SELECT * FROM story WHERE storyId = ? limit 1`
         const [raw, infoC] = await this.db.executeQuery(query, [storyId]) as any
         return raw[0]
     }
-    async reacStory(storyId: number, userId: number, react: ReactStory): Promise<any> {
+    async reactStory(storyId: number, userId: number, react: ReactStory): Promise<any> {
         const query = `INSERT INTO react_story(storyId, userIdReact, type) VALUE(
             ?, ?, ?
         )`
         const [raw, inforC] = await this.db.executeQuery(query, [storyId, userId, react])
         return true
     }
-
     async uploadStory(file: Express.Multer.File, userId: number, option: OptionUploadStoryDTO): Promise<number> {
         let infoFile = await this.drive.uploadFile(file.filename, file.stream)
         if (infoFile) {
@@ -39,8 +57,7 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         }
         throw new MyException("Error when server handling file").withExceptionCode(500)
     }
-
-    async getAllStoryFromFriends(userId: number): Promise<RawDataMysql[]> {
+    async exploreStoryFriends(userId: number): Promise<RawDataMysql[]> {
         let query = `SELECT
         user.*,
         story.*,
@@ -88,17 +105,14 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         console.log("🚀 ~ file: story.repository.ts:73 ~ StoryRepository ~ getAllStoryFromFriends ~ arr:", arr)
         return arr
     }
-
-    async deleteStory(storyId: number): Promise<any> {
-        let query = "DELETE FROM story WHERE story.userIdOwner = ?"
+    async deleteStory(storyId: number): Promise<boolean> {
+        let query = "DELETE FROM story WHERE story.storyId = ?"
         await this.db.executeQuery(query, [storyId])
         return true;
     }
-
     async seeStory(storyId: number, userId: number): Promise<any> {
         let query = "INSERT INTO storyview (user_id, story_id) VALUES (?, ?);        "
         await this.db.executeQuery(query, [storyId, userId])
         return true;
     }
-
 }

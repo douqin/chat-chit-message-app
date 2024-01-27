@@ -7,7 +7,7 @@ export interface iMessageRepositoryBehavior extends iMessageInformation, iMessag
     getListPinMessage(groupId: number): Promise<any[]>;
     getOneMessage(messageId: number): any;
     getAllManipulateUser(messageId: number): Promise<any[]>;
-    getAllMessageFromGroup(groupId: number, cursor: number, limit: number): Promise<any[]>;
+    getMessagesFromGroup(groupId: number, cursor: number, limit: number): Promise<any[]>;
     getAllReactFromMessage(messageId: number): Promise<any[]>
 }
 export interface iMessageInformation {
