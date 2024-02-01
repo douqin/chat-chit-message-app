@@ -5,7 +5,6 @@ import { TransformStory } from "@/utils/transform/story.transform";
 import { CloudDrive } from "../../services/cloud/drive.service";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
-import { ReactStory } from "./enums/story.react.enum";
 import { container, inject, injectable } from "tsyringe";
 import { ValidateErrorBuilder } from "@/utils/validate";
 import { OptionUploadStoryDTO } from "./dtos/upload.story";
@@ -54,7 +53,10 @@ export default class StoryService implements iStoryServiceBehavior {
         }
     }
     async loveStory(storyId: number, userId: number, isLove: boolean): Promise<any> {
-        throw new Error('not imp ')
+        if (await this.isOwnerStory(userId, storyId)) {
+            throw new MyException("You can't love your story").withExceptionCode(HttpStatus.FORBIDDEN)
+        }
+        await this.storyRepository.loveStory(storyId, userId, isLove)
     }
     async uploadStory(userId: number, file: Express.Multer.File, option: OptionUploadStoryDTO): Promise<number> {
         if (!file.mimetype.includes('image') && !file.mimetype.includes('video')) {

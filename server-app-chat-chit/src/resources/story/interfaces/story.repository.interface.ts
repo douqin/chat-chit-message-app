@@ -5,6 +5,8 @@ import { OptionUploadStoryDTO } from "../dtos/upload.story"
 import { Visibility } from "../enums/visibility"
 
 export default interface iStoryRepositoryBehavior {
+    loveStory(storyId: number, userId: number, isLove: boolean): Promise<boolean>
+    
     getVisibleStory(storyId: number): Promise<Visibility>
     
     getMyListStory(me: number): Promise<RawDataMysql[]>

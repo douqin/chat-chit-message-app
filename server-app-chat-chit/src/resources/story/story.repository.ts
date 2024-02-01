@@ -17,10 +17,23 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
 
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
     }
+    async loveStory(storyId: number, userId: number, isLove: boolean): Promise<boolean> {
+        if (isLove) {
+            const sql = `SELECT * FROM react_story WHERE storyId = ? AND userIdReact = ?`
+            const [raw, infoC] = await this.db.executeQuery(sql, [storyId, userId]) as any
+            if (raw.length > 0) throw new MyException("You have already reacted this story").withExceptionCode(400)
+            let query = `INSERT INTO react_story(storyId, userIdReact) VALUES (?, ?)`
+            await this.db.executeQuery(query, [storyId, userId])
+        } else {
+            const queryCheck = `DELETE FROM react_story WHERE storyId = ? AND userIdReact = ?`
+            const [raw, infoC] = await this.db.executeQuery(queryCheck, [storyId, userId]) as any
+        }
+        return true
+    }
     async getVisibleStory(storyId: number): Promise<Visibility> {
         const query = `SELECT visibility FROM story WHERE storyId = ?`
         const [raw, infoC] = await this.db.executeQuery(query, [storyId]) as any
-        if(raw.length == 0) throw new MyException("Story not found").withExceptionCode(404)
+        if (raw.length == 0) throw new MyException("Story not found").withExceptionCode(404)
         return raw[0].visibility
     }
     async getMyListStory(me: number): Promise<RawDataMysql[]> {
@@ -28,10 +41,10 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         const [raw, infoC] = await this.db.executeQuery(query, [me]) as any
         return raw
     }
-    async isOwnerStory(userId : number, storyId : number): Promise<boolean> {
+    async isOwnerStory(userId: number, storyId: number): Promise<boolean> {
         const query = `SELECT story.userIdOwner FROM story WHERE storyId = ? limit 1`
         const [raw, infoC] = await this.db.executeQuery(query, [storyId]) as any
-        if(raw.length == 1){
+        if (raw.length == 1) {
             return Number(raw[0].userIdOwner) === userId
         }
         return false

@@ -212,7 +212,6 @@ export default class StoryController extends MotherController {
     @UseGuard(AuthorizeGuard)
     private async loveStory(req: Request, res: Response, next: NextFunction) {
         try {
-            console.log("🚀 ~ StoryController ~ loveStory ~  req.body:", req.body)
             let storyId = Number(req.params.storyId)
             if (isValidNumberVariable(storyId)) {
                 next(new BadRequestException(new ValidateErrorBuilder()
