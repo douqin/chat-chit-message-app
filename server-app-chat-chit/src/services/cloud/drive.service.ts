@@ -52,7 +52,7 @@ export class CloudDrive implements iDrive {
         }))
         console.log(data)
     }
-    async uploadFile(nameFile: string, buff: Buffer): Promise<DataFileDrive | null> {
+    async uploadFile(nameFile: string, buff: Buffer | Readable): Promise<DataFileDrive | null> {
         try {
             const createFile = await this.drive.files.create({
                 requestBody: {
@@ -61,7 +61,7 @@ export class CloudDrive implements iDrive {
                 },
                 media: {
                     // mimeType: "image/png",
-                    body: Readable.from(buff),
+                    body: (buff instanceof Buffer) ? Readable.from(buff) : buff,
                 },
 
             });

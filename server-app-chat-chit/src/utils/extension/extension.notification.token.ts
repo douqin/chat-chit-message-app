@@ -17,15 +17,15 @@ export function getNotificationTokenFromSocket(socket: RemoteSocket<DefaultEvent
 export async function checkElementsInAnotInB<T>(listA: Array<T>, listB: Array<T>) {
     return listA.filter(elementA => !listB.includes(elementA));
 }
-// export async function getAllNotificationTokenFromServer(idgroup: number) {
-//     let query = "SELECT token.* FROM (token JOIN `user` JOIN member ON token.iduser = user.iduser AND user.iduser = member.iduser AND member.idgroup = ? )"
-//     let [data, inforC] = await .db.excuteQuery(query, [idgroup]) as any
+// export async function getAllNotificationTokenFromServer(groupId: number) {
+//     let query = "SELECT token.* FROM (token JOIN `user` JOIN member ON token.userId = user.userId AND user.userId = member.userId AND member.groupId = ? )"
+//     let [data, inforC] = await .db.excuteQuery(query, [groupId]) as any
 //     return data as Array<TokenDb>;
 // }
 export interface TokenDb {
     id: number,
     refreshtoken: string
     accesstoken: string
-    iduser: number
+    userId: number
     notificationtoken: string
 }

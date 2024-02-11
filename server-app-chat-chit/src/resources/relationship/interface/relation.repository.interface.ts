@@ -1,11 +1,11 @@
 export interface RelationRepositoryBehavior {
-    deleteMySentInvite(iduser: number, idInvite: number): boolean | PromiseLike<boolean>;
-    deleteInvite(iduser: number, idInvite: number): boolean | PromiseLike<boolean>;
-    getRelationship(iduser: number, iduserWGet: number): Promise<number>;
-    acceptInviteFriend(iduser: number, idInvite: number): Promise<boolean>;
-    unFriend(iduser: number, iduserUnFriend: number): Promise<boolean>;
-    getAllInvite(iduser: number, cursor: number, limit: number): Promise<any[]>;
-    inviteToBecomeFriend(iduser: number, idReceiver: number): Promise<any>;
-    getSomeFriend(iduser: number, cursor: number, limit: number): Promise<any>;
-    getSomeFriendCommon(iduser: number, iduserWGet: number, cursor: number, limit: number): Promise<any[]>;
+    deleteMySentInvite(userId: number, idInvite: number): boolean | PromiseLike<boolean>;
+    deleteInvite(userId: number, idInvite: number): boolean | PromiseLike<boolean>;
+    getRelationship(userId: number, userIdWGet: number): Promise<number>;
+    acceptInviteFriend(userId: number, idInvite: number): Promise<boolean>;
+    unFriend(userId: number, userIdUnFriend: number): Promise<boolean>;
+    getAllInvite(userId: number, cursor: number, limit: number): Promise<any[]>;
+    inviteToBecomeFriend(userId: number, idReceiver: number): Promise<any>;
+    getSomeFriend(userId: number, cursor: number, limit: number): Promise<any>;
+    getSomeFriendCommon(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<any[]>;
 }

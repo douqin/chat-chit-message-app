@@ -14,15 +14,15 @@ export default class UserService implements UserServiceBehavior {
     
     constructor(@inject(UserRepository) private userRepository: iUserRepositoryBehavior) {
     }
-    async inforUser(iduser: number, username: string): Promise<InforUserDto> {
+    async inforUser(userId: number, username: string): Promise<InforUserDto> {
         let dataUser = await this.userRepository.inforUser(username)
         if (dataUser) {
             let user = User.fromRawData(
                 dataUser
             )
             let relationship: RelationServiceBehavior = container.resolve(RelationService);
-            let relation: RelationshipUser = await relationship.getRelationship(iduser, user.userId);
-            let friendsCommon = await relationship.getSomeFriendCommon(iduser, user.userId, 0, 10);
+            let relation: RelationshipUser = await relationship.getRelationship(userId, user.userId);
+            let friendsCommon = await relationship.getSomeFriendCommon(userId, user.userId, 0, 10);
             return new InforUserDto(relation, friendsCommon, user);
         } else {
             throw new NotFoundException("User not found")

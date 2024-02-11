@@ -1,16 +1,28 @@
 import { ReactMessage } from "@/resources/messaging/enum/message.react.enum"
 import { ReactStory } from "../enums/story.react.enum"
+import { RawDataMysql } from "@/models/raw.data"
+import { OptionUploadStoryDTO } from "../dtos/upload.story"
+import { Visibility } from "../enums/visibility"
 
 export default interface iStoryRepositoryBehavior {
+    loveStory(storyId: number, userId: number, isLove: boolean): Promise<boolean>
     
-    reacStory(idstory : number, iduser : number, react : ReactStory) : Promise<any>
+    getVisibleStory(storyId: number): Promise<Visibility>
+    
+    getMyListStory(me: number): Promise<RawDataMysql[]>
 
-    uploadStory(file : Express.Multer.File, iduser : number) : Promise<any>
+    reactStory(storyId: number, userId: number, react: ReactStory): Promise<true>
 
-    getAllStoryFromFriends(iduser: number) : Promise<any>
+    getStoryById(storyId: number): Promise<RawDataMysql>
 
-    deleteStory(idstory : number) : Promise<any>
+    uploadStory(file: Express.Multer.File, userId: number, option: OptionUploadStoryDTO): Promise<number>
 
-    seeStory(idstory : number, iduser : number) : Promise<any>
+    exploreStoryFriends(userId: number): Promise<RawDataMysql[]>
+
+    deleteStory(storyId: number): Promise<boolean>
+
+    seeStory(storyId: number, userId: number): Promise<boolean>
+
+    isOwnerStory(userId : number, storyId : number): Promise<boolean>
 
 }

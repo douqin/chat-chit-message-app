@@ -1,16 +1,25 @@
-import { ReactMessage } from "@/resources/messaging/enum/message.react.enum"
-import { ReactStory } from "../enums/story.react.enum"
+import Story from "@/models/story.model"
+import { OptionUploadStoryDTO } from "../dtos/upload.story"
+import { Visibility } from "../enums/visibility"
+import { ListStoryRes } from "../dtos/res.list.story"
 
 export default interface iStoryServiceBehavior {
 
-    reacStory(idstory : number, iduser : number, react : ReactStory) : Promise<any>
-    
-    uploadStory(file : any, iduser : number) : Promise<any>
+    loveStory(storyId: number, userId: number, isLove: boolean): Promise<any>
 
-    getAllStoryFromFriends(iduser: number) : Promise<any>
+    uploadStory(userId: number, file: Express.Multer.File, option: OptionUploadStoryDTO): Promise<number>
 
-    deleteStory(idstory: number) : Promise<any>
+    getStoryFromFriends(userId: number, cursor: number, limit: number): Promise<ListStoryRes>
 
-    seeStory(idstory : number, iduser : number) : Promise<any>
+    deleteStory(userId: number, storyId: number): Promise<boolean>
 
+    seeStory(storyId: number, userId: number): Promise<any>
+
+    getStoryById(userIdOwnerStory: number, me: number, storyId: number): Promise<Story>
+
+    isOwnerStory(userId: number, storyId: number): Promise<boolean>
+
+    getMyListStory(me: number, cursor: number, limit: number): Promise<ListStoryRes>
+
+    getVisibleStory(storyId : number): Promise<Visibility>
 }

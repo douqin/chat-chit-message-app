@@ -1,10 +1,10 @@
 import Reaction from "@/resources/messaging/dtos/react.dto";
 
-export default class TransformReaction {
+export class TransformReaction {
     public static rawToModel(data: any): Reaction {
-        const { idreaction, idmessage, type, iduser } = data;
+        const { idreaction, messageId, type, userId } = data;
         return new Reaction(
-            idreaction, iduser, idmessage, type
+            idreaction, userId, messageId, type
         );
     }
 }

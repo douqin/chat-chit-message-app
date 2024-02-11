@@ -2,12 +2,12 @@ import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express"
 import {  UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
 import { container } from "tsyringe";
-import { BaseMiddleware } from "@/lib/base";
-import { Middleware } from "@/lib/decorator";
+import { BaseMiddleware as BaseGuard } from "@/lib/base";
+import { Middleware as Guard } from "@/lib/decorator";
 import { JwtService } from "@/services/jwt/jwt.service";
 
-@Middleware()
-export class AuthorizeMiddleware extends BaseMiddleware {
+@Guard()
+export class AuthorizeGuard extends BaseGuard {
     public async use(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             let token = req.headers["authorization"] as string
@@ -15,9 +15,9 @@ export class AuthorizeMiddleware extends BaseMiddleware {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
                     const jwtPayload = await container.resolve(JwtService).decodeAccessToken(accesstoken) as JwtPayload;
-                    const { iduser } = jwtPayload.payload;
-                    if (iduser) {
-                        req.headers['iduser'] = iduser;
+                    const { userId } = jwtPayload.payload;
+                    if (userId) {
+                        req.headers['userId'] = userId;
                         next()
                         return
                     }

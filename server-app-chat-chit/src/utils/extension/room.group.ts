@@ -1,3 +1,3 @@
-export function getRoomGroupIO(idgroup: number): string {
-    return `${idgroup}_group`
+export function getRoomGroupIO(groupId: number): string {
+    return `${groupId}_group`
 }
