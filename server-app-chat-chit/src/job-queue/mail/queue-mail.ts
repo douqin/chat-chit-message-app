@@ -15,12 +15,4 @@ const sender = new WorkerMQ<DataMailReceive, DataMailResult>('mail', async (job:
     return mailService.sendMail(job.data.opt);
 }, { connection: redisX });
 
-sender.on("completed", (job, id) => {
-})
-sender.on("failed", (job, id) => {
-})
-sender.on("error", (e) => {
-    console.log("🚀 ~ file: queue-event-mail.ts ~ line 23 ~ queueEvents.on ~ error", e)
-})
-
 export { mailQueue } 
