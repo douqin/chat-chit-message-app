@@ -7,10 +7,12 @@ moduleAlias.addAliases({
     "@/utils": `${__dirname}/src/utils`,
     "@/middleware": `${__dirname}/src/middleware`,
     "@/models" : `${__dirname}/src/models`,
+    "@/lib" : `${__dirname}/lib`,
+    "@/services" : `${__dirname}/src/services`,
 });
 
 import App from "./src/main.application";
-import validateEnv from "./src/utils/validateEnv";
+import validateEnv from "./src/utils/validate/validate.env";
 require('dotenv').config()
 validateEnv();
 App.gI().listen();

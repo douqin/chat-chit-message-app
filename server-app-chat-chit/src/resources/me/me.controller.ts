@@ -1,5 +1,6 @@
 import { HttpStatus } from './../../utils/extension/httpstatus.exception';
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/common";
+
 import MeService from "./me.service";
 import { Server } from "socket.io";
 import { NextFunction, Request, Response } from "express";
@@ -9,12 +10,8 @@ import HttpException from "@/utils/exceptions/http.exeception";
 import { ResponseBody } from '@/utils/definition/http.response';
 import { InternalServerError } from '@/utils/exceptions/badrequest.expception';
 import { inject } from 'tsyringe';
-import Controller from '@/utils/decorator/controller';
-import UseMiddleware from '@/utils/decorator/middleware/use.middleware';
-import { GET } from '@/utils/decorator/http.method/get';
-import { PATCH } from '@/utils/decorator/http.method/patch';
-import { FileUpload } from '@/utils/decorator/file.upload/multer.upload';
-import { AuthorizeMiddleware } from '@/middleware/auth.middleware';
+import { Controller, PATCH, FileUpload, UseMiddleware, GET } from '@/lib/decorator';
+import { AuthorizeGuard } from '@/middleware/auth.middleware';
 
 @Controller("/me")
 export default class MeController extends MotherController {
@@ -23,16 +20,16 @@ export default class MeController extends MotherController {
     }
     @PATCH("/background")
     @FileUpload(multer().single('background'))
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async changeBackground(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            let iduser = Number(req.headers['iduser'])
+            let userId = Number(req.headers['userId'])
             if (req.file) {
-                let response = await this.meSerivce.changeBackground(iduser, req.file)
+                let response = await this.meSerivce.changeBackground(userId, req.file)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
@@ -50,16 +47,16 @@ export default class MeController extends MotherController {
 
     }
     @PATCH("/avatar")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async changeAvatar(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            let iduser = Number(req.headers['iduser'])
+            let userId = Number(req.headers['userId'])
             if (req.file) {
-                let response = await this.meSerivce.changeAvatar(iduser, req.file)
+                let response = await this.meSerivce.changeAvatar(userId, req.file)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
@@ -78,15 +75,15 @@ export default class MeController extends MotherController {
     }
 
     @GET('/profile')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getMyProfile(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            let iduser = Number(req.headers['iduser'])
-            let user = await this.meSerivce.getMyProfile(iduser)
+            let userId = Number(req.headers['userId'])
+            let user = await this.meSerivce.getMyProfile(userId)
             res.status(HttpStatus.OK).send(new ResponseBody(
                 true,
                 "",
@@ -98,16 +95,16 @@ export default class MeController extends MotherController {
         }
     }
     @PATCH('/profile')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async updateMyprofile(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            let iduser = Number(req.headers['iduser'])
+            let userId = Number(req.headers['userId'])
             const { firstname, lastname, gender, birthday, bio, username } = req.body;
-            await this.meSerivce.updateMyprofile(iduser, firstname, lastname, gender, birthday, bio, username)
+            await this.meSerivce.updateMyprofile(userId, firstname, lastname, gender, birthday, bio, username)
             res.status(HttpStatus.OK).send(new ResponseBody(
                 true,
                 "",

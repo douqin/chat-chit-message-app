@@ -1,0 +1,4 @@
+export enum OTPTarget {
+    REGISTER = "REGISTER",
+    FORGOT_PASSWORD = "FORGOT_PASSWORD"
+}

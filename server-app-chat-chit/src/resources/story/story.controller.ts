@@ -1,21 +1,22 @@
-import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
+import { AuthorizeGuard } from "@/middleware/auth.middleware";
 import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/common";
 import { Response, Request, NextFunction } from "express";
 import multer from "multer";
 import { Server } from "socket.io";
-import isValidNumberVariable from "@/utils/extension/vailid_variable";
+import { convertToObjectDTO, isValidNumberVariable } from "@/utils/validate";
 import { inject } from "tsyringe";
-import Controller from "@/utils/decorator/controller";
 import StoryService from "./story.service";
-import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
-import { GET } from "@/utils/decorator/http.method/get";
-import { POST } from "@/utils/decorator/http.method/post";
-import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
-import { DELETE } from "@/utils/decorator/http.method/delete";
+import { Controller, POST, FileUpload, GET, UseMiddleware as UseGuard, DELETE } from "@/lib/decorator";
+import { BadRequestException } from "@/utils/exceptions/badrequest.expception";
+import { ValidateErrorBuilder } from "@/utils/validate";
+import { OptionUploadStoryDTO } from "./dtos/upload.story";
+import { deleteFile, getOptionForMulter as getOptionDefaultForMulter } from "@/utils/extension/file.upload";
+import { LoveStoryDTO } from "./dtos/love.story";
+import { PagingReq } from "@/utils/paging/paging.data";
 
 @Controller("/story")
 export default class StoryController extends MotherController {
@@ -25,53 +26,77 @@ export default class StoryController extends MotherController {
     }
 
     @POST("/upload")
-    @FileUpload(multer().single("story"))
+    @FileUpload(multer(getOptionDefaultForMulter('story')).single("story"))
+    @UseGuard(AuthorizeGuard)
     private async uploadStory(req: Request, res: Response, next: NextFunction) {
         try {
+            let option = await convertToObjectDTO(OptionUploadStoryDTO, req.body, {}, {
+                validationError: {
+                    target: false
+                }
+            })
             if (req.file) {
-                const iduser = Number(req.headers['iduser'] as string)
-                let story = await this.storyService.uploadStory(req.file, iduser)
+                const userId = Number(req.headers['userId'] as string)
+                let storyId = await this.storyService.uploadStory(userId, req.file, option)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "OK",
-                    story
+                    {
+                        storyId: storyId
+                    }
                 ));
                 return;
             }
             next(
-                new HttpException(
-                    HttpStatus.BAD_REQUEST,
-                    "File lỗi"
-                )
-            );
+                new BadRequestException(
+                    new ValidateErrorBuilder()
+                        .setProperty("file")
+                        .setConstraints({ "file": "File is required" })
+                        .WrapArrayToJson()
+                ));
         } catch (e: any) {
-            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
             if (e instanceof MyException) {
                 next(
                     e
                 )
+                return
+            } else if (Array.isArray(e)) {
+                next(new BadRequestException(JSON.parse(JSON.stringify(e))));
             }
-            next(
-                new HttpException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Có lỗi xảy ra vui lòng thử lại sau"
-                )
-            );
+            else {
+                console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Có lỗi xảy ra vui lòng thử lại sau"
+                    )
+                );
+            }
+        }
+        finally {
+            if (req.file) {
+                deleteFile(req.file.filename)
+            }
         }
     }
-    @GET('')
-    @UseMiddleware(AuthorizeMiddleware)
-    private async getAllStoryFromFriends(req: Request, res: Response, next: NextFunction) {
+    @GET('/explore/reel')
+    @UseGuard(AuthorizeGuard)
+    private async exploreStoryFriend(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
-            let story = await this.storyService.getAllStoryFromFriends(iduser)
+            const userId = Number(req.headers['userId'] as string)
+            let option = await convertToObjectDTO(PagingReq, req.query, {}, {
+                validationError: {
+                    target: false
+                }
+            });
+            let story = await this.storyService.getStoryFromFriends(userId, option.cursor, option.limit)
             res.status(HttpStatus.OK).send(new ResponseBody(
                 true,
                 "OK",
                 story
             ));
+
         } catch (e: any) {
-            console.log("🚀 ~ file: story.controller.ts:85 ~ StoryController ~ getAllStoryFromFriends= ~ e:", e)
             if (e instanceof MyException) {
                 next(
                     new HttpException(
@@ -79,31 +104,45 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
-            }
-            next(
-                new HttpException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Có lỗi xảy ra vui lòng thử lại sau"
+                return
+            } else if (Array.isArray(e)) {
+                next(
+                    new BadRequestException(JSON.parse(JSON.stringify(e)))
                 )
-            );
+            }
+            else {
+                console.log("🚀 ~ file: story.controller.ts:85 ~ StoryController ~ getAllStoryFromFriends= ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Có lỗi xảy ra vui lòng thử lại sau"
+                    )
+                );
+            }
         }
-    }
-    // del story
-    @DELETE(":storyId/delete")
-    @UseMiddleware(AuthorizeMiddleware)
+    } //FIXME: fix sql (add feature cursor and limit)
+    @DELETE("/me/:storyId")
+    @UseGuard(AuthorizeGuard)
     private async deleteStory(req: Request, res: Response, next: NextFunction) {
         try {
-            let idstory = Number(req.params.storyId)
-            const iduser = Number(req.headers['iduser'] as string)
-            let story = await this.storyService.seeStory(iduser, idstory)
+            let storyId = Number(req.params.storyId)
+            if (isValidNumberVariable(storyId)) {
+                next(new BadRequestException(new ValidateErrorBuilder()
+                    .setProperty("storyId")
+                    .setConstraints({
+                        storyId: "storyId must be number"
+                    })
+                    .WrapArrayToJson()))
+                return
+            }
+            const userId = Number(req.headers['userId'] as string)
+            await this.storyService.deleteStory(userId, storyId)
             res.status(HttpStatus.OK).send(new ResponseBody(
                 true,
                 "OK",
                 {}
             ));
-            return;
         } catch (e: any) {
-            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
             if (e instanceof MyException) {
                 next(
                     new HttpException(
@@ -111,38 +150,43 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
+                return
+            } else {
+                console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Có lỗi xảy ra vui lòng thử lại sau"
+                    )
+                );
             }
-            next(
-                new HttpException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Có lỗi xảy ra vui lòng thử lại sau"
-                )
-            );
         }
     }
     // seen story
-    @POST(":storyId/see")
-    @UseMiddleware(AuthorizeMiddleware)
+    @POST("/:storyId/action/seen")
+    @UseGuard(AuthorizeGuard)
     private async seeStoryFriend(req: Request, res: Response, next: NextFunction) {
         try {
-            let idstory = Number(req.params.storyId)
-            if (isValidNumberVariable(idstory)) {
-                const iduser = Number(req.headers['iduser'] as string)
-                let story = await this.storyService.seeStory(iduser, idstory)
+            let storyId = Number(req.params.storyId)
+            if (isValidNumberVariable(storyId)) {
+                const userId = Number(req.headers['userId'] as string)
+                await this.storyService.seeStory(userId, storyId)
+                //TODO: notice to owner story
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "OK",
                     {}
                 ));
             } else next(
-                new HttpException(
-                    HttpStatus.BAD_REQUEST,
-                    "Argurments are wrong"
-                )
+                new BadRequestException(new ValidateErrorBuilder()
+                    .setProperty("storyId")
+                    .setConstraints({
+                        storyId: "storyId must be number"
+                    })
+                    .WrapArrayToJson())
             );
             return;
         } catch (e: any) {
-            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
             if (e instanceof MyException) {
                 next(
                     new HttpException(
@@ -150,24 +194,42 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
+                return
             }
-            next(
-                new HttpException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Có lỗi xảy ra vui lòng thử lại sau"
-                )
-            );
+            else {
+                console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ uploadStory= ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Có lỗi xảy ra vui lòng thử lại sau"
+                    )
+                );
+            }
         }
     }
 
-    @GET("/:storyId/react")
-    @UseMiddleware(AuthorizeMiddleware)
-    private async reacStory(req: Request, res: Response, next: NextFunction) {
+    @GET("/:storyId/action/love")
+    @UseGuard(AuthorizeGuard)
+    private async loveStory(req: Request, res: Response, next: NextFunction) {
         try {
-            let idstory = Number(req.params.idstory)
-            let react = Number(req.body.react)
-            const iduser = Number(req.headers['iduser'] as string)
-            let story = await this.storyService.reacStory(idstory, iduser, react)
+            let storyId = Number(req.params.storyId)
+            if (isValidNumberVariable(storyId)) {
+                next(new BadRequestException(new ValidateErrorBuilder()
+                    .setProperty("storyId")
+                    .setConstraints({
+                        storyId: "storyId must be number"
+                    })
+                    .WrapArrayToJson()))
+                return
+            }
+            let data = await convertToObjectDTO(LoveStoryDTO, req.body, {}, {
+                validationError: {
+                    target: false
+                }
+            })
+            const userId = Number(req.headers['userId'] as string)
+            let story = await this.storyService.loveStory(storyId, userId, data.isLove)
+            //TODO: notice to owner story
             res.status(HttpStatus.OK).send(new ResponseBody(
                 true,
                 "OK",
@@ -175,7 +237,6 @@ export default class StoryController extends MotherController {
             ));
             return;
         } catch (e: any) {
-            console.log("🚀 ~ file: story.controller.ts:121 ~ StoryController ~ getViewedStory=async ~ e:", e)
             if (e instanceof MyException) {
                 next(
                     new HttpException(
@@ -183,14 +244,103 @@ export default class StoryController extends MotherController {
                         e.message
                     )
                 )
-            }
-            next(
-                new HttpException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Có lỗi xảy ra vui lòng thử lại sau"
+                return
+            } else if (Array.isArray(e)) {
+                next(
+                    new BadRequestException(JSON.parse(JSON.stringify(e)))
                 )
-            );
+            }
+            else {
+                console.log("🚀 ~ file: story.controller.ts:121 ~ StoryController ~ getViewedStory=async ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Có lỗi xảy ra vui lòng thử lại sau"
+                    )
+                );
+            }
         }
-    } // TODO: check api is Ok ?
+    }
 
+    @GET("/:userId/:storyId")
+    @UseGuard(AuthorizeGuard)
+    private async getStoryById(req: Request, res: Response, next: NextFunction) {
+        try {
+            let me = Number(req.headers['userId'])
+            let userIdOwnerStory = Number(req.params.userId)
+            let storyId = Number(req.params.storyId)
+            if (isValidNumberVariable(storyId)) {
+                const userId = Number(req.headers['userId'] as string)
+                let story = await this.storyService.getStoryById(userIdOwnerStory, me, storyId)
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    true,
+                    "OK",
+                    story
+                ));
+                return;
+            } else {
+                next(new ValidateErrorBuilder().setProperty("storyId").setConstraints({ "storyId": "storyId is required" }).WrapArrayToJson())
+            }
+        } catch (e: any) {
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.status,
+                        e.message
+                    )
+                )
+                return
+            } else {
+                console.log("🚀 ~ file: story.controller.ts:121 ~ StoryController ~ getViewedStory=async ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Có lỗi xảy ra vui lòng thử lại sau"
+                    )
+                );
+            }
+        }
+    }
+    @GET("/me")
+    @UseGuard(AuthorizeGuard)
+    private async getMyListStory(req: Request, res: Response, next: NextFunction) {
+        try {
+            let me = Number(req.headers['userId'])
+            let option = await convertToObjectDTO(PagingReq, req.query, {}, {
+                validationError: {
+                    target: false
+                }
+            });
+            let story = await this.storyService.getMyListStory(me, option.cursor, option.limit)
+            res.status(HttpStatus.OK).send(new ResponseBody(
+                true,
+                "OK",
+                story
+            ));
+        }
+        catch (e) {
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.status,
+                        e.message
+                    )
+                )
+                return
+            } else if (Array.isArray(e)) {
+                next(
+                    new BadRequestException(JSON.parse(JSON.stringify(e)))
+                )
+            }
+            else {
+                console.log("🚀 ~ file: story.controller.ts:85 ~ StoryController ~ getAllStoryFromFriends= ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Có lỗi xảy ra vui lòng thử lại sau"
+                    )
+                );
+            }
+        }
+    } //FIXME: fix sql (add feature cursor and limit)
 }

@@ -1,23 +1,19 @@
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/common";
+
 import { Server } from "socket.io";
 import RelationService from "./relation.service";
-import Controller from "@/utils/decorator/controller";
 import { NextFunction, Request, Response } from "express";
 import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import multer from "multer";
-import isValidNumberVariable from "@/utils/extension/vailid_variable";
+import { isValidNumberVariable } from "@/utils/validate";
 import { User } from "@/models/user.model";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
-import { GET } from "@/utils/decorator/http.method/get";
-import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
-import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
-import { PATCH } from "@/utils/decorator/http.method/patch";
-import { POST } from "@/utils/decorator/http.method/post";
-import { DELETE } from "@/utils/decorator/http.method/delete";
+import { AuthorizeGuard } from "@/middleware/auth.middleware";
+import { Controller, POST, UseMiddleware, GET, PATCH, DELETE } from "@/lib/decorator";
 
 @Controller("/relationship")
 export default class RelationshipController extends MotherController {
@@ -26,14 +22,14 @@ export default class RelationshipController extends MotherController {
         super(io);
     }
 
-    @POST("/:iduser/block")
-    @UseMiddleware(AuthorizeMiddleware)
+    @POST("/:userId/block")
+    @UseMiddleware(AuthorizeGuard)
     private async blockUser(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const iduserBlock = Number(req.params.iduser)
-            if (isValidNumberVariable(iduserBlock) && iduser !== iduserBlock) {
-                let data = await this.relationService.blockUser(iduser, iduserBlock)
+            const userId = Number(req.headers.userId)
+            const userIdBlock = Number(req.params.userId)
+            if (isValidNumberVariable(userIdBlock) && userId !== userIdBlock) {
+                let data = await this.relationService.blockUser(userId, userIdBlock)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -51,18 +47,18 @@ export default class RelationshipController extends MotherController {
         }
     }
     @GET("/friends")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getAllFriend(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            const iduser = Number(req.headers.iduser)
+            const userId = Number(req.headers.userId)
             const cursor = Number(req.query.cursor)
             const limit = Number(req.query.limit)
             if (isValidNumberVariable(cursor) && isValidNumberVariable(limit)) {
-                let data = await this.relationService.getAllFriend(iduser, cursor, limit)
+                let data = await this.relationService.getAllFriend(userId, cursor, limit)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -86,7 +82,7 @@ export default class RelationshipController extends MotherController {
         }
     }
     @GET("/invites/me")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getAllInvite(
         req: Request,
         res: Response,
@@ -95,8 +91,8 @@ export default class RelationshipController extends MotherController {
         try {
             const cursor = Number(req.query.cursor)
             const limit = Number(req.query.limit)
-            const iduser = Number(req.headers.iduser)
-            let data = await this.relationService.getAllInvite(iduser, cursor, limit)
+            const userId = Number(req.headers.userId)
+            let data = await this.relationService.getAllInvite(userId, cursor, limit)
             res.status(HttpStatus.OK).send(
                 new ResponseBody(
                     true,
@@ -113,13 +109,13 @@ export default class RelationshipController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     };
-    @PATCH("/:iduser/unfriend")
-    @UseMiddleware(AuthorizeMiddleware)
+    @PATCH("/:userId/unfriend")
+    @UseMiddleware(AuthorizeGuard)
     private async unFriend(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const iduserUnFriend = Number(req.params.iduser)
-            let data = await this.relationService.unFriend(iduser, iduserUnFriend)
+            const userId = Number(req.headers.userId)
+            const userIdUnFriend = Number(req.params.userId)
+            let data = await this.relationService.unFriend(userId, userIdUnFriend)
             res.status(HttpStatus.OK).send(
                 new ResponseBody(
                     true,
@@ -136,18 +132,18 @@ export default class RelationshipController extends MotherController {
         }
     };
     @POST("/invites/me/:userId")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async inviteToBecomeFriend(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            let iduser = Number(req.headers["iduser"]);
+            let userId = Number(req.headers["userId"]);
             let idreceiver = Number(req.params.userId)
             if (idreceiver) {
-                if (iduser === idreceiver) next(new BadRequestException("Agurment is invalid"))
-                await this.relationService.inviteToBecomeFriend(iduser, idreceiver);
+                if (userId === idreceiver) next(new BadRequestException("Agurment is invalid"))
+                await this.relationService.inviteToBecomeFriend(userId, idreceiver);
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
@@ -176,17 +172,17 @@ export default class RelationshipController extends MotherController {
         }
     };
     @POST("/accept")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async acceptInviteFriend(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            const iduser: number = Number(req.headers.iduser)
+            const userId: number = Number(req.headers.userId)
             const idInvite: number = Number(req.body.idInvite)
             if (isValidNumberVariable(idInvite)) {
-                await this.relationService.acceptInviteFriend(iduser, idInvite)
+                await this.relationService.acceptInviteFriend(userId, idInvite)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
@@ -215,17 +211,17 @@ export default class RelationshipController extends MotherController {
         }
     };
     @DELETE("/invites/:invite")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async deleteInvite(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            const iduser = Number(req.headers.iduser)
+            const userId = Number(req.headers.userId)
             const idInvite = Number(req.params.invite)
             if (isValidNumberVariable(idInvite)) {
-                const data = await this.relationService.deleteInvite(iduser, idInvite)
+                const data = await this.relationService.deleteInvite(userId, idInvite)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     data,
                     "",
@@ -250,17 +246,17 @@ export default class RelationshipController extends MotherController {
         }
     };
     @DELETE("/invites/me/:invite/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async deleteMySentInvite(
         req: Request,
         res: Response,
         next: NextFunction
     ) {
         try {
-            const iduser = Number(req.headers.iduser)
+            const userId = Number(req.headers.userId)
             const idInvite = Number(req.body.invite)
             if (idInvite) {
-                const data = await this.relationService.deleteMySentInvite(iduser, idInvite)
+                const data = await this.relationService.deleteMySentInvite(userId, idInvite)
                 return new ResponseBody(
                     data,
                     "",
@@ -273,14 +269,14 @@ export default class RelationshipController extends MotherController {
 
         }
     };
-    @GET("/:iduser/relation")
-    @UseMiddleware(AuthorizeMiddleware)
+    @GET("/:userId/relation")
+    @UseMiddleware(AuthorizeGuard)
     private async getRelationship(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const iduserWGet = Number(req.params.iduser)
-            if (isValidNumberVariable(iduserWGet)) {
-                const data = await this.relationService.getRelationship(iduser, iduserWGet)
+            const userId = Number(req.headers.userId)
+            const userIdWGet = Number(req.params.userId)
+            if (isValidNumberVariable(userIdWGet)) {
+                const data = await this.relationService.getRelationship(userId, userIdWGet)
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
                     "",
@@ -300,11 +296,11 @@ export default class RelationshipController extends MotherController {
         }
     }
     @GET("/friends/online")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getFriendOnline(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const data: User[] = await this.relationService.getFriendOnline(iduser)
+            const userId = Number(req.headers.userId)
+            const data: User[] = await this.relationService.getFriendOnline(userId)
             return new ResponseBody(
                 true,
                 "",

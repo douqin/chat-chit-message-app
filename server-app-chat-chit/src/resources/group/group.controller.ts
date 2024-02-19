@@ -1,17 +1,16 @@
 import HttpException from "@/utils/exceptions/http.exeception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import MotherController from "@/utils/interface/controller.interface";
+import { MotherController } from "@/lib/common";
 import { NextFunction, Request, Response } from "express";
 import { Server } from "socket.io";
 import GroupService from "@/resources/group/group.service";
-import Controller from "@/utils/decorator/controller";
 import LastViewGroup from "./dtos/lastview.dto";
 import iGroupServiceBehavior from "@/resources/group/interface/group.service.interface";
 import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
-import { AuthorizeMiddleware } from "@/middleware/auth.middleware";
-import isValidNumberVariable from "@/utils/extension/vailid_variable";
+import { AuthorizeGuard } from "@/middleware/auth.middleware";
+import { convertToObjectDTO, isValidNumberVariable } from "@/utils/validate";
 import { User } from "../../models/user.model";
 import { EventGroupIO } from "./constant/group.constant";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
@@ -19,12 +18,8 @@ import { inject } from "tsyringe";
 import { getRoomUserIO } from "@/utils/extension/room.user";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "../messaging/constant/event.io";
-import { GET } from "@/utils/decorator/http.method/get";
-import UseMiddleware from "@/utils/decorator/middleware/use.middleware";
-import { POST } from "@/utils/decorator/http.method/post";
-import { PATCH } from "@/utils/decorator/http.method/patch";
-import { FileUpload } from "@/utils/decorator/file.upload/multer.upload";
-import { DELETE } from "@/utils/decorator/http.method/delete";
+import { Controller, DELETE, FileUpload, GET, PATCH, POST, UseMiddleware } from "@/lib/decorator";
+import { PagingReq } from "@/utils/paging/paging.data";
 @Controller("/group")
 export default class GroupController extends MotherController {
     constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
@@ -32,13 +27,13 @@ export default class GroupController extends MotherController {
     }
 
     @POST('/:id/admin/pending')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getListUserPending(req: Request, res: Response, next: NextFunction) {
         try {
-            const idgroup = Number(req.params.id)
-            const iduser = Number(req.headers['iduser'])
-            if (isValidNumberVariable(idgroup)) {
-                let data = await this.groupService.getListUserPending(iduser, idgroup)
+            const groupId = Number(req.params.id)
+            const userId = Number(req.headers['userId'])
+            if (isValidNumberVariable(groupId)) {
+                let data = await this.groupService.getListUserPending(userId, groupId)
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
                     "",
@@ -57,13 +52,13 @@ export default class GroupController extends MotherController {
         }
     }
     @POST("/:link/request-join")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async requestJoinFromLink(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'])
+            const userId = Number(req.headers['userId'])
             const link = String(req.params.link)
             if (link) {
-                let data = await this.groupService.requestJoinFromLink(iduser, link)
+                let data = await this.groupService.requestJoinFromLink(userId, link)
                 if (data.isJoin && data.message) {
                     this.io.to(getRoomGroupIO(data.message.groupId)).emit(EventGroupIO.REQUEST_JOIN_FROM_LINK, data)
                     res.status(HttpStatus.OK).json(
@@ -98,10 +93,10 @@ export default class GroupController extends MotherController {
     }
 
     @GET("/:link")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getBaseInformationGroupFromLink(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'])
+            const userId = Number(req.headers['userId'])
             const link = req.params.link
             if (link) {
                 let data = await this.groupService.getBaseInformationGroupFromLink(link)
@@ -126,37 +121,42 @@ export default class GroupController extends MotherController {
         }
     }
     @GET("/")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getSomeGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const limit = Number(req.query.limit)
-            const cursor = Number(req.query.cursor as string)
-            const iduser = Number(req.headers['iduser'] as string)
-            if (isValidNumberVariable(limit) && isValidNumberVariable(cursor)) {
-                let data = await this.groupService.getSomeGroup(iduser, cursor, limit)
-                res.status(HttpStatus.OK).json(new ResponseBody(
-                    true,
-                    "OK",
-                    data
-                ))
-            } else next(new HttpException(HttpStatus.BAD_REQUEST, "Argument's wrong"))
+            console.log("🚀 ~ GroupController ~ getSomeGroup ~ req.query:", req.query)
+            let pagingReq = await convertToObjectDTO(PagingReq, req.query, {}, { validationError: { target: false } })
+            const userId = Number(req.headers['userId'] as string)
+            let data = await this.groupService.getSomeGroup(userId, pagingReq.cursor, pagingReq.limit)
+            res.status(HttpStatus.OK).json(new ResponseBody(
+                true,
+                "OK",
+                data
+            ))
         } catch (error: any) {
             if (error instanceof MyException) {
                 next(new HttpException(error.status, error.message))
-                return
             }
-            next(new InternalServerError("An error occurred, please try again later."))
+            else if (Array.isArray(error)) {
+                next(
+                    new BadRequestException(JSON.parse(JSON.stringify(error)))
+                )
+            } else {
+                console.log("🚀 ~ GroupController ~ getSomeGroup ~ error:", error)
+                next(new InternalServerError("An error occurred, please try again later."))
+            }
+
         }
     }
     @POST('/community-group')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async createCommunityGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             const name = String(req.body.name)
             const users: Array<number> = req.body.users
             if (name) {
-                let data = await this.groupService.createCommunityGroup(name, iduser, users)
+                let data = await this.groupService.createCommunityGroup(name, userId, users)
                 // FIXME: socker ?
                 for (let a of users) {
                     this.io.to("").emit("invite-to-group",)
@@ -182,15 +182,15 @@ export default class GroupController extends MotherController {
     }
     //FIXME: change status group to default or stranger
     @POST('/individual-group/:userId')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async createInvidualGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
-            const idUserAddressee = Number(req.params.userId)
-            if (idUserAddressee) {
-                let data = await this.groupService.createInvidualGroup(iduser, idUserAddressee)
+            const userId = Number(req.headers['userId'] as string)
+            const userIdAddressee = Number(req.params.userId)
+            if (userIdAddressee) {
+                let data = await this.groupService.createInvidualGroup(userId, userIdAddressee)
                 if (!data.isExisted) {
-                    this.io.to(getRoomUserIO(iduser)).emit(EventGroupIO.CREATE_INDIVIDUAL_GROUP, data)
+                    this.io.to(getRoomUserIO(userId)).emit(EventGroupIO.CREATE_INDIVIDUAL_GROUP, data)
                 }
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -212,15 +212,15 @@ export default class GroupController extends MotherController {
     }
     @PATCH('/:id/avatar')
     @FileUpload(multer().single("avatar"))
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async changeAvatarGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             const id = Number(req.params.id)
-            if (await this.groupService.isUserExistInGroup(iduser, Number(id))) {
+            if (await this.groupService.isUserExistInGroup(userId, Number(id))) {
                 let file = req.file;
                 if (file && file.mimetype.includes("image")) {
-                    let data = await this.groupService.changeAvatarGroup(iduser, Number(id), file)
+                    let data = await this.groupService.changeAvatarGroup(userId, Number(id), file)
                     this.io.to(getRoomGroupIO(id)).emit(EventGroupIO.CHANGE_AVATAR, { url: data?.url })
                     this.io.to(getRoomGroupIO(id)).emit(EventMessageIO.NEW_MESSAGE, [data?.message])
                     res.status(HttpStatus.OK).json(new ResponseBody(
@@ -249,14 +249,14 @@ export default class GroupController extends MotherController {
 
     //FIXME:  logic
     @GET('/:id/lastview')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getLastViewMember(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             const {
                 id
             } = req.params
-            if (await this.groupService.isUserExistInGroup(iduser, Number(id))) {
+            if (await this.groupService.isUserExistInGroup(userId, Number(id))) {
                 let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
                 res.status(HttpStatus.OK).json(new ResponseBody(
                     true,
@@ -270,12 +270,12 @@ export default class GroupController extends MotherController {
         }
     }
     @GET('/:id/community-group')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getOneGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             const id = req.params.id;
-            let data = await this.groupService.getOneGroup(iduser, Number(id))
+            let data = await this.groupService.getOneGroup(userId, Number(id))
             res.status(HttpStatus.OK).json(new ResponseBody(true, "OK", data))
             return
         } catch (e: any) {
@@ -289,13 +289,13 @@ export default class GroupController extends MotherController {
     }
 
     @GET('/:id/members')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async getAllMember(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             const id = Number(req.params.id);
             if (isValidNumberVariable(id)) {
-                let data = await this.groupService.getAllMember(iduser, Number(id))
+                let data = await this.groupService.getAllMember(userId, Number(id))
                 res.status(HttpStatus.OK).json(new ResponseBody(true, "OK", data))
                 return
             }
@@ -313,13 +313,13 @@ export default class GroupController extends MotherController {
     @POST('/:id/invite-members')
     private async inviteMember(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'])
-            const idgroup = Number(req.params.id)
-            const idusers: Array<number> = req.body.userIds
-            let message = await this.groupService.inviteMember(iduser, idgroup, idusers)
+            const userId = Number(req.headers['userId'])
+            const groupId = Number(req.params.id)
+            const userIds: Array<number> = req.body.userIds
+            let message = await this.groupService.inviteMember(userId, groupId, userIds)
             if (message.length > 0) {
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [message])
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.UPDATE_MEMBER, [idusers])
+                this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [message])
+                this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.UPDATE_MEMBER, [userIds])
                 //add noti for user
             }
             res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", {}))
@@ -331,14 +331,14 @@ export default class GroupController extends MotherController {
         }
     }
     @POST('/:id/members/leave')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async leaveGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'] as string)
+            const userId = Number(req.headers['userId'] as string)
             const id = Number(req.params.id)
-            if (isValidNumberVariable(iduser) && isValidNumberVariable(id)) {
-                let message = await this.groupService.leaveGroup(iduser, Number(id))
-                this.io.to(getRoomGroupIO(id)).emit(EventGroupIO.LEAVE_GROUP, iduser);
+            if (isValidNumberVariable(userId) && isValidNumberVariable(id)) {
+                let message = await this.groupService.leaveGroup(userId, Number(id))
+                this.io.to(getRoomGroupIO(id)).emit(EventGroupIO.LEAVE_GROUP, userId);
                 this.io.to(getRoomGroupIO(id)).emit(EventMessageIO.NEW_MESSAGE, [message]);
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -357,17 +357,17 @@ export default class GroupController extends MotherController {
         }
     }
     @PATCH('/admin/:id/manager')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async addManager(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
+            const userId = Number(req.headers.userId)
             const invitee = Number(req.body.invitee)
-            const idgroup = Number(req.params.id)
-            if (isValidNumberVariable(invitee) && isValidNumberVariable(idgroup) && iduser !== invitee) {
+            const groupId = Number(req.params.id)
+            if (isValidNumberVariable(invitee) && isValidNumberVariable(groupId) && userId !== invitee) {
                 //FIXME: socket ?
-                let data = await this.groupService.addManager(iduser, invitee, idgroup)
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.ADD_MANAGER, { userIds: invitee })
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
+                let data = await this.groupService.addManager(userId, invitee, groupId)
+                this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.ADD_MANAGER, { userIds: invitee })
+                this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -387,16 +387,16 @@ export default class GroupController extends MotherController {
         }
     }
     @DELETE('/admin/:id/manager')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async removeManager(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
+            const userId = Number(req.headers.userId)
             const manager = Number(req.body.manager)
-            const idgroup = Number(req.params.id)
-            if (isValidNumberVariable(manager) && isValidNumberVariable(idgroup) && iduser !== manager) {
-                let data = await this.groupService.removeManager(iduser, manager, idgroup)
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.REMOVE_MANAGER, { userId: manager })
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
+            const groupId = Number(req.params.id)
+            if (isValidNumberVariable(manager) && isValidNumberVariable(groupId) && userId !== manager) {
+                let data = await this.groupService.removeManager(userId, manager, groupId)
+                this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.REMOVE_MANAGER, { userId: manager })
+                this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -416,18 +416,18 @@ export default class GroupController extends MotherController {
         }
     }
     @DELETE('/admin/:id/member/:userId')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async removeMember(
         req: Request, res: Response, next: NextFunction
     ) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const iduserAdd = Number(req.params.userId)
-            const idgroup = Number(req.params.id)
-            if (isValidNumberVariable(iduserAdd) && isValidNumberVariable(idgroup) && iduser !== iduserAdd) {
-                let data = await this.groupService.removeMember(iduser, iduserAdd, idgroup)
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.MEMBER_WAS_REMOVE, { userId: iduserAdd })
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
+            const userId = Number(req.headers.userId)
+            const userIdAdd = Number(req.params.userId)
+            const groupId = Number(req.params.id)
+            if (isValidNumberVariable(userIdAdd) && isValidNumberVariable(groupId) && userId !== userIdAdd) {
+                let data = await this.groupService.removeMember(userId, userIdAdd, groupId)
+                this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.MEMBER_WAS_REMOVE, { userId: userIdAdd })
+                this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -447,16 +447,16 @@ export default class GroupController extends MotherController {
         }
     }
     @PATCH('/admin/:id/rename')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async renameGroup(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers['iduser'])
+            const userId = Number(req.headers['userId'])
             const name = req.body['name']
-            const idgroup = Number(req.params.id)
-            if (isValidNumberVariable(idgroup)) {
-                let data = await this.groupService.renameGroup(iduser, idgroup, name)
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.RENAME_GROUP, { name: name })
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventMessageIO.NEW_MESSAGE, [data])
+            const groupId = Number(req.params.id)
+            if (isValidNumberVariable(groupId)) {
+                let data = await this.groupService.renameGroup(userId, groupId, name)
+                this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.RENAME_GROUP, { name: name })
+                this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -477,15 +477,15 @@ export default class GroupController extends MotherController {
 
     }
     @PATCH('/admin/:id/blockmember')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async blockMember(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const iduserAdd = Number(req.body.manager)
-            const idgroup = Number(req.params.id)
-            if (iduserAdd && idgroup && iduser !== iduserAdd) {
+            const userId = Number(req.headers.userId)
+            const userIdAdd = Number(req.body.manager)
+            const groupId = Number(req.params.id)
+            if (userIdAdd && groupId && userId !== userIdAdd) {
                 //FIXME: socket ?
-                let data = await this.groupService.blockMember(iduser, iduserAdd, idgroup)
+                let data = await this.groupService.blockMember(userId, userIdAdd, groupId)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         data,
@@ -504,16 +504,16 @@ export default class GroupController extends MotherController {
         }
     }
     @POST("/admin/:id/approval/:userId")
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async approvalMember(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const iduserAdd = Number(req.params.userId)
-            const idgroup = Number(req.params.id)
-            if (isValidNumberVariable(iduserAdd) && isValidNumberVariable(idgroup) && iduser !== iduserAdd) {
-                let data = await this.groupService.approvalMember(iduser, iduserAdd, idgroup)
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.APPROVAL_MEMBER, { userIds: iduserAdd })
-                this.io.to(getRoomUserIO(iduserAdd)).emit(EventMessageIO.NEW_MESSAGE, [data])
+            const userId = Number(req.headers.userId)
+            const userIdAdd = Number(req.params.userId)
+            const groupId = Number(req.params.id)
+            if (isValidNumberVariable(userIdAdd) && isValidNumberVariable(groupId) && userId !== userIdAdd) {
+                let data = await this.groupService.approvalMember(userId, userIdAdd, groupId)
+                this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.APPROVAL_MEMBER, { userIds: userIdAdd })
+                this.io.to(getRoomUserIO(userIdAdd)).emit(EventMessageIO.NEW_MESSAGE, [data])
                 //TODO: socket notification to user was approval
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
@@ -534,15 +534,15 @@ export default class GroupController extends MotherController {
             next(new InternalServerError("An error occurred, please try again later."))
         }
     }
-    @GET('/:idgroup/member/:userId/')
-    @UseMiddleware(AuthorizeMiddleware)
+    @GET('/:groupId/member/:userId/')
+    @UseMiddleware(AuthorizeGuard)
     private async getInformationMember(req: Request, res: Response, next: NextFunction) {
         try {
-            const iduser = Number(req.headers.iduser)
-            const userId = Number(req.params.userId)
-            const idgroup = Number(req.params.idgroup)
-            if (isValidNumberVariable(userId) && isValidNumberVariable(idgroup)) {
-                let data = await this.groupService.getInformationMember(iduser, userId, idgroup)
+            const myId = Number(req.headers.userId)
+            const userIdGet = Number(req.params.userId)
+            const groupId = Number(req.params.groupId)
+            if (isValidNumberVariable(userIdGet) && isValidNumberVariable(groupId)) {
+                let data = await this.groupService.getInformationMember(userIdGet, myId, groupId)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody<User>(
                         true,
@@ -563,15 +563,15 @@ export default class GroupController extends MotherController {
         }
     }
     @PATCH('/:id/renickname')
-    @UseMiddleware(AuthorizeMiddleware)
+    @UseMiddleware(AuthorizeGuard)
     private async changeNickname(req: Request, res: Response, next: NextFunction) {
         try {
             let nickname = req.body.nickname
-            const iduser = Number(req.headers.iduser)
-            const idgroup = Number(req.params.id)
-            if (nickname && isValidNumberVariable(iduser) && isValidNumberVariable(idgroup)) {
-                let data = await this.groupService.changeNickname(iduser, iduser, idgroup, nickname)
-                this.io.to(getRoomGroupIO(idgroup)).emit(EventGroupIO.CHANGE_NICKNAME, data)
+            const userId = Number(req.headers.userId)
+            const groupId = Number(req.params.id)
+            if (nickname && isValidNumberVariable(userId) && isValidNumberVariable(groupId)) {
+                let data = await this.groupService.changeNickname(userId, userId, groupId, nickname)
+                this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.CHANGE_NICKNAME, data)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,
@@ -594,9 +594,9 @@ export default class GroupController extends MotherController {
     private async deleteGroup(req: Request, res: Response, next: NextFunction) {
         try {
             const id = Number(req.params.id)
-            const iduser = Number(req.headers.iduser)
+            const userId = Number(req.headers.userId)
             if (isValidNumberVariable(id)) {
-                let data = await this.groupService.deleteGroup(iduser, id)
+                let data = await this.groupService.deleteGroup(userId, id)
                 res.status(HttpStatus.OK).send(
                     new ResponseBody(
                         true,

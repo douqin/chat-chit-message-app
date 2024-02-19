@@ -1,25 +1,23 @@
-import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
-import { JwtService } from "../component/jwt/jwt.service";
 import { NextFunction, Request, Response } from "express"
-import { ForbiddenException, UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
+import {  UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
 import { container } from "tsyringe";
-import { Middleware } from "@/utils/decorator/middleware/middleware";
-import { BaseMiddleware } from "./base.middleware";
+import { BaseMiddleware as BaseGuard } from "@/lib/common";
+import { Middleware as Guard } from "@/lib/decorator";
+import { JwtAuthService } from "@/services/jwt/jwt.service";
 
-@Middleware()
-export class AuthorizeMiddleware extends BaseMiddleware {
+@Guard()
+export class AuthorizeGuard extends BaseGuard {
     public async use(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             let token = req.headers["authorization"] as string
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
-                    const jwtPayload = await container.resolve(JwtService).decodeAccessToken(accesstoken) as JwtPayload;
-                    const { iduser } = jwtPayload.payload;
-                    if (iduser) {
-                        req.headers['iduser'] = iduser;
+                    const jwtPayload = await container.resolve(JwtAuthService).decodeAccessToken(accesstoken) as JwtPayload;
+                    const { userId } = jwtPayload.payload;
+                    if (userId) {
+                        req.headers['userId'] = userId;
                         next()
                         return
                     }

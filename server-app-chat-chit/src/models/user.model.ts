@@ -15,9 +15,9 @@ export class User {
         public email? : string, 
     ) { }
     static fromRawData(data: any): User {
-        const { iduser, phone, birthday, gender, avatar, firstname, lastname, bio, username, background, email } = data;
+        const { userId, phone, birthday, gender, avatar, firstname, lastname, bio, username, background, email } = data;
         return new User(
-            iduser, lastname, firstname, phone, birthday, gender, bio, username, avatar, background, email
+            userId, lastname, firstname, phone, birthday, gender, bio, username, avatar, background, email
         );
     }
 }

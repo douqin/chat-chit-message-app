@@ -5,16 +5,16 @@ import { RelationshipUser } from "../enums/relationship.enum";
 import { ListFriendCommonDTO } from "../dto/list.friend.common.dto";
 
 export interface RelationServiceBehavior {
-    updateRealationship(iduser: number, iduserBlock: number, relationship: RelationshipUser): Promise<boolean>;
-    createRelationShip(iduser: number, iduserBlock: number, relationship: RelationshipUser): Promise<boolean>;
-    getRelationship(iduser: number, iduserWGet: number): Promise<RelationshipUser>;
-    deleteInvite(iduser: number, idInvite: number): Promise<boolean>;
-    deleteMySentInvite(iduser: number, idInvite: number): Promise<boolean>;
-    acceptInviteFriend(iduser: number, idInvite: number): Promise<boolean>;
-    unFriend(iduser: number, iduserUnFriend: number): Promise<boolean>;
-    getAllInvite(iduser: number, cursor: number, limit: number): Promise<InviteFriendDTO>
-    inviteToBecomeFriend(iduser: number, idReceiver: number): Promise<any>;
-    getAllFriend(iduser: number, cursor: number, limit: number): Promise<ListFriendDTO>;
-    getFriendOnline(iduser: number): Promise<User[]>
-    getSomeFriendCommon(iduser: number, iduserWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO>;
+    updateRealationship(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean>;
+    createRelationShip(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean>;
+    getRelationship(userId: number, userIdWGet: number): Promise<RelationshipUser>;
+    deleteInvite(userId: number, idInvite: number): Promise<boolean>;
+    deleteMySentInvite(userId: number, idInvite: number): Promise<boolean>;
+    acceptInviteFriend(userId: number, idInvite: number): Promise<boolean>;
+    unFriend(userId: number, userIdUnFriend: number): Promise<boolean>;
+    getAllInvite(userId: number, cursor: number, limit: number): Promise<InviteFriendDTO>
+    inviteToBecomeFriend(userId: number, idReceiver: number): Promise<any>;
+    getAllFriend(userId: number, cursor: number, limit: number): Promise<ListFriendDTO>;
+    getFriendOnline(userId: number): Promise<User[]>
+    getSomeFriendCommon(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO>;
 }

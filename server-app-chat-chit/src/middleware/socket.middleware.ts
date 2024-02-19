@@ -3,10 +3,8 @@ import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { JwtPayload } from "jsonwebtoken";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Socket } from "socket.io";
-import { DatabaseCache } from "@/config/database/redis";
-import { ConstantRedis } from "@/config/database/constant";
 import { container } from "tsyringe";
-import { JwtService } from "../component/jwt/jwt.service";
+import { JwtAuthService } from "../services/jwt/jwt.service";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         try {
@@ -14,12 +12,12 @@ class SocketMiddleware {
             let notificationToken = String(socket.handshake.headers.notification)
             if (token && notificationToken) {
                 if (token) {
-                    const jwtPayload = await container.resolve(JwtService).decodeAccessToken(token) as JwtPayload;
-                    const { iduser } = jwtPayload.payload;
-                    if (iduser) {
-                        socket.handshake.headers.iduser = iduser
-                        // DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, iduser)
-                        socket.join(`${iduser}_user`)
+                    const jwtPayload = await container.resolve(JwtAuthService).decodeAccessToken(token) as JwtPayload;
+                    const { userId } = jwtPayload.payload;
+                    if (userId) {
+                        socket.handshake.headers.userId = userId
+                        // DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, userId)
+                        socket.join(`${userId}_user`)
                     }
                     next()
                     return

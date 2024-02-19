@@ -1,5 +1,7 @@
+import { HttpStatus } from "../extension/httpstatus.exception";
+
 export default class HttpException extends Error {
-    public status: number
+    public status: HttpStatus
     public success: boolean = false;
     constructor(status: number, message: string) {
         super()

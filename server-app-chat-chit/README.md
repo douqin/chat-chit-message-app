@@ -6,7 +6,7 @@
 
 - `[POST] /login`: login.
   - body: {username: String, password: String}.
-  - result: {user : {iduser","lastname","firstname","phone": "0842943637","birthday","gender","bio","username","avatar","background","email"} , token : {token: String, refreshToken: String}}.
+  - result: {user : {userId","lastname","firstname","phone": "0842943637","birthday","gender","bio","username","avatar","background","email"} , token : {token: String, refreshToken: String}}.
 - `[POST] /refresh-token`: refresh token.
   - body: {accessToken: String}.
   - result: {token: String}.
@@ -64,7 +64,7 @@
   - socket: io.emit('accept-friend', {\_id, name, avatar }).
   - socket (TH lạ, thì cả 2 sẽ nhận được): io.emit('create-individual-group-when-was-friend', groupId).
   - socket(TH đã có nhắn tin, thì cả 2 sẽ nhận được): io.emit('new-message', groupId, message).
-- `[DELETE] /:iduser/unfriend`: xóa kết bạn (socket bắn tới thằng bị xóa).
+- `[DELETE] /:userId/unfriend`: xóa kết bạn (socket bắn tới thằng bị xóa).
   - socket: io.emit('deleted-friend', \_id);
 - `[GET] /invites`: get danh sách lời mời kết bạn của bản thân.
   - result: [{_id: String, name: String, username: String, avatar: String, numberCommonGroup: int, numberCommonFriend: int }].
@@ -79,10 +79,10 @@
   - socket: io.emit('deleted-invite-was-send', \_id);
   <!-- - `[GET] /suggest`: danh sách đề xuất bạn bè.
   - result: [{_id: String, name, username, avatar, numberCommonGroup: int, numberCommonFriend: int }]. -->
-- `[POST] /:iduser/block` : block user
+- `[POST] /:userId/block` : block user
 - `[DELETE] /invites/me/:invite/` : xóa lời mời kết bạn mà chính bản thân đã gửi
 - `[GET] /friends/online`: lấy tất cả friend online
-- `[GET] /:iduser/relation`: lấy ra mối quan hệ giữa user vs user
+- `[GET] /:userId/relation`: lấy ra mối quan hệ giữa user vs user
 
 ### Group `/group`
 
@@ -93,9 +93,9 @@
   - result:
 
     - ````{
-        "listGroup": [
+        "data": [
             {
-                "idgroup": number,
+                "groupId": number,
                 "name": string,
                 "avatar": string,
                 "status": GroupStatus,
@@ -104,18 +104,18 @@
                 "link": string,
                 "role": string,
                 "lastMessage": {
-                    "manipulates": [] (iduser[] ),
-                    "tags": [] (idmember[] ),
+                    "manipulates": [] (userId[] ),
+                    "tags": [] (memberId[] ),
                     "content": string,
-                    "createat": string,
-                    "idgroup": number,
-                    "idmessage": number,
-                    "iduser": number,
-                    "replyidmessage": idmessage or null,
+                    "createAt": string,
+                    "groupId": number,
+                    "messageId": number,
+                    "userId": number,
+                    "replyMessageId": messageId or null,
                     "status": MessageStatus,
                     "type": number,
-                    "idmember": number,
-                    "reacts": [] (idmember[])
+                    "memberId": number,
+                    "reacts": [] (memberId[])
                 },
                 "totalMember": number,
                 "numMessageUnread": number
@@ -193,7 +193,7 @@
   - res :
 
   - ````{
-                "idgroup": number,
+                "groupId": number,
                 "name": string,
                 "avatar": string,
                 "status": GroupStatus,
@@ -202,18 +202,18 @@
                 "link": string,
                 "role": string,
                 "lastMessage": {
-                    "manipulates": [] (iduser[] ),
-                    "tags": [] (idmember[] ),
+                    "manipulates": [] (userId[] ),
+                    "tags": [] (memberId[] ),
                     "content": string,
-                    "createat": string,
-                    "idgroup": number,
-                    "idmessage": number,
-                    "iduser": number,
-                    "replyidmessage": idmessage or null,
+                    "createAt": string,
+                    "groupId": number,
+                    "messageId": number,
+                    "userId": number,
+                    "replyMessageId": messageId or null,
                     "status": MessageStatus,
                     "type": number,
-                    "idmember": number,
-                    "reacts": [] (idmember[])
+                    "memberId": number,
+                    "reacts": [] (memberId[])
                 },
                 "totalMember": number,
                 "numMessageUnread": number
@@ -225,7 +225,7 @@
   - res:
 
   - ```{
-              "idgroup": number,
+              "groupId": number,
               "name": string,
               "avatar": string,
               "status": GroupStatus,
@@ -314,7 +314,7 @@
   - socket: io.emit('unpin-message', {"messageId": number}).
   - socket: io.emit('pin-message', "messageId": number).
 
-### Vote `/votes`
+### Vote `/votes` Coming Soon
 
 - `[GET] /:groupId`: danh sách votes theo groupId.
   - params: { page, size }.
@@ -335,6 +335,33 @@
   - body: {options: [String]}.
   - socket: io.emit('update-vote-message', groupId, voteMessage).
 
+### Story `/story`
+
+- `[POST] /upload` upload story.
+  - req : form-data - { file : File (image or video), visibility : number(Visibility) } .
+  - res : { storyId: storyId} .
+
+- `[GET]: /explore` Lấy danh sách story của bạn bè trong 24h gần nhất.
+  - query : cursor&limit.
+  - p/s: cursor = -1 lấy mặc định từ đầu - req : [Story] .
+
+- `[GET] : /":userId/:storyId"`.
+  - req: params userId và storyId muốn lấy.
+  - res: Story.
+
+- `[DELETE] : /me/:storyId` delete story.
+  - req: params storyId muốn xóa.
+  
+- `[GET] : /me` lấy danh sách story của mình.
+  - query : cursor&limit.
+  - p/s: cursor = -1 lấy mặc định từ đầu.
+  - res: [Story] .
+
+- `[GET] : /:userId` lấy danh sách story của user.
+  - query : cursor&limit.
+    - p/s: cursor = -1 lấy mặc định từ đầu.
+  - res: [Story] . //TODO:
+  
 ### Socket Server nhận
 
 - socket.on('typing', (groupId, me) => {
@@ -441,5 +468,12 @@
     LEAVE_GROUP = "user_leave_group",
     CREATE_INDIVIDUAL_GROUP = "create-individual-group",
     CHANGE_NICKNAME = "change_nickname",
+}
+```
+
+```Visibility {
+    PUBLIC = 0,
+    FRIEND = 1,
+    PRIVATE = 2
 }
 ```

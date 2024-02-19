@@ -15,23 +15,23 @@ export default class Message {
     public reacts : Array<Reaction>
     public manipulates : Array<number> = []
     constructor(content: string,
-        createat: Date,
-        idgroup: number,
-        idmessage: number,
-        iduser: number,
-        replyidmessage: number,
+        createAt: Date,
+        groupId: number,
+        messageId: number,
+        userId: number,
+        replyMessageId: number,
         status: number,
         type: number,
-        idmember : string) {
+        memberId : string) {
         this.content = content
-        this.createAt = createat
-        this.groupId = idgroup
-        this.messageId = idmessage
-        this.userId = iduser
-        this.replyMessageId = replyidmessage
+        this.createAt = createAt
+        this.groupId = groupId
+        this.messageId = messageId
+        this.userId = userId
+        this.replyMessageId = replyMessageId
         this.status = status
         this.type = type
-        this.memberId = idmember
+        this.memberId = memberId
         this.reacts = [];
     }
 }

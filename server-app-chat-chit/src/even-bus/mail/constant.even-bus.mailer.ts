@@ -1,0 +1,5 @@
+export enum MailerEvent {
+    SEND_MAIL_OTP_REGISTER = "SEND_MAIL",
+    FORGOT_PASSWORD = "FORGOT_PASSWORD",
+    SEND_MAIL_FAIL = "SEND_MAIL_FAIL"
+}

@@ -1,24 +1,24 @@
 export default class LastViewGroup {
-    iduser: number
+    userId: number
     name: string
     avatar: any
     lastview: number
-    constructor(iduser: number,
+    constructor(userId: number,
         name: string,
         avatar: any,
         lastview: number) {
-        this.iduser = iduser
+        this.userId = userId
         this.name = name
         this.avatar = avatar
         this.lastview = lastview
     }
     static fromRawData(object: any): LastViewGroup {
-        const { iduser,
+        const { userId,
             name,
             avatar,
             lastview } = object;
         return new LastViewGroup(
-            iduser, name, avatar, lastview
+            userId, name, avatar, lastview
         );
     }
 }
