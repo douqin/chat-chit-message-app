@@ -11,12 +11,13 @@ import SocketBuilder from "./config/socketio/socket.builder";
 import { ResponseBody } from "./utils/definition/http.response";
 import { Database, MySqlBuilder, iDatabase } from "../lib/database/mysql/database";
 import { DatabaseCache } from "../lib/database/redis/redis";
-import { container } from "tsyringe";
 import { RegisterModuleController } from "./utils/extension/controller.container.module";
 import ModuleController from "./resources/module.controller";
 import { IRouteDefinition } from "../lib/decorator/http.method/definition/router.definition.interface";
 import { constructor } from "tsyringe/dist/typings/types";
-import { BaseMiddleware, MotherController } from "@/lib/base";
+import { BaseMiddleware, MotherController } from "@/lib/common";
+import { globalContainer } from "@/lib/common/di";
+import { Mutex } from "async-mutex";
 class App {
   private server: any;
   private io: Server;
@@ -38,12 +39,12 @@ class App {
       .initalizeMiddleware()
       .initalizeServer()
       .build();
-    container.register<Server>(Server, { useValue: this.io });
+    globalContainer.register<Server>(Server, { useValue: this.io });
     RegisterModuleController((new ModuleController() as any).controllers);
     this.initaliseDatabase();
     this.initaliseMiddleware();
     let controller: MotherController[] =
-      container.resolveAll<MotherController>("controller");
+      globalContainer.resolveAll<MotherController>("controller");
     this.initaliseController(controller);
     this.initErrorHandler();
   }
@@ -108,10 +109,10 @@ class App {
     this.express.use(compression());
   }
   private initaliseDatabase() {
-    container.register<Database>(Database, {
+    globalContainer.register<Database>(Database, {
       useValue: new MySqlBuilder().initPool().build(),
     });
-    container.register<DatabaseCache>(DatabaseCache, {
+    globalContainer.register<DatabaseCache>(DatabaseCache, {
       useValue: new DatabaseCache(),
     });
   }
@@ -132,7 +133,7 @@ function middlewareDecorator(middlewares: constructor<BaseMiddleware>[]) {
       return;
     }
     for (let i = 0; i < _middlewares.length; i++) {
-      let a = container.resolve(_middlewares[i]).use(req, res, next);
+      let a = globalContainer.resolve(_middlewares[i]).use(req, res, next);
     }
   };
 }

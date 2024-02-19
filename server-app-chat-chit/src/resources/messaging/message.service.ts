@@ -17,13 +17,14 @@ import { dataResponseDTO } from "./dtos/list.message.dto";
 import { User } from "../../models/user.model";
 import { container, inject, injectable } from "tsyringe";
 import { TransformMessage, TransformReaction } from "@/utils/transform";
+import { iDrive } from "@/services/cloud/drive.interface";
 
 @injectable()
 export default class MessageService implements iMessageServiceBehavior {
     async getAllFileFromGroup(groupId: number, cursor: number, limit: number): Promise<dataResponseDTO> {
         let data = await this.messageRepository.getAllFileFromGroup(groupId, cursor, limit)
         let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
-            return await CloudDrive.gI().getUrlFile(id)
+            return await this.cloudDrive.getUrlFile(id)
         })
         return dataResponseDTO.rawToData(messages)
     }
@@ -32,7 +33,7 @@ export default class MessageService implements iMessageServiceBehavior {
         if (await memberInfor.isUserExistInGroup(userId, groupId)) {
             let data = await this.messageRepository.getListPinMessage(groupId)
             let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
-                return await CloudDrive.gI().getUrlFile(id)
+                return await this.cloudDrive.getUrlFile(id);
             })
             return messages
         }
@@ -44,7 +45,8 @@ export default class MessageService implements iMessageServiceBehavior {
         let raw = await this.getOneMessage(_raw)
         return raw
     }
-    constructor(@inject(MessageRepository) private messageRepository: iMessageRepositoryBehavior) {
+    constructor(@inject(MessageRepository) private messageRepository: iMessageRepositoryBehavior,
+    @inject(CloudDrive) private cloudDrive: iDrive) {
     }
     async forwardMessage(userId: number, groupId: number, messageId: number, groupIdAddressee: number): Promise<Message> {
         let groupAuthor: iInformationMember = container.resolve(GroupService)
@@ -75,7 +77,7 @@ export default class MessageService implements iMessageServiceBehavior {
     }
     async getOneMessage(messageId: number): Promise<Message> {
         let message = await TransformMessage.fromRawData(await this.messageRepository.getOneMessage(messageId), async (id: string) => {
-            return await CloudDrive.gI().getUrlFile(id)
+            return await this.cloudDrive.getUrlFile(id);
         })
         message.reacts = await this.getAllReactFromMessage(message.messageId)
         message.manipulates = await this.getAllManipulateUser(message.messageId)
@@ -95,7 +97,7 @@ export default class MessageService implements iMessageServiceBehavior {
     async getLastMessage(groupId: number): Promise<Message> {
         let data = await this.messageRepository.getMessagesFromGroup(groupId, -1, 1)
         return await TransformMessage.fromRawData(data[0], async (id: string) => {
-            return await CloudDrive.gI().getUrlFile(id)
+            return await this.cloudDrive.getUrlFile(id);
         })
     }
     async sendNotitfyMessage(groupId: number, userId: number, content: string, manipulates: Array<number>): Promise<Message> {
@@ -150,7 +152,7 @@ export default class MessageService implements iMessageServiceBehavior {
             }
         }
         return TransformMessage.fromRawsData(await this.messageRepository.sendFileMessage(groupId, userId, content), async (id: string) => {
-            return await CloudDrive.gI().getUrlFile(id);
+            return await this.cloudDrive.getUrlFile(id);
         })
     }
     async sendTextMessage(groupId: number, userId: number, content: string, manipulates: Array<number>, replyMessageId: number | null) {
@@ -174,7 +176,7 @@ export default class MessageService implements iMessageServiceBehavior {
         if (await groupAuthor.isUserExistInGroup(userId, groupId)) {
             let data = await this.messageRepository.getMessagesFromGroup(groupId, cursor, limit)
             let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
-                return await CloudDrive.gI().getUrlFile(id)
+                return await this.cloudDrive.getUrlFile(id);
             })
             for (let message of messages) {
                 message.reacts = await this.getAllReactFromMessage(message.messageId)

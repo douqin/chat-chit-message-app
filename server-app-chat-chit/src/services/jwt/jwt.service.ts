@@ -9,7 +9,7 @@ const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || "";
 const refreshTokenLife = process.env.REFRESH_TOKEN_LIFE || "cc";
 
 @injectable()
-export class JwtService {
+export class JwtAuthService {
     constructor( @inject(Database) private db: Database) {
 
     }

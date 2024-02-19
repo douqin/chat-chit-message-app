@@ -10,12 +10,21 @@ import { ConfirmAccountDTO } from './dtos/confirm.account.dto';
 
 @injectable()
 export default class AuthRepository {
-
+    async resetPassword(email: string, newPassword: string) {
+        let query = `UPDATE user SET user.password = ? WHERE user.email = ?`
+        await this.db.executeQuery(query, [newPassword, email])
+    }
     constructor(@inject(Database) private db: iDatabase) {
 
     }
-    async confirmAccount(dataOtp: ConfirmAccountDTO) {
-        
+    async isExistEmail(email: string): Promise<boolean> {
+        const query = `SELECT * FROM user WHERE user.email = ?`
+        let [data, inforColumn] = await this.db.executeQuery(query, [email]) as any
+        return data.length > 0;
+    }
+    async verifyAccount(email: string) {
+        const query = `UPDATE user SET user.isActive = 1 WHERE user.email = ?`
+        await this.db.executeQuery(query, [email])
     }
     async loguot(userId: number, refreshToken: string): Promise<boolean> {
         let query = `SELECT * FROM token WHERE userId = ? and refreshtoken = ?`

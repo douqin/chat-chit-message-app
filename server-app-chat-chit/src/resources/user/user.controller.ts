@@ -1,4 +1,4 @@
-import { MotherController } from "@/lib/base";
+import { MotherController } from "@/lib/common";
 
 import UserService from "./user.service";
 import { Server } from "socket.io";

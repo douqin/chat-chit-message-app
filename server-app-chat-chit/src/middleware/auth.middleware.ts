@@ -2,9 +2,9 @@ import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express"
 import {  UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
 import { container } from "tsyringe";
-import { BaseMiddleware as BaseGuard } from "@/lib/base";
+import { BaseMiddleware as BaseGuard } from "@/lib/common";
 import { Middleware as Guard } from "@/lib/decorator";
-import { JwtService } from "@/services/jwt/jwt.service";
+import { JwtAuthService } from "@/services/jwt/jwt.service";
 
 @Guard()
 export class AuthorizeGuard extends BaseGuard {
@@ -14,7 +14,7 @@ export class AuthorizeGuard extends BaseGuard {
             if (token) {
                 let accesstoken = token.split(" ")[1]
                 if (accesstoken) {
-                    const jwtPayload = await container.resolve(JwtService).decodeAccessToken(accesstoken) as JwtPayload;
+                    const jwtPayload = await container.resolve(JwtAuthService).decodeAccessToken(accesstoken) as JwtPayload;
                     const { userId } = jwtPayload.payload;
                     if (userId) {
                         req.headers['userId'] = userId;

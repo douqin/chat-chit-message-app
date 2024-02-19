@@ -13,16 +13,18 @@ import RelationService from "../relationship/relation.service";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { Visibility } from "./enums/visibility";
 import { ListStoryRes } from "./dtos/res.list.story";
+import { iDrive } from "@/services/cloud/drive.interface";
 @injectable()
 export default class StoryService implements iStoryServiceBehavior {
 
 
-    constructor(@inject(StoryRepository) private storyRepository: iStoryRepositoryBehavior) {
+    constructor(@inject(StoryRepository) private storyRepository: iStoryRepositoryBehavior,
+    @inject(CloudDrive) private cloudDrive: iDrive) {
     }
 
     async getMyListStory(me: number, cursor: number, limit: number): Promise<ListStoryRes> {
         return ListStoryRes.rawToDTO(await TransformStory.rawsToModels(await this.storyRepository.exploreStoryFriends(me), async (id: string) => {
-            return await CloudDrive.gI().getUrlFile(id);
+            return await this.cloudDrive.getUrlFile(id);
         }))
     }
 
@@ -37,13 +39,13 @@ export default class StoryService implements iStoryServiceBehavior {
         switch (visibility) {
             case Visibility.PUBLIC:
                 return TransformStory.rawToModel(this.storyRepository.getStoryById(storyId), async (id: string) => {
-                    return await CloudDrive.gI().getUrlFile(id);
+                    return await this.cloudDrive.getUrlFile(id);
                 })
             case Visibility.FRIEND:
                 let relation = container.resolve(RelationService)
                 if (!(await relation.getRelationship(userIdOwnerStory, me) === RelationshipUser.FRIEND) || userIdOwnerStory === me) {
                     return TransformStory.rawToModel(this.storyRepository.getStoryById(storyId), async (id: string) => {
-                        return await CloudDrive.gI().getUrlFile(id);
+                        return await this.cloudDrive.getUrlFile(id);
                     })
                 } else {
                     throw new MyException("This story is private").withExceptionCode(HttpStatus.FORBIDDEN)
@@ -71,7 +73,7 @@ export default class StoryService implements iStoryServiceBehavior {
     }
     async getStoryFromFriends(userId: number, cursor: number, limit: number): Promise<ListStoryRes> {
         return ListStoryRes.rawToDTO(await TransformStory.rawsToModels(await this.storyRepository.exploreStoryFriends(userId), async (id: string) => {
-            return await CloudDrive.gI().getUrlFile(id);
+            return await this.cloudDrive.getUrlFile(id);
         }))
     }
     async deleteStory(userId: number, storyId: number): Promise<boolean> {

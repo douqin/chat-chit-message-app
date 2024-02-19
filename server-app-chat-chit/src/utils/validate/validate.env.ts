@@ -12,15 +12,17 @@ function validateEnv(): void {
         DATABASE_NAME: str(),
         DATABASE_USER: str(),
         DATABASE_PASSWORD: str(),
-        CLIENT_ID: str(),
-        SECRECT_ID: str(),
+        DRIVE_CLIENT_ID: str(),
+        DRIVE_SECRECT_ID: str(),
         REDIRECT_URI: str(),
         REFRESH_TOKEN_DRIVE: str(),
-        REFRESH_TOKEN_GMAIL: str(),
         PORT: port({ default: 3000 }),
         REDIS_HOST: str(),
         REDIS_PORT: port({ default: 6379 }),
         DATABASE_PORT: port({ default: 3306 }),
+        MAIL_CLIENT_ID: str(),
+        MAIL_CLIENT_SECRET: str(),
+        MAIL_REFRESH_TOKEN: str(),
     });
 }
 
