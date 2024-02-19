@@ -9,6 +9,8 @@ export class DatabaseCache {
 
   public getInstance(): Redis {
     if (DatabaseCache.redis) return DatabaseCache.redis;
-    return DatabaseCache.redis = new Redis();
+    return DatabaseCache.redis = new Redis({
+      maxRetriesPerRequest : null
+    });
   }
 }

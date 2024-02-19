@@ -1,4 +1,4 @@
-import { BaseMiddleware } from "@/lib/base";
+import { BaseMiddleware } from "@/lib/common";
 import { constructor } from "tsyringe/dist/typings/types";
 
 export function UseMiddleware(middleware: constructor<BaseMiddleware>) {

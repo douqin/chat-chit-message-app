@@ -1,5 +1,5 @@
 import { HttpStatus } from './../../utils/extension/httpstatus.exception';
-import { MotherController } from "@/lib/base";
+import { MotherController } from "@/lib/common";
 
 import MeService from "./me.service";
 import { Server } from "socket.io";

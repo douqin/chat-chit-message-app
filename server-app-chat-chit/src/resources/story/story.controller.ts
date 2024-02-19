@@ -3,7 +3,7 @@ import { ResponseBody } from "@/utils/definition/http.response";
 import HttpException from "@/utils/exceptions/http.exeception";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { MotherController } from "@/lib/base";
+import { MotherController } from "@/lib/common";
 import { Response, Request, NextFunction } from "express";
 import multer from "multer";
 import { Server } from "socket.io";

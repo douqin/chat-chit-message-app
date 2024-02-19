@@ -1,8 +1,10 @@
-import { IsPhoneNumber, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsEmail, IsNumber, IsPhoneNumber, IsString } from "class-validator";
 
 export class ConfirmAccountDTO{
-    @IsString()
-    otp : string;
-    @IsPhoneNumber('VN')
-    phone : string;
+    @IsNumber()
+    @Type(() => Number)
+    otp : number;
+    @IsEmail()
+    email: string;
 }

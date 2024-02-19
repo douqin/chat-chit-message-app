@@ -1,0 +1,1 @@
+export { Worker as WorkerMQ} from "bullmq"

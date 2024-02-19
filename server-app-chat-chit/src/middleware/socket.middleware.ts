@@ -4,7 +4,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Socket } from "socket.io";
 import { container } from "tsyringe";
-import { JwtService } from "../services/jwt/jwt.service";
+import { JwtAuthService } from "../services/jwt/jwt.service";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         try {
@@ -12,7 +12,7 @@ class SocketMiddleware {
             let notificationToken = String(socket.handshake.headers.notification)
             if (token && notificationToken) {
                 if (token) {
-                    const jwtPayload = await container.resolve(JwtService).decodeAccessToken(token) as JwtPayload;
+                    const jwtPayload = await container.resolve(JwtAuthService).decodeAccessToken(token) as JwtPayload;
                     const { userId } = jwtPayload.payload;
                     if (userId) {
                         socket.handshake.headers.userId = userId

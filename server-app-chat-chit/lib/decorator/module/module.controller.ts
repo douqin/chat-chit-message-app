@@ -1,4 +1,4 @@
-import { MotherController } from "@/lib/base";
+import { MotherController } from "@/lib/common";
 import { constructor } from "tsyringe/dist/typings/types";
 
 export function Module(con: constructor<MotherController>[]) {
