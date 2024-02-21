@@ -53,10 +53,8 @@ export class CloudDrive implements iDrive {
             const createFile = await this.drive.files.create({
                 requestBody: {
                     name: nameFile,
-                    // mimeType: "image/png",
                 },
                 media: {
-                    // mimeType: "image/png",
                     body: (buff instanceof Buffer) ? Readable.from(buff) : buff,
                 },
 
@@ -67,8 +65,6 @@ export class CloudDrive implements iDrive {
                     requestBody: {
                         role: 'writer',
                         type: 'anyone',
-
-                        // emailAddress : ""
                     },
                 });
             }

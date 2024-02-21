@@ -14,7 +14,7 @@ import { Controller, POST, FileUpload, GET, UseMiddleware as UseGuard, DELETE } 
 import { BadRequestException } from "@/utils/exceptions/badrequest.expception";
 import { ValidateErrorBuilder } from "@/utils/validate";
 import { OptionUploadStoryDTO } from "./dtos/upload.story";
-import { deleteFile, getOptionForMulter as getOptionDefaultForMulter } from "@/utils/extension/file.upload";
+import { deleteFile, getOptionDefaultForMulter as getOptionDefaultForMulter } from "@/utils/extension/file.upload";
 import { LoveStoryDTO } from "./dtos/love.story";
 import { PagingReq } from "@/utils/paging/paging.data";
 
