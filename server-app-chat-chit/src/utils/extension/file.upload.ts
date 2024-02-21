@@ -12,7 +12,7 @@ export function deleteFile(name: string) {
         console.log("🚀 ~ deleteFile ~ e:", e)
     })
 }
-export function getOptionForMulter(type: string) {
+export function getOptionDefaultForMulter(type: string) {
     return {
         storage: multer.diskStorage({
             destination: function (req, file, cb) {

@@ -17,6 +17,7 @@ import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "./constant/event.io";
 import { ReactMessage } from "./enum/message.react.enum";
 import { Controller, GET, UseMiddleware, POST, FileUpload, PATCH } from "@/lib/decorator";
+import { deleteFile, getOptionDefaultForMulter } from "@/utils/extension/file.upload";
 
 @Controller("/message")
 export default class MessageController extends MotherController {
@@ -76,7 +77,7 @@ export default class MessageController extends MotherController {
     };
     @POST("/:groupId/file")
     @UseMiddleware(AuthorizeGuard)
-    @FileUpload(multer().array("files", 7))
+    @FileUpload(multer(getOptionDefaultForMulter('message')).array("files", 7))
     private async sendFileMessage(req: Request, res: Response, next: NextFunction) {
         try {
             const groupId = Number(req.params.groupId);
@@ -85,7 +86,7 @@ export default class MessageController extends MotherController {
                 let data = await this.messageService.sendFileMessage(
                     Number(groupId),
                     userId,
-                    req.files
+                    req.files as Express.Multer.File[]
                 );
                 res.status(HttpStatus.OK).send(new ResponseBody(
                     true,
@@ -121,6 +122,10 @@ export default class MessageController extends MotherController {
                     "Có lỗi xảy ra vui lòng thử lại sau"
                 )
             );
+        } finally {
+            if (req.file) {
+                deleteFile(req.file.filename)
+            }
         }
     };
     @POST("/:groupId/text")

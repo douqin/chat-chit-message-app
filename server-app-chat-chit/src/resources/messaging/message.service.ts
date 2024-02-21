@@ -1,7 +1,5 @@
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { PositionInGrop } from "../group/enum/group.position.enum";
-import GroupRepository from "../group/group.repository";
-import { MemberInfo } from "../group/interface/group.repository.interface";
 import { ReactMessage } from "./enum/message.react.enum";
 import iMessageServiceBehavior from "./interface/message.service.interface";
 import MessageRepository from "./message.repository";
@@ -11,13 +9,13 @@ import { MessageStatus } from "./enum/message.status.enum";
 import Message from "../../models/message.model";
 import { CloudDrive } from "../../services/cloud/drive.service";
 import Reaction from "./dtos/react.dto";
-import { iGroupActions, iInformationMember } from "../group/interface/group.service.interface";
+import { iInformationMember } from "../group/interface/group.service.interface";
 import GroupService from "../group/group.service";
 import { dataResponseDTO } from "./dtos/list.message.dto";
-import { User } from "../../models/user.model";
 import { container, inject, injectable } from "tsyringe";
 import { TransformMessage, TransformReaction } from "@/utils/transform";
 import { iDrive } from "@/services/cloud/drive.interface";
+import { getTypeFile, isValidTypeFileToUpload } from "@/utils/extension/is-file-valid-to-save";
 
 @injectable()
 export default class MessageService implements iMessageServiceBehavior {
@@ -46,7 +44,10 @@ export default class MessageService implements iMessageServiceBehavior {
         return raw
     }
     constructor(@inject(MessageRepository) private messageRepository: iMessageRepositoryBehavior,
-    @inject(CloudDrive) private cloudDrive: iDrive) {
+        @inject(CloudDrive) private cloudDrive: iDrive) {
+    }
+    async sendAudioMessage(groupId: number, userId: number, content: Express.Multer.File): Promise<Message[]> {
+        throw new Error("Method not implemented.");
     }
     async forwardMessage(userId: number, groupId: number, messageId: number, groupIdAddressee: number): Promise<Message> {
         let groupAuthor: iInformationMember = container.resolve(GroupService)
@@ -145,15 +146,19 @@ export default class MessageService implements iMessageServiceBehavior {
         }
         throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
     }
-    async sendFileMessage(groupId: number, userId: number, content: any) {
-        for (let i = 0; i < content.length; i++) {
-            if (!content[i].mimetype.includes('image') && !content[i].mimetype.includes('video')) {
-                throw new MyException("File không hợp lệ")
+    async sendFileMessage(groupId: number, userId: number, contents: Express.Multer.File[]): Promise<Message[]> {
+        for (let i = 0; i < contents.length; i++) {
+            if (!isValidTypeFileToUpload(contents[i])) {
+                throw new MyException("Invalid file type").withExceptionCode(HttpStatus.BAD_REQUEST)
             }
         }
-        return TransformMessage.fromRawsData(await this.messageRepository.sendFileMessage(groupId, userId, content), async (id: string) => {
-            return await this.cloudDrive.getUrlFile(id);
-        })
+        let array = []
+        for (let content of contents) {
+            array.push(await TransformMessage.fromRawData(await this.messageRepository.sendFileMessage(groupId, userId, content, getTypeFile(content)), async (id: string) => {
+                return await this.cloudDrive.getUrlFile(id);
+            }))
+        }
+        return array;
     }
     async sendTextMessage(groupId: number, userId: number, content: string, manipulates: Array<number>, replyMessageId: number | null) {
         let group: iInformationMember = container.resolve(GroupService)

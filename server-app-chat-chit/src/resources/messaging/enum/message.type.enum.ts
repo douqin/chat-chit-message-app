@@ -5,4 +5,7 @@ export enum MessageType {
     GIF = 3,
     VOTE = 4,
     NOTIFY = 5,
+    LOCATION = 6,
+    CONTACT = 7,
+    AUDIO = 8,
 }
