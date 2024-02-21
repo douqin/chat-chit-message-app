@@ -3,9 +3,10 @@ import Message from "@/models/message.model";
 import { MessageType } from "@/resources/messaging/enum/message.type.enum";
 import MyException from "../exceptions/my.exception";
 import { HttpStatus } from "../extension/httpstatus.exception";
+import { RawDataMysql } from "@/models/raw.data";
 
 export class TransformMessage {
-    static async fromRawsData(raws: any[], callback?: (id: string) => Promise<string | null | undefined>): Promise<Message[]> {
+    static async fromRawsData(raws: RawDataMysql[], callback?: (id: string) => Promise<string | null | undefined>): Promise<Message[]> {
         let arrMessage: Array<Message> = [];
         for (let raw of raws) {
             const { content,

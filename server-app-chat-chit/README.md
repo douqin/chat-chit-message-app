@@ -278,10 +278,9 @@
 - `[POST] /:groupId/text`: send tin nhắn dạng text.
   - body: {content: String, manipulates: [number] (không bắt buộc), replyMessageId: number (không bắt buộc)}.
   - socket: io.emit('new-message', message).
-- `[POST] /:groupId/files`: send tin nhắn dạng file.
-  - req: 2 options
-    - body: {files: [File]}.
-    - form-data: files: [File]
+- `[POST] /:groupId/file`: send tin nhắn dạng file ( video - image - audio) .
+  - req: 
+    - form-data: files: [Files]
   - socket: io.emit('new-message', groupId, message).
   - các file hợp lệ gửi cùng lúc nhiều file và tối đa 7 file ( mỗi file tối đa 20MB): chỉ các file là ảnh và video mới được phép gửi không sẽ bị chặn.
 - `[PATCH] /:groupId/:id/recall`: thu hồi tin nhắn.

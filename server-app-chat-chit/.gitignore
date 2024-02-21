@@ -130,4 +130,4 @@ dist
 .pnp.*
 >>>>>>> 05c65fe4f3e3677d40be19dc0d49eb2eebdb6aff
 .test
-upload/*
+uploads/*

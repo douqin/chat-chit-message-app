@@ -11,6 +11,7 @@ import Message from "@/models/message.model";
 import MyException from "@/utils/exceptions/my.exception";
 import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { Database, iDatabase } from "@/lib/database";
+import { RawDataMysql } from "@/models/raw.data";
 
 @injectable()
 export default class MessageRepository implements iMessageRepositoryBehavior {
@@ -129,25 +130,27 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         }
         return rows.insertId;
     }
-    async sendFileMessage(groupId: number, userId: number, content: Express.Multer.File[], typeFile: MessageType = MessageType.IMAGE) {
-        let array = [];
-        for (let i = 0; i < content.length; i++) {
-            try {
-                let inforFile = await this.drive.uploadFile(content[i].filename, content[i].buffer)
-                const queryGetIDMem = "SELECT  member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
-                const [[{ 'id': memberId }], column1] = await this.database.executeQuery(queryGetIDMem, [groupId, userId]) as any;
+    async sendFileMessage(groupId: number, userId: number, content: Express.Multer.File, typeFile: MessageType): Promise<RawDataMysql> {
+        let array  : RawDataMysql;
+        let inforFile = await this.drive.uploadFile(content.filename, content.stream)
+        if (!inforFile) {
+            throw new MyException("Can't upload file").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        try {
+            array = await this.database.transaction<RawDataMysql>(async (connection) => {
+                const queryGetIDMem = "SELECT member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
+                const [[{ 'id': memberId }], column1] = await connection.executeQuery(queryGetIDMem, [groupId, userId]) as any;
                 const querySaveId = `INSERT INTO message (memberId,content, createAt, type, status) VALUES ( ?, ?, now(), ?, ?)`
-                if (inforFile) {
-                    let [data] = await this.database.executeQuery(querySaveId, [memberId, inforFile?.id, (content[i].mimetype.includes("image")) ? MessageType.IMAGE : MessageType.VIDEO, MessageStatus.DEFAULT]) as any
-                    const [dataQuery, inforColumn] = await this.database.executeQuery(
-                        "SELECT message.* FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? AND message.messageId = ? AND member.id = ?)", [groupId, data.insertId, memberId]
-                    ) as any[]
-                    array.push(dataQuery[0]);
-                }
-            }
-            catch (e) {
-                console.log(e)
-            }
+                let [data] = await connection.executeQuery(querySaveId, [memberId, inforFile!.id, typeFile, MessageStatus.DEFAULT]) as any
+                const [dataQuery, inforColumn] = await connection.executeQuery(
+                    "SELECT message.* FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? AND message.messageId = ? AND member.id = ?)", [groupId, data.insertId, memberId]
+                ) as RawDataMysql[]
+                return dataQuery[0];
+            })
+        }
+        catch (e) {
+            await this.drive.delete(inforFile.id)
+            throw new MyException("Can't upload file").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return array;
     }

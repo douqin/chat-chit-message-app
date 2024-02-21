@@ -14,9 +14,7 @@ export interface iMessageAction {
     sendGifMessage(groupId: number, userId: number, gifId: string, replyMessageId: number): Promise<Message>
     forwardMessage(userId: number, groupId: number, messageId: number, groupIdAddressee : number): Promise<Message>
     changeStatusMessage(messageId: number, status: MessageStatus): Promise<boolean>
-    sendFileMessage(groupId: number, userId: number, content: {
-        [fieldname: string]: Express.Multer.File[];
-    } | Express.Multer.File[] | undefined): Promise<Message[]>
+    sendFileMessage(groupId: number, userId: number, content: Express.Multer.File[] ): Promise<Message[]>
     sendTextMessage(groupId: number, userId: number, content: string, tag: Array<Number>, replyMessageId: number | null): Promise<Message>
     sendNotitfyMessage(groupId: number, userId: number, content: string, manipulates: Array<number>): Promise<Message>
     reactMessage(messageId: number, react: ReactMessage, userId: number, groupId: Number): Promise<Reaction>
@@ -24,6 +22,7 @@ export interface iMessageAction {
     changePinMessage(groupId: number, messageId: number, userId: number, isPin: boolean): Promise<boolean>
     getLastMessage(groupId: number): Promise<Message>
     getNumMessageUnread(groupId: number, userId: number): Promise<number>
+    sendAudioMessage(groupId: number, userId: number, content: Express.Multer.File): Promise<Message[]>
 }
 export interface iMessageInformation {
     isMessageContainInGroup(messageId: Number, groupId: Number): Promise<boolean>
