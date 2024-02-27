@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsEmail, IsNumber, IsPhoneNumber, IsString } from "class-validator";
+import { IsEmail, IsNumber } from "class-validator";
 
 export class ConfirmAccountDTO{
     @IsNumber()

@@ -2,9 +2,7 @@ version: '3'
 
 services:
   api:
-    build:
-      context: ./server-app-chat-chit/
-      dockerfile: Dockerfile
+    image: douqin/node-server-app-chat-chit:latest
     container_name: chat-chit-node-api
     environment:
       - DATABASE_PORT=3306
