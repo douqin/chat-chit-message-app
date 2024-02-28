@@ -23,8 +23,8 @@ jobs:
         run: ls
       - name: build image
         run: docker build -t douqin/server-app-chat-chit:latest -f server-app-chat-chit/Dockerfile server-app-chat-chit
-      - name: login docker
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} --password "${{ secrets.DOCKER_PASSWORD }}"
+      - name: Login Docker
+        run: docker login -u $secrets.DOCKER_USERNAME --password $secrets.DOCKER_PASSWORD
       - name: push image
         run:
           docker tag douqin/server-app-chat-chit:latest douqin/server-app-chat-chit:latest
