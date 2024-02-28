@@ -7,15 +7,7 @@ on:
     branches: ["main", "dev"]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: test env
-        run: cat server-app-chat-chit/.env
-
   build-and-push-image:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,7 +18,7 @@ jobs:
       # - name: build image
       #   run: docker build -t douqin/server-app-chat-chit:latest -f server-app-chat-chit/Dockerfile server-app-chat-chit
       - name: log secrect
-        run: echo $secrets.DOCKER_USERNAME
+        run: echo ${{secrets.DOCKER_USERNAME}}
       - name: login docker
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       # - name: tag image
