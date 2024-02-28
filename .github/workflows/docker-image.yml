@@ -17,8 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: check
-        run: ls -la
+      - name: move context build
+        run: cd server-app-chat-chit
+          ls -la
       - name: build image
         run: docker build -t douqin/server-app-chat-chit:latest -f server-app-chat-chit/Dockerfile .
       - name: login docker
