@@ -1,0 +1,17 @@
+name: Docker Image CI
+
+on:
+  pull_request:
+    branches: ["main", "dev"]
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build image
+        run: docker build -t douqin/server-app-chat-chit:latest -f server-app-chat-chit/Dockerfile server-app-chat-chit
+      - name: login docker
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
+      - name: push image
+        run: docker push douqin/node-server-app-chat-chit:latest

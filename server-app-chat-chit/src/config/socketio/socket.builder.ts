@@ -6,6 +6,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import { DatabaseCache } from '../../../lib/database/redis/redis';
 import { ConstantRedis } from '../../../lib/database/constant';
 import { container } from 'tsyringe';
+import { getRoomGroupIO } from '@/utils/extension/room.group';
 export default class SocketBuilder {
     private io: Server;
     constructor(io: Server) {
@@ -26,7 +27,7 @@ export default class SocketBuilder {
         let serivce: iGroupActions = container.resolve(GroupService);
         let groups = await serivce.getAllGroup(userId);
         for (let group of groups) {
-            socket.join(`${group.groupId}_group`);
+            socket.join(getRoomGroupIO(group.groupId));
         }
     }
 
@@ -43,14 +44,14 @@ export default class SocketBuilder {
             groupId: number,
             userId: number
         }) => {
-            socket.to(`${data.groupId}_group`).except(socket.id).emit("typing", data.userId)
+            socket.to(getRoomGroupIO(data.groupId)).except(socket.id).emit("typing", data.userId)
         })
         socket.on("typing_end", (data: {
             groupId: number,
             userId: number
         }) => {
             console.log("🚀 ~ file: socket.builder.ts:37 ~ SocketBuilder ~ data:", data)
-            socket.to(`${data.groupId}_group`).except(socket.id).emit("typing_end", data.userId)
+            socket.to(getRoomGroupIO(data.groupId)).except(socket.id).emit("typing_end", data.userId)
         })
     }
 }
