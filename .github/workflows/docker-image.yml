@@ -16,4 +16,4 @@ jobs:
       - name: tag image
         run: docker tag douqin/node-server-app-chat-chit:latest douqin/node-server-app-chat-chit:latest
       - name: push image
-        run: docker push douqin/node-server-app-chat-chit:latest
+        run: docker push douqin/server-app-chat-chit:latest
