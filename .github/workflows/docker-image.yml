@@ -1,18 +1,27 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main", "dev"]
 
 jobs:
-
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v3
+      - name: test env
+        run: cat server-app-chat-chit/.env
+
+  build-and-push-image:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build image
+        run: docker build -t douqin/server-app-chat-chit .
+      - name: login docker
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      - name: push image
+        run:
+          docker tag douqin/server-app-chat-chit:latest douqin/server-app-chat-chit:latest
+          docker push douqin/server-app-chat-chit:latest
