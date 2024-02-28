@@ -15,13 +15,13 @@ jobs:
         run: cd server-app-chat-chit
       - name: check context
         run: ls
-      # - name: build image
-      #   run: docker build -t douqin/server-app-chat-chit:latest -f server-app-chat-chit/Dockerfile server-app-chat-chit
+      - name: build image
+        run: docker build -t douqin/server-app-chat-chit:latest -f server-app-chat-chit/Dockerfile server-app-chat-chit
       - name: log secrect
         run: echo ${{secrets.DOCKER_USERNAME}}
       - name: login docker
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
-      # - name: tag image
-      #   run: docker tag douqin/server-app-chat-chit:latest douqin/server-app-chat-chit:latest
-      # - name: push image
-      #   run: docker push douqin/server-app-chat-chit:latest
+      - name: tag image
+        run: docker tag douqin/server-app-chat-chit:latest douqin/server-app-chat-chit:latest
+      - name: push image
+        run: docker push douqin/server-app-chat-chit:latest
