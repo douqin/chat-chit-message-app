@@ -5,27 +5,15 @@ on:
     branches: ["main", "dev"]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: test env
-        run: cat server-app-chat-chit/.env
-
   build-and-push-image:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: move context build
-        run: cd server-app-chat-chit
-      - name: check context
-        run: ls
       - name: build image
         run: docker build -t douqin/server-app-chat-chit:latest -f server-app-chat-chit/Dockerfile server-app-chat-chit
       - name: login docker
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_TOKEN }}
+      - name: tag image
+        run: docker tag douqin/node-server-app-chat-chit:latest douqin/node-server-app-chat-chit:latest
       - name: push image
-        run:
-          docker tag douqin/server-app-chat-chit:latest douqin/server-app-chat-chit:latest
-          docker push douqin/server-app-chat-chit:latest
+        run: docker push douqin/node-server-app-chat-chit:latest
