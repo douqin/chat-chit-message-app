@@ -1,16 +1,10 @@
 import { AndroidConfig, Message, MulticastMessage, TopicMessage } from "firebase-admin/lib/messaging/messaging-api";
-import firebase from "../../config/firebase/firebase";
-import { NotificationService } from "./firebase.service.interface";
+import { NotificationService } from "./fcm.service.interface";
+import { singleton } from "tsyringe";
+import firebase from "./firebase/firebase";
 
+@singleton()
 export class ServiceFCM implements NotificationService {
-
-    private static instance = new ServiceFCM();
-
-    private constructor(){}
-
-    public static gI(){
-        return ServiceFCM.instance;
-    } 
 
     async sendMessageToUserOffInGroup(groupId: number, userId: number, data: any): Promise<void> {
         const message : TopicMessage = {
