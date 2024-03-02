@@ -25,6 +25,54 @@ export default class StoryController extends MotherController {
         super(io);
     }
 
+    @GET("/story/:userId")
+    @UseGuard(AuthorizeGuard)
+    private async getStoryFromUser(req: Request, res: Response, next: NextFunction) {
+        try {
+            let userId = Number(req.params.userId)
+            let me = Number(req.headers['userId'])
+            if (isValidNumberVariable(userId)) {
+                let option = await convertToObjectDTO(PagingReq, req.query, {}, {
+                    validationError: {
+                        target: false
+                    }
+                });
+                let story = await this.storyService.getStoryFromUser(me, userId, option.cursor, option.limit)
+                res.status(HttpStatus.OK).send(new ResponseBody(
+                    true,
+                    "OK",
+                    story
+                ));
+                return;
+            } else {
+                next(new ValidateErrorBuilder().setProperty("userId").setConstraints({ "userId": "userId is required" }).WrapArrayToJson())
+            }
+        } catch (e: any) {
+            if (e instanceof MyException) {
+                next(
+                    new HttpException(
+                        e.status,
+                        e.message
+                    )
+                )
+                return
+            } else if (e instanceof Array) {
+                next(
+                    new BadRequestException(JSON.parse(JSON.stringify(e)))
+                )
+            }
+            else {
+                console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ e:", e)
+                next(
+                    new HttpException(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Some thing wrong"
+                    )
+                );
+            }
+        }
+    }
+
     @POST("/upload")
     @FileUpload(multer(getOptionDefaultForMulter('story')).single("story"))
     @UseGuard(AuthorizeGuard)
@@ -126,7 +174,7 @@ export default class StoryController extends MotherController {
     private async deleteStory(req: Request, res: Response, next: NextFunction) {
         try {
             let storyId = Number(req.params.storyId)
-            if (isValidNumberVariable(storyId)) {
+            if (!isValidNumberVariable(storyId)) {
                 next(new BadRequestException(new ValidateErrorBuilder()
                     .setProperty("storyId")
                     .setConstraints({
@@ -208,12 +256,14 @@ export default class StoryController extends MotherController {
         }
     }
 
-    @GET("/:storyId/action/love")
+    @POST("/:storyId/action/love")
     @UseGuard(AuthorizeGuard)
     private async loveStory(req: Request, res: Response, next: NextFunction) {
         try {
+            console.log("🚀 ~ StoryController ~ loveStory ~  req.body:", req.body)
             let storyId = Number(req.params.storyId)
-            if (isValidNumberVariable(storyId)) {
+            console.log("🚀 ~ StoryController ~ loveStory ~ storyId:", isNaN(storyId))
+            if (!isValidNumberVariable(storyId)) {
                 next(new BadRequestException(new ValidateErrorBuilder()
                     .setProperty("storyId")
                     .setConstraints({
@@ -228,7 +278,7 @@ export default class StoryController extends MotherController {
                 }
             })
             const userId = Number(req.headers['userId'] as string)
-            let story = await this.storyService.loveStory(storyId, userId, data.isLove)
+            let story = await this.storyService.loveStory(storyId, userId, (data.isLove))
             //TODO: notice to owner story
             res.status(HttpStatus.OK).send(new ResponseBody(
                 true,
@@ -262,7 +312,7 @@ export default class StoryController extends MotherController {
         }
     }
 
-    @GET("/:userId/:storyId")
+    @GET("/me/:userId/:storyId")
     @UseGuard(AuthorizeGuard)
     private async getStoryById(req: Request, res: Response, next: NextFunction) {
         try {
@@ -301,7 +351,7 @@ export default class StoryController extends MotherController {
             }
         }
     }
-    @GET("/me")
+    @GET("/uploaded/me")
     @UseGuard(AuthorizeGuard)
     private async getMyListStory(req: Request, res: Response, next: NextFunction) {
         try {

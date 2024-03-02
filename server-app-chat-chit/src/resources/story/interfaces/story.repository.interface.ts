@@ -3,13 +3,15 @@ import { ReactStory } from "../enums/story.react.enum"
 import { RawDataMysql } from "@/models/raw.data"
 import { OptionUploadStoryDTO } from "../dtos/upload.story"
 import { Visibility } from "../enums/visibility"
+import { RelationshipUser } from "@/resources/relationship/enums/relationship.enum"
 
 export default interface iStoryRepositoryBehavior {
+    getStoryFromUser(userId: number, limit: number, cursor: number, relationship: RelationshipUser): RawDataMysql[] | PromiseLike<RawDataMysql[]>
     loveStory(storyId: number, userId: number, isLove: boolean): Promise<boolean>
     
     getVisibleStory(storyId: number): Promise<Visibility>
     
-    getMyListStory(me: number): Promise<RawDataMysql[]>
+    getMyListStory(me: number, limit : number, cursor : number): Promise<RawDataMysql[]>
 
     reactStory(storyId: number, userId: number, react: ReactStory): Promise<true>
 
