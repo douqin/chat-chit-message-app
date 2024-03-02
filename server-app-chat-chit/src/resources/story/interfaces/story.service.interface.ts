@@ -4,6 +4,7 @@ import { Visibility } from "../enums/visibility"
 import { ListStoryRes } from "../dtos/res.list.story"
 
 export default interface iStoryServiceBehavior {
+    getStoryFromUser(me: number, userId: number, cursor: number, limit: number): Promise<ListStoryRes>
 
     loveStory(storyId: number, userId: number, isLove: boolean): Promise<any>
 

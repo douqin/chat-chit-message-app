@@ -17,6 +17,41 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
 
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
     }
+    async getStoryFromUser(userId: number, limit: number, cursor: number, relationship: RelationshipUser): Promise<RawDataMysql[]> {
+        console.log("🚀 ~ StoryRepository ~ getStoryFromUser ~ relationship:", relationship)
+        console.log("🚀 ~ StoryRepository ~ getStoryFromUser ~ userId:", userId)
+        if (cursor == -1) {
+            switch (relationship) {
+                case RelationshipUser.FRIEND:
+                    let sql = `SELECT * FROM story WHERE story.userIdOwner = ? AND (visibility = ? OR visibility = ?) ORDER BY story.createAt DESC  LIMIT ?`
+                    const [data, c] = await this.db.executeQuery(sql, [userId, Visibility.PUBLIC, Visibility.FRIEND, limit]) as any
+                    console.log("🚀 ~ StoryRepository ~ getStoryFromUser ~ data:", data)
+                    return data
+                case RelationshipUser.NO_RELATIONSHIP:
+                    let sql1 = `SELECT * FROM story WHERE story.userIdOwner = ? AND  visibility = ? ORDER BY story.createAt DESC  LIMIT ?`
+                    const [data2, c2] = await this.db.executeQuery(sql1, [userId,Visibility.PUBLIC, limit]) as any
+                    console.log("🚀 ~ StoryRepository ~ getStoryFromUser ~ data2:", data2)
+                    return data2
+                default: {
+                    throw new MyException("You are not friend with this user").withExceptionCode(400);
+                }
+            }
+        } else {
+            switch (relationship) {
+                case RelationshipUser.FRIEND:
+                    let sql = `SELECT * FROM story WHERE story.userIdOwner = ? AND story.storyId < ? AND (visibility = ? OR visibility = ?) ORDER BY story.createAt DESC  LIMIT ?`
+                    const [data, c] = await this.db.executeQuery(sql, [userId, cursor, Visibility.PUBLIC, Visibility.FRIEND, limit]) as any
+                    return data
+                case RelationshipUser.NO_RELATIONSHIP:
+                    let sql1 = `SELECT * FROM story WHERE story.userIdOwner = ? AND story.storyId < ? AND  visibility = ? ORDER BY story.createAt DESC  LIMIT ?`
+                    const [data2, c2] = await this.db.executeQuery(sql1, [userId, cursor, Visibility.PUBLIC, limit]) as any
+                    return data2
+                default: {
+                    throw new MyException("You are not friend with this user").withExceptionCode(400);
+                }
+            }
+        }
+    }
     async loveStory(storyId: number, userId: number, isLove: boolean): Promise<boolean> {
         if (isLove) {
             const sql = `SELECT * FROM react_story WHERE storyId = ? AND userIdReact = ?`
@@ -36,9 +71,10 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         if (raw.length == 0) throw new MyException("Story not found").withExceptionCode(404)
         return raw[0].visibility
     }
-    async getMyListStory(me: number): Promise<RawDataMysql[]> {
-        const query = `SELECT * FROM story WHERE story.userIdOwner = ?`
-        const [raw, infoC] = await this.db.executeQuery(query, [me]) as any
+    async getMyListStory(me: number, limit: number, cursor: number): Promise<RawDataMysql[]> {
+        console.log("🚀 ~ StoryRepository ~ getMyListStory ~ me:", me)
+        const query = `SELECT * FROM story WHERE story.userIdOwner = ? AND story.storyId > ? ORDER BY story.createAt DESC  LIMIT 10`
+        const [raw, infoC] = await this.db.executeQuery(query, [me, cursor, limit]) as any
         return raw
     }
     async isOwnerStory(userId: number, storyId: number): Promise<boolean> {
@@ -101,21 +137,8 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         )
         JOIN story ON story.userIdOwner = user.userId
         LEFT JOIN storyview ON story.storyId = storyview.storyId
-        WHERE relation = ?`
-        // let queryGetAllFriend = "SELECT * FROM relationship WHERE (requesterid = ? || addresseeid = ?) AND relation = ?"
-        // let [data] = await MySql.excuteQuery(queryGetAllFriend, [userId, userId, Relationshipuser.FRIEND]) as any
-        // let arr = [];
-        // for (let element of data) {
-        //     let queryGetStory = "SELECT * FROM story JOIN user ON user.userId = story.userIdOwner AND story.userIdOwner = ?"
-        //     let [story] = await MySql.excuteQuery(queryGetStory, [(element.requesterid == userId ? element.addresseeid : element.requesterid)]) as any
-        //     console.log("🚀 ~ file: story.repository.ts:36 ~ StoryRepository ~ getAllStoryFromFriends ~ story:", story)
-        //     let queryCheckIsViewed = "SELECT COUNT(*) FROM storyview WHERE viewer = ? AND storyId = ?"
-        //     const [{ 'COUNT(*)': count }] = await MySql.excuteQuery(queryCheckIsViewed, [userId, story[0].storyId]) as any
-        //     story[0].viewed = Boolean(Number(count) === 1);
-        //     arr.push(story[0])
-        // }
+        WHERE relation = ? AND DATE_SUB(NOW(), INTERVAL 1 DAY) < story.createAt;`
         let [arr] = await this.db.executeQuery(query, [userId, userId, userId, RelationshipUser.FRIEND]) as any
-        console.log("🚀 ~ file: story.repository.ts:73 ~ StoryRepository ~ getAllStoryFromFriends ~ arr:", arr)
         return arr
     }
     async deleteStory(storyId: number): Promise<boolean> {
@@ -124,7 +147,7 @@ export default class StoryRepository implements iStoryRepositoryBehavior {
         return true;
     }
     async seeStory(storyId: number, userId: number): Promise<any> {
-        let query = "INSERT INTO storyview (user_id, story_id) VALUES (?, ?);        "
+        let query = "INSERT INTO storyview (viewer, storyId) VALUES (?, ?);        "
         await this.db.executeQuery(query, [storyId, userId])
         return true;
     }

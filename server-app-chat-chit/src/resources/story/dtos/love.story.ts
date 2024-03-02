@@ -3,5 +3,6 @@ import { IsBoolean } from "class-validator";
 
 export class LoveStoryDTO {
     @IsBoolean()
+    @Type(() => Boolean)
     isLove: boolean
 }
