@@ -16,14 +16,22 @@ import { ListStoryRes } from "./dtos/res.list.story";
 import { iDrive } from "@/services/cloud/drive.interface";
 @injectable()
 export default class StoryService implements iStoryServiceBehavior {
-
+    
+    async getStoryFromUser(me: number, userId: number, cursor: number, limit: number) {
+            console.log("🚀 ~ file: story.controller.ts:48 ~ StoryController ~ getStoryFromUser ~ req.query")
+            const relationshipService = container.resolve(RelationService);
+        const relationship : RelationshipUser = await relationshipService.getRelationship(me, userId);
+        return ListStoryRes.rawToDTO(await TransformStory.rawsToModels(await this.storyRepository.getStoryFromUser(userId, limit, cursor, relationship), async (id: string) => {
+            return await this.cloudDrive.getUrlFile(id);
+        }))
+    }
 
     constructor(@inject(StoryRepository) private storyRepository: iStoryRepositoryBehavior,
-    @inject(CloudDrive) private cloudDrive: iDrive) {
+        @inject(CloudDrive) private cloudDrive: iDrive) {
     }
 
     async getMyListStory(me: number, cursor: number, limit: number): Promise<ListStoryRes> {
-        return ListStoryRes.rawToDTO(await TransformStory.rawsToModels(await this.storyRepository.exploreStoryFriends(me), async (id: string) => {
+        return ListStoryRes.rawToDTO(await TransformStory.rawsToModels(await this.storyRepository.getMyListStory(me, limit, cursor), async (id: string) => {
             return await this.cloudDrive.getUrlFile(id);
         }))
     }
@@ -84,6 +92,6 @@ export default class StoryService implements iStoryServiceBehavior {
         }
     }
     async seeStory(storyId: number, userId: number): Promise<any> {
-        return await this.seeStory(storyId, userId)
+        return await this.storyRepository.seeStory(storyId, userId)
     }
 }
