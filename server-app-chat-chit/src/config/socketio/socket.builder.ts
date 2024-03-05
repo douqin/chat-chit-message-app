@@ -25,10 +25,8 @@ export default class SocketBuilder {
     }
     async joinGroup(userId: number, socket: Socket): Promise<void> {
         let serivce: iGroupActions = container.resolve(GroupService);
-        let groups = await serivce.getAllGroup(userId);
-        for (let group of groups) {
-            socket.join(getRoomGroupIO(group.groupId));
-        }
+        let room = await serivce.getAllRoom(userId);
+        await socket.join(room)
     }
 
     private initConnection = (socket: Socket) => {

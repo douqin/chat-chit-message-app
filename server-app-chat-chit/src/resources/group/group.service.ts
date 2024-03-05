@@ -28,6 +28,9 @@ export default class GroupService implements iGroupServiceBehavior {
 
     constructor(@inject(GroupRepository) private groupRepsitory: GroupRepositoryBehavior) {
     }
+    async getAllRoom(userId: number): Promise<string[]> {
+        return await this.groupRepsitory.getAllRoom(userId);
+    }
     async getListUserPending(userId: number, groupId: number): Promise<MemberDTO[]> {
         if (await this.isUserExistInGroup(userId, groupId)) {
             let position = await this.getPosition(groupId, userId);

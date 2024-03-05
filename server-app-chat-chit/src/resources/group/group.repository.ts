@@ -21,6 +21,19 @@ export default class GroupRepository implements GroupRepositoryBehavior {
 
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
     }
+    async getAllRoom(userId: number): Promise<string[]> {
+        const sql = `SELECT groupchat.room FROM 
+        user INNER JOIN member ON user.userId = member.userId 
+        JOIN groupchat ON member.groupId = groupchat.groupId
+        WHERE user.userId = ?;`
+        let [dataRaw, inforColimn]: any = await this.db.executeQuery(
+            sql, [userId]
+        )
+        if (dataRaw) {
+            return dataRaw;
+        }
+        return []; 
+    }
     async getAccessGroup(groupId: number): Promise<GroupAccess> {
         const sql = 'SELECT groupchat.access FROM groupchat WHERE groupchat.groupId = ?'
         const [data] = await this.db.executeQuery(sql, [groupId]) as any;
@@ -207,7 +220,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         )
         return dataRaw[0]
     }
-    async getAllGroup(userId: number): Promise<object[]> {
+    async getAllGroup(userId: number): Promise<any[]> {
         let query = `SELECT groupchat.* FROM 
         user INNER JOIN member ON user.userId = member.userId 
         JOIN groupchat ON member.groupId = groupchat.groupId

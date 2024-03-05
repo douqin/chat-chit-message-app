@@ -1,13 +1,22 @@
 import { globalContainer } from "@/lib/common/di";
+import { WorkerMQ } from "@/lib/common/job-queue";
 import { DatabaseCache } from "@/lib/database";
-import { Queue } from "bullmq";
+import { FCMService } from "@/services/fcm/fcm.service";
+import { iNotificationService } from "@/services/fcm/fcm.service.interface";
+import { Job, Queue } from "bullmq";
+import { DataEventBusNotificationReceive, NotificationSendType } from "src/even-bus/notification/data-define/rc";
 let redisX = globalContainer.resolve(DatabaseCache).getInstance();
 const notificationQueue = new Queue<any, any>('notification', { connection: redisX });
-// const mailServiceP = MailService.build();
-// const sender = new WorkerMQ<DataMailReceive, DataMailResult>('mail', async (job: Job<DataMailReceive, DataMailResult>) => {
-//     console.log("🚀 ~ file: queue-mail.ts ~ line 23 ~ sender.on ~ job", job.name)
-//     let mailService = await mailServiceP;
-//     return mailService.sendMail(job.data.opt);
-// }, { connection: redisX });
+const ServiceFCM: iNotificationService = globalContainer.resolve(FCMService);
+const sender = new WorkerMQ<DataEventBusNotificationReceive, any>('notification', async (job: Job<DataEventBusNotificationReceive, any>) => {
+    switch (job.data.type) {
+        case NotificationSendType.ROOM:
+            break;
+        case NotificationSendType.USER:
+            break;
+        case NotificationSendType.TOPIC:
+            break;
+    }
+}, { connection: redisX });
 
 export { notificationQueue } 

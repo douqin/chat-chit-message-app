@@ -5,6 +5,7 @@ import { GroupStatus } from '../enum/group.status.dto.enum';
 import Group from '@/models/group.model';
 import { GroupAccess } from '../enum/group.access';
 import DataFileDrive from 'src/services/cloud/dtos/file.drive.dtos';
+import { RawDataMysql } from '@/models/raw.data';
 
 export interface GroupRepositoryBehavior extends GroupManagement, GroupInfo, GroupActionMember, MemberInfo {
 }
@@ -21,7 +22,7 @@ export interface GroupManagement {
 }
 
 export interface GroupActionMember {
-
+    getAllRoom(userId: number): Promise<string[]>
     changeNickname(userId: number, userIdChange: number, groupId: number, nickname: string): Promise<boolean>
     getInformationMember(userIdCanFind: number, groupId: number): Promise<any>
     getTotalMember(groupId: number): Promise<number>
@@ -39,7 +40,7 @@ export interface GroupInfo {
     isExistInvidualGroup(userId: number, userIdAddressee: number): Promise<boolean>
     getInvidualGroup(userId: number, userIdAddressee: number): Promise<number>
     getSomeGroup(userId: number, cursor : number, limit : number): Promise<Array<any>>;
-    getAllGroup(userId: number): Promise<object[] | undefined>;
+    getAllGroup(userId: number): Promise<any[]>;
     getLastViewMember(groupId: number): Promise<object[] | undefined>;
     getOneGroup(groupId: number): Promise<object | null>;
     getAllMember(groupId: number): Promise<object[] | null>;
