@@ -21,6 +21,10 @@ import { Mutex } from "async-mutex";
 import { requiredMetadataKeyParam } from "@/lib/decorator";
 import { Type, iParam } from "@/lib/decorator/parameter/definition/params.interface";
 import { convertToObjectDTO } from "./utils/validate";
+import MyException from "./utils/exceptions/my.exception";
+import HttpException from "./utils/exceptions/http.exeception";
+import { BadRequestException, InternalServerError } from "./utils/exceptions";
+import chalk from "chalk";
 class App {
   private server: any;
   private io: Server;
@@ -79,51 +83,67 @@ class App {
           controller.pathMain + route.path,
           middlewareDecorator(middlewares),
           async (req: Request, res: Response, next: NextFunction) => {
-            console.log("🚀 ~ file: main.application.ts ~ line 104 ~ App ~ initaliseController ~ data", data)
-            let argsType: any[] = Reflect.getMetadata("design:paramtypes", controller, route.methodName);
-            console.log("🚀 ~ App ~ routes.forEach ~ argsType:", argsType)
-            let args: any[] = [req, res, next];
-            if (data.length > 0) {
-              args.length = 0;
-              for (let _i = 0; _i < data.length; _i++) {
-                let i = data[_i];
-                switch (i.type) {
-                  case Type.Next:
-                    args.push(next);
-                    break;
-                  case Type.Res:
-                    args.push(res);
-                    break;
-                  case Type.Req:
-                    args.push(req);
-                    break;
-                  case Type.Body:
-                    if (i.propertyKey) {
-                      args.push(await convertToObjectDTO(argsType[_i], req.body[i.propertyKey]));
-                    } else args.push(await convertToObjectDTO(argsType[_i], req.body));
-                    break;
-                  case Type.Params:
-                    if (i.propertyKey) {
-                      args.push(req.params[i.propertyKey]);
-                    } else
-                      args.push(req.params);
-                    break;
-                  case Type.Query:
-                    if (i.propertyKey) {
-                      args.push(req.query[i.propertyKey]);
-                    } else
-                      args.push(req.query);
-                    break;
-                  case Type.Headers:
-                    if (i.propertyKey) {
-                      args.push(req.headers[i.propertyKey]);
-                    } else
-                      args.push(req.headers);
-                    break;
+            try {
+              let argsType: any[] = Reflect.getMetadata("design:paramtypes", controller, route.methodName);
+              let args: any[] = [req, res, next];
+              if (data.length > 0) {
+                args.length = 0;
+                for (let _i = 0; _i < data.length; _i++) {
+                  let i = data[_i];
+                  switch (i.type) {
+                    case Type.Next:
+                      args.push(next);
+                      break;
+                    case Type.Res:
+                      args.push(res);
+                      break;
+                    case Type.Req:
+                      args.push(req);
+                      break;
+                    case Type.Body:
+                      if (i.propertyKey) {
+                        console.log(argsType[_i], req.body[i.propertyKey])
+                        args.push(await convertToObjectDTO(argsType[_i], req.body[i.propertyKey]));
+                      } else args.push(await convertToObjectDTO(argsType[_i], req.body));
+                      break;
+                    case Type.Params:
+                      if (i.propertyKey) {
+                        args.push(req.params[i.propertyKey]);
+                      } else
+                        args.push(req.params);
+                      break;
+                    case Type.Query:
+                      if (i.propertyKey) {
+                        args.push(req.query[i.propertyKey]);
+                      } else
+                        args.push(req.query);
+                      break;
+                    case Type.Headers:
+                      if (i.propertyKey) {
+                        args.push(req.headers[i.propertyKey]);
+                      } else
+                        args.push(req.headers);
+                      break;
+                  }
                 }
               }
+              (controller as any)[route.methodName](...args);
             }
-            (controller as any)[route.methodName](...args);
+            catch (e) {
+              if (e instanceof HttpException) {
+                next(new HttpException(e.status, e.message));
+              } else if (Array.isArray(e)) {
+                next(
+                  new BadRequestException(JSON.parse(JSON.stringify(e)))
+                )
+              }
+              else {
+                console.log(chalk.red("Error:"), e);
+                next(
+                  new InternalServerError("An error occurred, please try again later.")
+                );
+              }
+            }
           }
         );
       });

@@ -11,9 +11,6 @@ import { BadRequestException, InternalServerError } from "@/utils/exceptions/bad
 import { AuthorizeGuard } from "@/middleware/auth.middleware";
 import { inject, injectable, singleton } from "tsyringe";
 import { Body, Controller, GET, Header, Next, Req, Res, UseMiddleware } from "@/lib/decorator";
-import { convertToObjectDTO } from "@/utils/validate";
-import { IsNumber } from "class-validator";
-import { Type } from "class-transformer";
 
 
 @Controller("/user")
@@ -80,6 +77,7 @@ export default class UserController extends MotherController {
     @GET("/eeee")
     private async getFriend(@Body("test") test : string, @Header("concac") concac: string, @Res() res: Response, @Next() next: NextFunction) {
         console.log("🚀 ~ getFriend ~ test:", test)
+        throw new HttpException(400, "test")
         res.status(HttpStatus.OK).send({
             'message': 'get friend'
         })
