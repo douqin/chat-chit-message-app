@@ -10,10 +10,13 @@ import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { AuthorizeGuard } from "@/middleware/auth.middleware";
 import { inject, injectable, singleton } from "tsyringe";
-import { Controller, GET, UseMiddleware } from "@/lib/decorator";
+import { Body, Controller, GET, Header, Next, Req, Res, UseMiddleware } from "@/lib/decorator";
+import { convertToObjectDTO } from "@/utils/validate";
+import { IsNumber } from "class-validator";
+import { Type } from "class-transformer";
 
 
-@Controller("user")
+@Controller("/user")
 export default class UserController extends MotherController {
 
     constructor(@inject(Server) io: Server, @inject(UserService) private userSerivce: UserService) {
@@ -72,5 +75,13 @@ export default class UserController extends MotherController {
             console.log("🚀 ~ file: user.controller.ts:64 ~ UserController ~ inforUser= ~ error:", error)
             next(new InternalServerError("An error occurred, please try again later."))
         }
+    }
+
+    @GET("/eeee")
+    private async getFriend(@Body("test") test : string, @Header("concac") concac: string, @Res() res: Response, @Next() next: NextFunction) {
+        console.log("🚀 ~ getFriend ~ test:", test)
+        res.status(HttpStatus.OK).send({
+            'message': 'get friend'
+        })
     }
 }

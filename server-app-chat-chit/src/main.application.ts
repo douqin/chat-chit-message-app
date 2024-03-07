@@ -18,6 +18,9 @@ import { constructor } from "tsyringe/dist/typings/types";
 import { BaseMiddleware, MotherController } from "@/lib/common";
 import { globalContainer } from "@/lib/common/di";
 import { Mutex } from "async-mutex";
+import { requiredMetadataKeyParam } from "@/lib/decorator";
+import { Type, iParam } from "@/lib/decorator/parameter/definition/params.interface";
+import { convertToObjectDTO } from "./utils/validate";
 class App {
   private server: any;
   private io: Server;
@@ -65,29 +68,64 @@ class App {
           Reflect.getMetadata(
             "multer",
             (controller as any)[route.methodName]
-          ) || undefined;
+          ) || middlewareVirtual;
         let middlewares: constructor<BaseMiddleware>[] =
           Reflect.getMetadata(
             "middlewares",
             (controller as any)[route.methodName]
           ) || [];
-        if (multerX)
-          router[route.requestMethod](
-            controller.pathMain + route.path,
-            multerX,
-            middlewareDecorator(middlewares),
-            (req: Request, res: Response, next: NextFunction) => {
-              (controller as any)[route.methodName](req, res, next);
+        let data: iParam[] = Reflect.getMetadata(requiredMetadataKeyParam, controller, route.methodName) || [];
+        router[route.requestMethod](
+          controller.pathMain + route.path,
+          middlewareDecorator(middlewares),
+          async (req: Request, res: Response, next: NextFunction) => {
+            console.log("🚀 ~ file: main.application.ts ~ line 104 ~ App ~ initaliseController ~ data", data)
+            let argsType: any[] = Reflect.getMetadata("design:paramtypes", controller, route.methodName);
+            console.log("🚀 ~ App ~ routes.forEach ~ argsType:", argsType)
+            let args: any[] = [req, res, next];
+            if (data.length > 0) {
+              args.length = 0;
+              for (let _i = 0; _i < data.length; _i++) {
+                let i = data[_i];
+                switch (i.type) {
+                  case Type.Next:
+                    args.push(next);
+                    break;
+                  case Type.Res:
+                    args.push(res);
+                    break;
+                  case Type.Req:
+                    args.push(req);
+                    break;
+                  case Type.Body:
+                    if (i.propertyKey) {
+                      args.push(await convertToObjectDTO(argsType[_i], req.body[i.propertyKey]));
+                    } else args.push(await convertToObjectDTO(argsType[_i], req.body));
+                    break;
+                  case Type.Params:
+                    if (i.propertyKey) {
+                      args.push(req.params[i.propertyKey]);
+                    } else
+                      args.push(req.params);
+                    break;
+                  case Type.Query:
+                    if (i.propertyKey) {
+                      args.push(req.query[i.propertyKey]);
+                    } else
+                      args.push(req.query);
+                    break;
+                  case Type.Headers:
+                    if (i.propertyKey) {
+                      args.push(req.headers[i.propertyKey]);
+                    } else
+                      args.push(req.headers);
+                    break;
+                }
+              }
             }
-          );
-        else
-          router[route.requestMethod](
-            controller.pathMain + route.path,
-            middlewareDecorator(middlewares),
-            (req: Request, res: Response, next: NextFunction) => {
-              (controller as any)[route.methodName](req, res, next);
-            }
-          );
+            (controller as any)[route.methodName](...args);
+          }
+        );
       });
     });
     this.express.use(router);
@@ -135,6 +173,11 @@ function middlewareDecorator(middlewares: constructor<BaseMiddleware>[]) {
     for (let i = 0; i < _middlewares.length; i++) {
       let a = globalContainer.resolve(_middlewares[i]).use(req, res, next);
     }
+  };
+}
+function middlewareVirtual() {
+  return (req: Request, res: Response, next: NextFunction) => {
+    next();
   };
 }
 export default App;
