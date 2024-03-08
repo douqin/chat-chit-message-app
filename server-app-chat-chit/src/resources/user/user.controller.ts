@@ -46,7 +46,6 @@ export default class UserController extends MotherController {
     @GET("/user/:username")
     @UseMiddleware(AuthorizeGuard)
     private async inforUser(req: Request, res: Response, next: NextFunction) {
-        try {
             let username = String(req.params.username)
             let userId = Number(req.headers.userId)
             let data = await this.userSerivce.inforUser(userId, username)
@@ -62,24 +61,5 @@ export default class UserController extends MotherController {
                 return
             } else
                 next(new BadRequestException("Agurment is invalid"))
-        } catch (error: any) {
-            if (error instanceof MyException) {
-                next(new HttpException(error.status, error.message))
-            } else if (error instanceof HttpException) {
-                next(new HttpException(error.status, error.message))
-            }
-            //TODO: conflifct MyException vs HttpException
-            console.log("🚀 ~ file: user.controller.ts:64 ~ UserController ~ inforUser= ~ error:", error)
-            next(new InternalServerError("An error occurred, please try again later."))
-        }
-    }
-
-    @GET("/eeee")
-    private async getFriend(@Body("test") test : string, @Header("concac") concac: string, @Res() res: Response, @Next() next: NextFunction) {
-        console.log("🚀 ~ getFriend ~ test:", test)
-        throw new HttpException(400, "test")
-        res.status(HttpStatus.OK).send({
-            'message': 'get friend'
-        })
     }
 }

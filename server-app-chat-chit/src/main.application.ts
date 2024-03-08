@@ -25,6 +25,7 @@ import MyException from "./utils/exceptions/my.exception";
 import HttpException from "./utils/exceptions/http.exeception";
 import { BadRequestException, InternalServerError } from "./utils/exceptions";
 import chalk from "chalk";
+import { middlewareDecorator, middlewareVirtual, responseSentMiddleware } from "./utils/extension/middleware.support";
 class App {
   private server: any;
   private io: Server;
@@ -81,6 +82,7 @@ class App {
         let data: iParam[] = Reflect.getMetadata(requiredMetadataKeyParam, controller, route.methodName) || [];
         router[route.requestMethod](
           controller.pathMain + route.path,
+          multerX,
           middlewareDecorator(middlewares),
           async (req: Request, res: Response, next: NextFunction) => {
             try {
@@ -102,36 +104,41 @@ class App {
                       break;
                     case Type.Body:
                       if (i.propertyKey) {
-                        console.log(argsType[_i], req.body[i.propertyKey])
-                        args.push(await convertToObjectDTO(argsType[_i], req.body[i.propertyKey]));
+                        args.push(await convertToObjectDTO(argsType[_i], req.body[i.propertyKey], undefined, { validationError: { target: false } }));
                       } else args.push(await convertToObjectDTO(argsType[_i], req.body));
                       break;
                     case Type.Params:
                       if (i.propertyKey) {
-                        args.push(req.params[i.propertyKey]);
+                        args.push(await convertToObjectDTO(argsType[_i], req.params[i.propertyKey], undefined, { validationError: { target: false } }));
                       } else
                         args.push(req.params);
                       break;
                     case Type.Query:
                       if (i.propertyKey) {
-                        args.push(req.query[i.propertyKey]);
+                        args.push(await convertToObjectDTO(argsType[_i], req.query[i.propertyKey], undefined, { validationError: { target: false } }));
                       } else
                         args.push(req.query);
                       break;
                     case Type.Headers:
                       if (i.propertyKey) {
-                        args.push(req.headers[i.propertyKey]);
+                        args.push(await convertToObjectDTO(argsType[_i], req.headers[i.propertyKey], undefined, { validationError: { target: false } }));
                       } else
                         args.push(req.headers);
                       break;
                   }
                 }
               }
-              (controller as any)[route.methodName](...args);
+              let dataRes = (await (controller as any)[route.methodName](...args));
+              console.log("🚀 ~ App ~ route.methodName:", route.methodName);
+              if (!res.locals.responseSent) {
+                const httpCode: HttpStatus = Reflect.getMetadata("httpCode", controller, route.methodName) || HttpStatus.OK;
+                res.status(httpCode).send(dataRes);
+              }
             }
             catch (e) {
               if (e instanceof HttpException) {
-                next(new HttpException(e.status, e.message));
+                next(e);
+                // } else if (isArrayOf<ValidationError>(e)) {
               } else if (Array.isArray(e)) {
                 next(
                   new BadRequestException(JSON.parse(JSON.stringify(e)))
@@ -158,6 +165,7 @@ class App {
     });
   }
   private initaliseMiddleware() {
+    this.express.use(responseSentMiddleware);
     this.express.use(helmet());
     this.express.use(cors());
     this.express.use(morgan("dev"));
@@ -176,29 +184,13 @@ class App {
   }
   public listen(): void {
     this.server.listen(this.port, () => {
-      console.log(`Server listening on port ${this.port}`);
+      console.log(chalk.green(`Server listening on port:`), chalk.green(`${this.port}`));
     });
   }
   public static gI() {
     return App._instance;
   }
 }
-function middlewareDecorator(middlewares: constructor<BaseMiddleware>[]) {
-  let _middlewares = middlewares;
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (middlewares.length == 0) {
-      next();
-      return;
-    }
-    for (let i = 0; i < _middlewares.length; i++) {
-      let a = globalContainer.resolve(_middlewares[i]).use(req, res, next);
-    }
-  };
-}
-function middlewareVirtual() {
-  return (req: Request, res: Response, next: NextFunction) => {
-    next();
-  };
-}
+
 
 export default App;

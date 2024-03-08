@@ -16,7 +16,7 @@ import {
   TokenExpiredError,
 } from "jsonwebtoken";
 import { container, inject } from "tsyringe";
-import { Controller } from "@/lib/decorator";
+import { Body, Controller } from "@/lib/decorator";
 import { FileUpload } from "@/lib/decorator";
 import { POST } from "@/lib/decorator";
 import { MotherController } from "@/lib/common";
@@ -29,6 +29,8 @@ import { CreateOtpDTO } from "./dtos/create.otp";
 import { ResetPasswordDto } from "./dtos/reset-password.dto";
 import { RegisterAccountDTO } from "./dtos/register.account.dto";
 import { OTPTarget } from "@/services/mail";
+import { LoginSuccessfully } from "@/models/user.model";
+import { HttpCode } from "@/lib/decorator/http.status/http-status-code";
 @Controller("/auth")
 export default class AuthController extends MotherController {
   constructor(
@@ -38,85 +40,52 @@ export default class AuthController extends MotherController {
     super(io);
   }
 
+  @HttpCode(HttpStatus.CREATED)
   @POST("/login")
   @FileUpload(multer().none())
   private async login(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> {
-    try {
-      const phone = String(req.body.phone);
-      const password = String(req.body.password);
-      const notificationToken = String(req.body.notification);
-      if (phone && password && notificationToken) {
-        let data = await this.authService.login(
-          phone,
-          password,
-          notificationToken
-        );
-        if (data) {
-          res.status(HttpStatus.OK).send(new ResponseBody(true, "OK", data));
-        } else {
-          next(
-            new HttpException(
-              HttpStatus.NOT_FOUND,
-              "Incorrect username or password"
-            )
-          );
-        }
-      } else next(new BadRequestException("Agurment is invalid"));
-    } catch (e: any) {
-      if (e instanceof MyException) {
-        next(new HttpException(e.status, e.message));
-      } else if (e instanceof TokenExpiredError) {
-        next(new BadRequestException("Token expired"));
-      } else if (e instanceof JsonWebTokenError) {
-        next(new BadRequestException("Token invalid"));
-      } else if (e instanceof NotBeforeError) {
-        next(new BadRequestException("Token invalid"));
+    @Body("phone") phone: string,
+    @Body("password") password: string,
+    @Body("notificationToken") notificationToken: string,
+  ): Promise<ResponseBody<LoginSuccessfully>> {
+    console.log("🚀 ~ AuthController ~ phone:", phone)
+    console.log("🚀 ~ AuthController ~ password:", password)
+    if (phone && password) {
+      let data = await this.authService.login(
+        phone,
+        password,
+        notificationToken
+      );
+      if (data) {
+        return new ResponseBody(true, "OK", data);
       } else {
-        console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e);
-        next(
-          new InternalServerError("An error occurred, please try again later.")
+        throw (
+          new HttpException(
+            HttpStatus.NOT_FOUND,
+            "Incorrect username or password"
+          )
         );
       }
-    }
+    } else throw (new BadRequestException("Agurment is invalid"));
   }
 
+  @HttpCode(HttpStatus.CREATED)
   @POST("/register")
   @FileUpload(multer().none())
   private async registerAccount(
-    req: Request,
+    @Body() data : RegisterAccountDTO,
     res: Response,
     next: NextFunction
   ) {
-    try {
-      let data = await convertToObjectDTO(RegisterAccountDTO, req.body as any, undefined, { validationError: { target: false } });
-      await this.authService.registerAccount(data);
-      await this.authService.createOTP({
-        email: data.email,
-        target : OTPTarget.REGISTER
-      })
-      res
-        .status(HttpStatus.CREATED)
-        .json(new ResponseBody(true, "OK", {}));
-    } catch (e) {
-      if (e instanceof MyException) {
-        next(new HttpException(e.status, e.message));
-      } else if (e instanceof TokenExpiredError) {
-        next(new BadRequestException("Token expired"));
-      } else if (e instanceof JsonWebTokenError) {
-        next(new BadRequestException("Token invalid"));
-      } else if (e instanceof NotBeforeError) {
-        next(new BadRequestException("Token invalid"));
-      } else {
-        console.log("🚀 ~ file: auth.controller.ts:175 ~ AuthController ~ e:", e);
-        next(
-          new InternalServerError("An error occurred, please try again later.")
-        );
-      }
-    }
+    // let data = await convertToObjectDTO(RegisterAccountDTO, req.body as any, undefined, { validationError: { target: false } });
+    await this.authService.registerAccount(data);
+    await this.authService.createOTP({
+      email: data.email,
+      target: OTPTarget.REGISTER
+    })
+    res
+      .status(HttpStatus.CREATED)
+      .json(new ResponseBody(true, "OK", {}));
   }
 
   @POST("/verify-account")
@@ -212,7 +181,7 @@ export default class AuthController extends MotherController {
       if (e instanceof MyException) {
         next(new HttpException(e.status, e.message));
       }
-       else if (e instanceof TokenExpiredError) {
+      else if (e instanceof TokenExpiredError) {
         next(new BadRequestException("Token expired"));
       } else if (e instanceof JsonWebTokenError) {
         next(new BadRequestException("Token invalid"));

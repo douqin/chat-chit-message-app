@@ -14,5 +14,5 @@ function isBasicType(value: any): boolean {
         typeof value === "symbol" ||
         typeof value === "bigint" ||
         typeof value === "undefined" ||
-        typeof value === "function";
+        typeof value === "function" ;
 }
