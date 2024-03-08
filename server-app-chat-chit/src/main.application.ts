@@ -117,7 +117,7 @@ class App {
                       if (i.propertyKey) {
                         args.push(await convertToObjectDTO(argsType[_i], req.query[i.propertyKey], undefined, { validationError: { target: false } }));
                       } else
-                        args.push(req.query);
+                        args.push(await convertToObjectDTO(argsType[_i], req.query, undefined, { validationError: { target: false } }));
                       break;
                     case Type.Headers:
                       if (i.propertyKey) {
@@ -130,7 +130,7 @@ class App {
               }
               let dataRes = (await (controller as any)[route.methodName](...args));
               console.log("🚀 ~ App ~ route.methodName:", route.methodName);
-              if (!res.locals.responseSent) {
+              if (!res.locals.responseSent && dataRes !== undefined) {
                 const httpCode: HttpStatus = Reflect.getMetadata("httpCode", controller, route.methodName) || HttpStatus.OK;
                 res.status(httpCode).send(dataRes);
               }
