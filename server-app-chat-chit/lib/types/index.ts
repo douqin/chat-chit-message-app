@@ -1,0 +1,1 @@
+export { default as TypeClass } from './class.type';

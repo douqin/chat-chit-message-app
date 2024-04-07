@@ -117,7 +117,7 @@
     "./src/",
     "json-typings.d.ts",
     "test/test.js"
-, "lib/decorator", "lib/database", "lib/common"  ],
+, "lib/decorator", "lib/database", "lib/common", "lib/core/application/main.application.ts", "lib/types"  ],
   "exclude": [
     "./node_modules"
   ]

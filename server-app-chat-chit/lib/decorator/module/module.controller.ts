@@ -1,13 +1,13 @@
 import { MotherController } from "@/lib/common";
-import { constructor } from "tsyringe/dist/typings/types";
+import { TypeClass } from "@/lib/types";
 
-export function Module(con: constructor<MotherController>[]) {
+export function Module(con: TypeClass<MotherController>[]) {
     return function <T extends {
         new(...args: any[]): {
         }
-    }>(constructor: T) {
-        return class extends constructor {
-            controllers: constructor<MotherController>[] = con;
+    }>(_class: T) {
+        return class extends _class {
+            controllers: TypeClass<MotherController>[] = con;
         }
     }
 }
