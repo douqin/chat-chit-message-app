@@ -5,7 +5,6 @@ export function POST(url: string) {
         if (!Reflect.hasMetadata('routes', target)) {
             Reflect.defineMetadata('routes', [], target);
           }
-          // Lấy giá trị routes đã được lưu trước đó, thêm vào một route mới và set lại vào metadata.
           const routes: IRouteDefinition[] = Reflect.getMetadata('routes', target);
           routes.push({
             requestMethod: RequestMethod.POST,
