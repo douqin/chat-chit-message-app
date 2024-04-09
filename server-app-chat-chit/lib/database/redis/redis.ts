@@ -1,16 +1,29 @@
+import { ConfigService } from "@/lib/config";
+import chalk from "chalk";
 import { Redis } from "ioredis";
 
-const REDIS_HOST = process.env.REDIS_HOST || "";
-const REDIS_PORT = Number(process.env.REDIS_PORT);
+
 export class DatabaseCache {
   private static redis: Redis;
 
-  public constructor() { }
+  public constructor() {}
 
   public getInstance(): Redis {
-    return DatabaseCache.redis = new Redis(
-      REDIS_PORT, REDIS_HOST, {
-      maxRetriesPerRequest: null,
-    });
+    if (DatabaseCache.redis) {
+      return DatabaseCache.redis;
+    }
+    let configService = ConfigService.getInstance();
+    DatabaseCache.redis = new Redis(
+      Number(configService.get("REDIS_PORT")),
+      configService.get("REDIS_HOST") || "",
+      {
+        maxRetriesPerRequest: null,
+      }
+    );
+    console.log(
+      chalk.black(`Redis:`),
+      chalk.green(`Initialization successful`)
+    );
+    return DatabaseCache.redis;
   }
 }

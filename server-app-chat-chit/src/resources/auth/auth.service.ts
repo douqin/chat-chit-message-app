@@ -6,16 +6,14 @@ import jwt, { sign as _sign, verify as _verify } from 'jsonwebtoken';
 import { container, inject, injectable } from "tsyringe";
 import { DatabaseCache } from "@/lib/database";
 import { ConfirmAccountDTO } from "./dtos/confirm.account.dto";
-import MyException from "@/utils/exceptions/my.exception";
 import { OTPData, OTPTarget } from "@/services/mail/dto/otp.data";
 import { eventbusMail, MailerEvent } from "../../even-bus/mail";
 import { CreateOtpDTO } from "./dtos/create.otp";
 import { ResetPasswordDto } from "./dtos/reset-password.dto";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { DataResetPassword } from "./dtos/data.reset.password";
 import { verifyOtpSuccessfully as VerifyOtpSuccessfully } from "./dtos/verify-otp-successfully";
-import { Mutex, MutexInterface } from "async-mutex";
+import { Mutex } from "async-mutex";
 import { generateRandomSixDigitNumber } from "@/utils/extension/ramdom-number";
+import { MyException, HttpStatus } from "@/lib/common";
 
 @injectable()
 export default class AuthService {

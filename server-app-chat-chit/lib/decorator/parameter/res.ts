@@ -1,14 +1,13 @@
+import { requiredMetadataKeyParam } from "./definition/metadata-param";
 import { Type, iParam } from "./definition/params.interface";
 
-export const requiredMetadataKeyRes = Symbol("Res");
 export function Res() {
-    return function (target: any, propertyKey: string | symbol, parameterIndex: number) {
-        let existingRequiredParameters: iParam[] = Reflect.getOwnMetadata(requiredMetadataKeyRes, target, propertyKey) || [];
-        existingRequiredParameters.push({
-          nameVariable: undefined,
-          parameterIndex: parameterIndex,
-          type: Type.Param
-        });
-        Reflect.defineMetadata(requiredMetadataKeyRes, existingRequiredParameters, target[propertyKey], propertyKey)
-    }
+  return function (target: any, propertyKey: string | symbol, parameterIndex: number) {
+    let existingRequiredParameters: iParam[] = Reflect.getOwnMetadata(requiredMetadataKeyParam, target, propertyKey) || [];
+    existingRequiredParameters.unshift({
+      parameterIndex: parameterIndex,
+      type: Type.Res
+    });
+    Reflect.defineMetadata(requiredMetadataKeyParam, existingRequiredParameters, target[propertyKey], propertyKey)
+  }
 } 

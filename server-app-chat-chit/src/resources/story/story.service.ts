@@ -1,9 +1,7 @@
 import StoryRepository from "./story.repository";
 import iStoryServiceBehavior from "./interfaces/story.service.interface";
-import MyException from "@/utils/exceptions/my.exception";
 import { TransformStory } from "@/utils/transform/story.transform";
 import { CloudDrive } from "../../services/cloud/drive.service";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
 import { container, inject, injectable } from "tsyringe";
 import { ValidateErrorBuilder } from "@/utils/validate";
@@ -14,6 +12,7 @@ import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { Visibility } from "./enums/visibility";
 import { ListStoryRes } from "./dtos/res.list.story";
 import { iDrive } from "@/services/cloud/drive.interface";
+import { MyException, HttpStatus } from "@/lib/common";
 @injectable()
 export default class StoryService implements iStoryServiceBehavior {
     

@@ -24,14 +24,14 @@ export class dataDTO extends PagingRes<GroupChatDTO, number | null>{
 }
 export class GroupChatDTO extends Group {
     constructor(
-        groupId: number, name: string, avatar: string, status: number, createAt: Date, type: number, link: string, access: number,
+        groupId: number, name: string, avatar: string, status: number, createAt: Date, type: number, link: string, access: number, room : string,
         public lastMessage: Message,
         public totalMember: number,
         public numMessageUnread: number
     ) {
-        super(groupId, name, avatar, status, createAt, type, link, access);
+        super(groupId, name, avatar, status, createAt, type, link, access, room);
     }
     static fromBase(gr: Group, lastMessage: Message, totalMember: number, numMessageUnread: number): GroupChatDTO {
-        return new GroupChatDTO(gr.groupId, gr.name, gr.avatar, gr.status, gr.createAt, gr.type, gr.link, gr.access, lastMessage, totalMember, numMessageUnread)
+        return new GroupChatDTO(gr.groupId, gr.name, gr.avatar, gr.status, gr.createAt, gr.type, gr.link, gr.access, gr.room, lastMessage, totalMember, numMessageUnread)
     }
 }

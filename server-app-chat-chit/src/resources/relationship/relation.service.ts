@@ -8,7 +8,7 @@ import { User } from "../../models/user.model"
 import { ListFriendDTO } from "./dto/listfriends.dto"
 import { ListFriendCommonDTO } from "./dto/list.friend.common.dto"
 import { inject, injectable } from "tsyringe"
-import { BadRequestException } from "@/utils/exceptions/badrequest.expception"
+import { BadRequestException } from "@/lib/common"
 @injectable()
 export default class RelationService implements RelationServiceBehavior {
     async blockUser(userId: number, userIdBlock: number): Promise<boolean> {

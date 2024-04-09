@@ -2,10 +2,8 @@ import { PositionInGrop } from './enum/group.position.enum';
 import { CloudDrive } from '../../services/cloud/drive.service';
 
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
-import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from '../../services/cloud/drive.interface';
 import { ResultSetHeader } from 'mysql2';
-import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import { MemberStatus } from './enum/member.status.enum';
 import { GroupStatus } from './enum/group.status.dto.enum';
 import { GroupType } from './enum/group.type.enum';
@@ -15,11 +13,25 @@ import Group from '@/models/group.model';
 import { GroupAccess } from './enum/group.access';
 import { Database, iDatabase } from '@/lib/database';
 import { RawDataMysql } from '@/models/raw.data';
+import { MyException, HttpStatus } from '@/lib/common';
 
 @injectable()
 export default class GroupRepository implements GroupRepositoryBehavior {
 
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) {
+    }
+    async getAllRoom(userId: number): Promise<string[]> {
+        const sql = `SELECT groupchat.room FROM 
+        user INNER JOIN member ON user.userId = member.userId 
+        JOIN groupchat ON member.groupId = groupchat.groupId
+        WHERE user.userId = ?;`
+        let [dataRaw, inforColimn]: any = await this.db.executeQuery(
+            sql, [userId]
+        )
+        if (dataRaw) {
+            return dataRaw;
+        }
+        return []; 
     }
     async getAccessGroup(groupId: number): Promise<GroupAccess> {
         const sql = 'SELECT groupchat.access FROM groupchat WHERE groupchat.groupId = ?'
@@ -207,7 +219,7 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         )
         return dataRaw[0]
     }
-    async getAllGroup(userId: number): Promise<object[]> {
+    async getAllGroup(userId: number): Promise<any[]> {
         let query = `SELECT groupchat.* FROM 
         user INNER JOIN member ON user.userId = member.userId 
         JOIN groupchat ON member.groupId = groupchat.groupId

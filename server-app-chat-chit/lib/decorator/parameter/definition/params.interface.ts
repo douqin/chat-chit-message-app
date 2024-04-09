@@ -1,15 +1,17 @@
 export interface iParam {
-    nameVariable?: string
     parameterIndex: number,
-    type: Type
+    type: Type,
+    propertyKey?: string
 }
 
 export enum Type{
     Body,
     Query,
-    Param,
+    Params,
     Res,
-    Req
+    Req,
+    Next,
+    Headers
 }
 
 

@@ -4,8 +4,8 @@ export function Controller(router: string) {
     return function <T extends {
         new(...args: any[]): {
         }
-    }>(constructor: T) {
-        let a = class extends constructor {
+    }>(_class: T) {
+        let a = class extends _class {
             pathMain = router;
         };
         singleton()(a);

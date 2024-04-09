@@ -8,10 +8,9 @@ import { isValidNumberVariable } from "@/utils/validate";
 import { inject, injectable } from "tsyringe";
 import { OkPacket } from "mysql2";
 import Message from "@/models/message.model";
-import MyException from "@/utils/exceptions/my.exception";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { Database, iDatabase } from "@/lib/database";
 import { RawDataMysql } from "@/models/raw.data";
+import { HttpStatus, MyException } from "@/lib/common";
 
 @injectable()
 export default class MessageRepository implements iMessageRepositoryBehavior {

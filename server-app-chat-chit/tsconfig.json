@@ -29,8 +29,8 @@
       "@/resources/*": [
         "src/resources/*"
       ],
-      "@/config/*": [
-        "src/config/*"
+      "@/builder/*": [
+        "src/builder/*"
       ],
       "@/utils/*": [
         "src/utils/*"
@@ -47,6 +47,7 @@
       "@/services/*": [
         "src/services/*"
       ],
+      
     }, /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like `./node_modules/@types`. */
@@ -117,7 +118,7 @@
     "./src/",
     "json-typings.d.ts",
     "test/test.js"
-, "lib/decorator", "lib/database", "lib/common"  ],
+, "lib/decorator", "lib/database", "lib/common", "lib/core/application/main.application.ts", "lib/types", "lib/socker.builder.interface.ts"  ],
   "exclude": [
     "./node_modules"
   ]

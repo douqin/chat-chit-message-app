@@ -1,7 +1,6 @@
 import Story from "@/models/story.model";
-import MyException from "../exceptions/my.exception";
-import { HttpStatus } from "../extension/httpstatus.exception";
 import { RawDataMysql } from "@/models/raw.data";
+import { HttpStatus, MyException } from "@/lib/common";
 
 export class TransformStory {
     static async rawToModel(data: RawDataMysql, callback: (id: string) => Promise<string | null | undefined>): Promise<Story> {
