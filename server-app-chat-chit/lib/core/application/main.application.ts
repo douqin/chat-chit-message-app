@@ -1,4 +1,4 @@
-import { HttpStatus } from "../../../src/utils/extension/httpstatus.exception";
+import { HttpStatus } from "../../common/exceptions/httpstatus.exception";
 import express, {
   Application,
   NextFunction,
@@ -8,13 +8,15 @@ import express, {
   Router,
 } from "express";
 import ErrorMiddleware from "@/middleware/error.midleware";
-import { Server } from "socket.io";
-import SocketBuilder from "../../../src/config/socketio/socket.builder";
+import { Server, ServerOptions } from "socket.io";
 import { ResponseBody } from "../../../src/utils/definition/http.response";
 import { Database, MySqlBuilder } from "../../database/mysql/database";
 import { DatabaseCache } from "../../database/redis/redis";
 import {
+  BadRequestException,
   BaseMiddleware,
+  HttpException,
+  InternalServerError,
   middlewareDecorator,
   middlewareVirtual,
   MotherController,
@@ -27,44 +29,33 @@ import {
   iParam,
 } from "@/lib/decorator/parameter/definition/params.interface";
 import { convertToObjectDTO } from "../../../src/utils/validate";
-import HttpException from "../../../src/utils/exceptions/http.exeception";
-import {
-  BadRequestException,
-  InternalServerError,
-} from "../../../src/utils/exceptions";
 import chalk from "chalk";
 import { TypeClass } from "@/lib/types";
+import { createServer } from "http";
+import { SocketIo } from "@/services/socketio/socket-instance";
+import iSocketBuilder from "@/lib/socker.builder.interface";
 export class App {
   private server: any;
   private io: Server;
   private express: Application;
-  private router : Router;
+  private router: Router;
+  controllers: any;
   constructor() {
     this.express = express();
     this.router = express.Router({
       /**caseSensitive: true, strict: true**/
     });
-    this.server = require("http").createServer(this.express);
-    this.io = new SocketBuilder(
-      require("socket.io")(this.server, {
-        cors: {
-          origin: "*",
-          credentials: true,
-        },
-      })
-    )
-      .initalizeMiddleware()
-      .initalizeServer()
-      .build();
-    globalContainer.register<Server>(Server, { useValue: this.io });
     this.initializeDatabase();
-    this.initBaseRequesthandler();
   }
-  private initBaseRequesthandler() {
+  public initBaseRequesthandler() {
     this.express.use(responseSentMiddleware);
     this.express.use(ErrorMiddleware);
   }
-  public createControllers(controllers: MotherController[]) {
+  public initilizeController(controllers: MotherController[]) {
+    this.controllers = controllers;
+  }
+  public startAllControllers() {
+    let controllers = this.controllers;
     controllers.forEach((controller: MotherController) => {
       const routes: IRouteDefinition[] =
         Reflect.getMetadata("routes", controller) || [];
@@ -223,7 +214,8 @@ export class App {
     });
   }
   public listen(port: number): void {
-    this.server.listen(port, () => {
+    this.startAllControllers();
+    this.express.listen(port, () => {
       console.log(
         chalk.black(`Application:`),
         chalk.green(`Server started on port:`),
@@ -234,12 +226,25 @@ export class App {
   public use(middleware: RequestHandler) {
     this.express.use(middleware);
   }
-  static logAllRoute(app : App) : void {
+  static logAllRoute(app: App): void {
     app.router.stack.forEach((r) => {
       if (r.route && r.route.path) {
-        console.log(chalk.black(`Application:`), chalk.green(`Route:`), chalk.green(`${r.route.path}`));
+        console.log(
+          chalk.black(`Application:`),
+          chalk.green(`Route:`),
+          chalk.green(`${r.route.path}`)
+        );
       }
     });
+  }
+  public initSocket(baseConfigSocket : Partial<ServerOptions>): void {
+    this.server = createServer(this.express);
+    this.io = new Server(this.server, baseConfigSocket);
+    globalContainer.register<Server>(Server, { useValue: this.io });
+  }
+
+  configSocket(builder: iSocketBuilder) {
+    builder.intializeBaseSocket(this.io).initalizeMiddleware().initalizeServer().reBuild();
   }
 }
 

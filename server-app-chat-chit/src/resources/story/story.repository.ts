@@ -1,7 +1,6 @@
 import { CloudDrive } from "../../services/cloud/drive.service";
 import { iDrive } from "../../services/cloud/drive.interface";
 import iStoryRepositoryBehavior from "./interfaces/story.repository.interface";
-import MyException from "@/utils/exceptions/my.exception";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { ReactStory } from "./enums/story.react.enum";
 import { inject, injectable } from "tsyringe";
@@ -9,6 +8,7 @@ import { Database, iDatabase } from "@/lib/database";
 import { RawDataMysql } from "@/models/raw.data";
 import { OptionUploadStoryDTO } from "./dtos/upload.story";
 import { Visibility } from "./enums/visibility";
+import { MyException } from "@/lib/common";
 
 
 

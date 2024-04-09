@@ -1,11 +1,6 @@
 import chalk from "chalk";
 import mysql from "mysql2/promise";
-require("dotenv").config();
-const DATABASE_NAME = process.env.DATABASE_NAME;
-const DATABASE_PORT = process.env.DATABASE_PORT;
-const DATABASE_USER = process.env.DATABASE_USER;
-const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
-const DATABASE_HOST = process.env.DATABASE_HOST;
+import { ConfigService } from "@/lib/config";
 
 class Database implements iDatabase {
   constructor(private pool: mysql.Pool) {}
@@ -66,12 +61,13 @@ class DatabaseBuilder {
   private pool!: mysql.Pool;
   constructor() {}
   initPool() {
+    let configService = ConfigService.getInstance();
     this.pool = mysql.createPool({
-      port: isNaN(Number(DATABASE_PORT)) ? undefined : Number(DATABASE_PORT),
-      database: DATABASE_NAME,
-      host: DATABASE_HOST,
-      user: DATABASE_USER,
-      password: DATABASE_PASSWORD,
+      port: Number(configService.get("DATABASE_PORT")),
+      database: configService.get("DATABASE_NAME"),
+      host: configService.get("DATABASE_HOST"),
+      user: configService.get("DATABASE_USER"),
+      password: configService.get("DATABASE_PASSWORD"),
     });
     console.log(
       chalk.black(`Mysql: `),

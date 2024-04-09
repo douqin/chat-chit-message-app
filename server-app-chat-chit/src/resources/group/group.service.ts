@@ -1,5 +1,3 @@
-import MyException from "@/utils/exceptions/my.exception"
-import { HttpStatus } from "@/utils/extension/httpstatus.exception"
 import Group from "./../../models/group.model"
 import iMessageServiceBehavior, { iMessageAction, iMessageInformation } from "../messaging/interface/message.service.interface"
 import MessageService from "../messaging/message.service"
@@ -22,6 +20,7 @@ import Message from "@/models/message.model"
 import { ChangeAvatarGroup } from "./type.definitions/change.avatar.group"
 import { GroupAccess } from "./enum/group.access"
 import { RequestJoinFromLink } from "./type.definitions/request.join.from.link"
+import { MyException, HttpStatus } from "@/lib/common"
 
 @injectable()
 export default class GroupService implements iGroupServiceBehavior {

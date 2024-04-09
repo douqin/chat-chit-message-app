@@ -1,4 +1,4 @@
-import MyException from "../exceptions/my.exception"
+import { MyException } from "@/lib/common"
 
 export class Resource<T>{
     constructor(public data?: T, public error?: MyException) { }

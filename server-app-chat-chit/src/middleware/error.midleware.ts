@@ -1,7 +1,7 @@
 
 import { Request, Response, NextFunction } from "express";
-import HttpException from "../utils/exceptions/http.exeception";
 import { ResponseBody } from "@/utils/definition/http.response";
+import { HttpException } from "@/lib/common";
 
 export default function errorMiddlewareHTTP(
     error: HttpException,

@@ -1,4 +1,5 @@
 import { cleanEnv, str, port } from 'envalid';
+import 'dotenv/config'
 
 function validateEnv(): void {
     cleanEnv(process.env, {

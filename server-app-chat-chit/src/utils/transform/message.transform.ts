@@ -1,9 +1,8 @@
 import Message from "@/models/message.model";
 
 import { MessageType } from "@/resources/messaging/enum/message.type.enum";
-import MyException from "../exceptions/my.exception";
-import { HttpStatus } from "../extension/httpstatus.exception";
 import { RawDataMysql } from "@/models/raw.data";
+import { HttpStatus, MyException } from "@/lib/common";
 
 export class TransformMessage {
     static async fromRawsData(raws: RawDataMysql[], callback?: (id: string) => Promise<string | null | undefined>): Promise<Message[]> {

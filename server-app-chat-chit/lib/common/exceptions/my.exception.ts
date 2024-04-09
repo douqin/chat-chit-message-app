@@ -1,7 +1,7 @@
-import { HttpStatus } from "../extension/httpstatus.exception";
-import HttpException from "./http.exeception";
+import {HttpException} from "./http.exeception";
+import { HttpStatus } from "./httpstatus.exception";
 
-export default class MyException extends HttpException {
+export class MyException extends HttpException {
     constructor(message: string) {
         super(HttpStatus.BAD_REQUEST, message);
     }

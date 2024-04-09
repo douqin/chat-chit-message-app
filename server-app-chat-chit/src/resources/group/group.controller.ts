@@ -1,19 +1,14 @@
-import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { MotherController } from "@/lib/common";
+import { BadRequestException, HttpException, HttpStatus, MotherController } from "@/lib/common";
 import { NextFunction, Request, Response } from "express";
 import { Server } from "socket.io";
 import GroupService from "@/resources/group/group.service";
 import LastViewGroup from "./dtos/lastview.dto";
-import iGroupServiceBehavior from "@/resources/group/interface/group.service.interface";
-import MyException from "@/utils/exceptions/my.exception";
 import multer from "multer";
 import { ResponseBody } from "@/utils/definition/http.response";
 import { AuthorizeGuard } from "@/middleware/auth.middleware";
 import { convertToObjectDTO, isValidNumberVariable } from "@/utils/validate";
 import { User } from "../../models/user.model";
 import { EventGroupIO } from "./constant/group.constant";
-import { BadRequestException, InternalServerError } from "@/utils/exceptions/badrequest.expception";
 import { inject } from "tsyringe";
 import { getRoomUserIO } from "@/utils/extension/room.user";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
@@ -205,7 +200,6 @@ export default class GroupController extends MotherController {
     @UseMiddleware(AuthorizeGuard)
     private async addManager(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("invitee") invitee: number) {
         if (isValidNumberVariable(invitee) && isValidNumberVariable(groupId) && userId !== invitee) {
-            //FIXME: socket ?
             let data = await this.groupService.addManager(userId, invitee, groupId)
             this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.ADD_MANAGER, { userIds: invitee })
             this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [data])

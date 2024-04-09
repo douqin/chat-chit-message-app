@@ -2,10 +2,8 @@ import { PositionInGrop } from './enum/group.position.enum';
 import { CloudDrive } from '../../services/cloud/drive.service';
 
 import { GroupRepositoryBehavior } from "./interface/group.repository.interface";
-import MyException from "@/utils/exceptions/my.exception";
 import { iDrive } from '../../services/cloud/drive.interface';
 import { ResultSetHeader } from 'mysql2';
-import { HttpStatus } from '@/utils/extension/httpstatus.exception';
 import { MemberStatus } from './enum/member.status.enum';
 import { GroupStatus } from './enum/group.status.dto.enum';
 import { GroupType } from './enum/group.type.enum';
@@ -15,6 +13,7 @@ import Group from '@/models/group.model';
 import { GroupAccess } from './enum/group.access';
 import { Database, iDatabase } from '@/lib/database';
 import { RawDataMysql } from '@/models/raw.data';
+import { MyException, HttpStatus } from '@/lib/common';
 
 @injectable()
 export default class GroupRepository implements GroupRepositoryBehavior {

@@ -1,10 +1,20 @@
 import { globalContainer, MotherController } from "@/lib/common";
 import { App } from "@/lib/core";
 import { TypeClass } from "@/lib/types";
+import { ServerOptions } from "socket.io";
 export class ApplicationFactory<T> {
-  static createApplication<T, V>(moduleClass: TypeClass<V>): App {
+  static createApplication<T, V>(
+    moduleClass: TypeClass<V>,
+    opts: {
+      initlizeSocket?: boolean,
+      baseConfigSocket : Partial<ServerOptions>
+    }
+  ): App {
     let app = new App();
-    app.createControllers(
+    if (opts.initlizeSocket) {
+      app.initSocket(opts.baseConfigSocket);
+    }
+    app.initilizeController(
       ApplicationFactory.getControllerFromModule(moduleClass).map(
         (controller) => globalContainer.resolve(controller)
       ) as MotherController[]

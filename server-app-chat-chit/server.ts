@@ -3,7 +3,7 @@ import moduleAlias from "module-alias";
 import "reflect-metadata";
 moduleAlias.addAliases({
   "@/resources": `${__dirname}/src/resources`,
-  "@/config": `${__dirname}/src/config`,
+  "@/builder": `${__dirname}/src/builder`,
   "@/utils": `${__dirname}/src/utils`,
   "@/middleware": `${__dirname}/src/middleware`,
   "@/models": `${__dirname}/src/models`,
@@ -20,12 +20,24 @@ import cors from "cors";
 import express from "express";
 import morgan from "morgan";
 import { ConfigService } from "@/lib/config";
+import "dotenv/config";
+import { SocketBuilder } from "@/builder/socket.builder";
 
 validateEnv();
-
 function startServer() {
-  const app = ApplicationFactory.createApplication<App,ModuleController>(ModuleController);
-  let config = new ConfigService();
+  const app = ApplicationFactory.createApplication<App, ModuleController>(
+    ModuleController,
+    {
+      initlizeSocket: true,
+      baseConfigSocket: {
+        cors: {
+          origin: "*",
+          credentials: true,
+        },
+      },
+    }
+  );
+  let config = ConfigService.getInstance();
   app.use(helmet());
   app.use(cors());
   app.use(morgan("dev"));
@@ -33,6 +45,7 @@ function startServer() {
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(express.static("public"));
   app.use(compression());
+  app.configSocket(new SocketBuilder());
   app.listen(Number(config.get("PORT")));
   App.logAllRoute(app);
 }

@@ -1,4 +1,4 @@
-import { NotFoundException } from "@/utils/exceptions/badrequest.expception";
+import { NotFoundException } from "@/lib/common";
 import { User } from "../../models/user.model";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { RelationServiceBehavior } from "../relationship/interface/relation.service.interface";

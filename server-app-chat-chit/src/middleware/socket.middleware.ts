@@ -1,10 +1,9 @@
-import HttpException from "@/utils/exceptions/http.exeception";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
 import { JwtPayload } from "jsonwebtoken";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Socket } from "socket.io";
 import { container } from "tsyringe";
 import { JwtAuthService } from "../services/jwt/jwt.service";
+import { HttpException, HttpStatus } from "@/lib/common";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         try {

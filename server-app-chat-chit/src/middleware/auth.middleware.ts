@@ -1,10 +1,9 @@
 import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express"
-import {  UnAuthorizedException } from "@/utils/exceptions/badrequest.expception";
-import { container } from "tsyringe";
-import { BaseMiddleware as BaseGuard } from "@/lib/common";
+import { BaseMiddleware as BaseGuard, UnAuthorizedException } from "@/lib/common";
 import { Middleware as Guard } from "@/lib/decorator";
 import { JwtAuthService } from "@/services/jwt/jwt.service";
+import { container } from "tsyringe";
 
 @Guard()
 export class AuthorizeGuard extends BaseGuard {

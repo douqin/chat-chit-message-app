@@ -1,4 +1,4 @@
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
+import { HttpStatus } from "@/lib/common"
 
 export function HttpCode(code : HttpStatus){
     return function(target: any, propertyKey: string, descriptor: PropertyDescriptor){

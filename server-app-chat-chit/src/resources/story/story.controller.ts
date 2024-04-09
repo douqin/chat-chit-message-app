@@ -1,9 +1,6 @@
 import { AuthorizeGuard } from "@/middleware/auth.middleware";
 import { ResponseBody } from "@/utils/definition/http.response";
-import HttpException from "@/utils/exceptions/http.exeception";
-import MyException from "@/utils/exceptions/my.exception";
-import { HttpStatus } from "@/utils/extension/httpstatus.exception";
-import { MotherController } from "@/lib/common";
+import { BadRequestException, MotherController } from "@/lib/common";
 import { Response, Request, NextFunction } from "express";
 import multer from "multer";
 import { Server } from "socket.io";
@@ -11,7 +8,6 @@ import { convertToObjectDTO, isValidNumberVariable } from "@/utils/validate";
 import { inject } from "tsyringe";
 import StoryService from "./story.service";
 import { Controller, POST, FileUpload, GET, UseMiddleware as UseGuard, DELETE, Params, Headers, Query, Body } from "@/lib/decorator";
-import { BadRequestException } from "@/utils/exceptions/badrequest.expception";
 import { ValidateErrorBuilder } from "@/utils/validate";
 import { OptionUploadStoryDTO } from "./dtos/upload.story";
 import { deleteFile, getOptionDefaultForMulter as getOptionDefaultForMulter } from "@/utils/extension/file.upload";
