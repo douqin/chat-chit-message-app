@@ -28,7 +28,7 @@ function startServer() {
   const app = ApplicationFactory.createApplication<App, ModuleController>(
     ModuleController,
     {
-      initlizeSocket: true,
+      initializeSocket: true,
       baseConfigSocket: {
         cors: {
           origin: "*",
@@ -39,7 +39,10 @@ function startServer() {
   );
   let config = ConfigService.getInstance();
   app.use(helmet());
-  app.use(cors());
+  app.use(cors({
+    origin: "*",
+    credentials: true,
+  }));
   app.use(morgan("dev"));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));

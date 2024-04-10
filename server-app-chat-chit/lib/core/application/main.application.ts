@@ -27,12 +27,11 @@ import { IRouteDefinition, requiredMetadataKeyParam } from "@/lib/decorator";
 import {
   Type,
   iParam,
-} from "@/lib/decorator/parameter/definition/params.interface";
+} from "@/lib/decorator";
 import { convertToObjectDTO } from "../../../src/utils/validate";
 import chalk from "chalk";
 import { TypeClass } from "@/lib/types";
 import { createServer } from "http";
-import { SocketIo } from "@/services/socketio/socket-instance";
 import iSocketBuilder from "@/lib/socker.builder.interface";
 export class App {
   private server: any;
@@ -49,7 +48,6 @@ export class App {
   }
   public initBaseRequesthandler() {
     this.express.use(responseSentMiddleware);
-    this.express.use(ErrorMiddleware);
   }
   public initilizeController(controllers: MotherController[]) {
     this.controllers = controllers;
@@ -130,6 +128,7 @@ export class App {
                       } else args.push(req.params);
                       break;
                     case Type.Query:
+                      console.log("🚀 ~ data ~ i.propertyKey", i);
                       if (i.propertyKey) {
                         args.push(
                           await convertToObjectDTO(
@@ -164,10 +163,10 @@ export class App {
                   }
                 }
               }
+              console.log(data)
               let dataRes = await (controller as any)[route.methodName](
                 ...args
               );
-              console.log("🚀 ~ App ~ route.methodName:", route.methodName);
               if (!res.locals.responseSent && dataRes !== undefined) {
                 const httpCode: HttpStatus =
                   Reflect.getMetadata(
@@ -215,6 +214,7 @@ export class App {
   }
   public listen(port: number): void {
     this.startAllControllers();
+    this.express.use(ErrorMiddleware);
     this.express.listen(port, () => {
       console.log(
         chalk.black(`Application:`),
@@ -230,20 +230,19 @@ export class App {
     app.router.stack.forEach((r) => {
       if (r.route && r.route.path) {
         console.log(
-          chalk.black(`Application:`),
           chalk.green(`Route:`),
+          chalk.green(`${r.route.stack[0].method}: `),
           chalk.green(`${r.route.path}`)
         );
       }
     });
   }
-  public initSocket(baseConfigSocket : Partial<ServerOptions>): void {
+  public initSocket(baseConfigSocket: Partial<ServerOptions>): void {
     this.server = createServer(this.express);
     this.io = new Server(this.server, baseConfigSocket);
     globalContainer.register<Server>(Server, { useValue: this.io });
   }
-
-  configSocket(builder: iSocketBuilder) {
+  public configSocket(builder: iSocketBuilder) {
     builder.intializeBaseSocket(this.io).initalizeMiddleware().initalizeServer().reBuild();
   }
 }

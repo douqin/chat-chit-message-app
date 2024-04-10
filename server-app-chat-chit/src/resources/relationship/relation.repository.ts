@@ -2,18 +2,83 @@ import { Database, QuerySuccessResult, iDatabase } from '@/lib/database';
 import { RelationshipUser } from './enums/relationship.enum';
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface";
 import { inject, injectable } from 'tsyringe';
+import { RawDataMysql } from '@/models/raw.data';
 
 @injectable()
 export default class RelationRepostory implements RelationRepositoryBehavior {
 
-    constructor(@inject(Database) private db: iDatabase) {}
+    constructor(@inject(Database) private db: iDatabase) { }
 
-    async getSomeFriendCommon(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<any[]> {
-        //TODO: add query
-        // let query = ""
-        // let params: any[] = []
-        // await this.db.excuteQuery(query, params);
-        return Promise.resolve([]);
+    async getCountFriendBetWeenUser(userId: number, userIdWGet: number): Promise<number> {
+        const query = `SELECT
+        COUNT(*) AS common_friends_count
+    FROM
+        (
+        SELECT DISTINCT
+            id
+        FROM
+            relationship
+        WHERE
+            (
+                requesterid = ? AND addresseeid IN(
+                SELECT DISTINCT
+                    addresseeid
+                FROM
+                    relationship
+                WHERE
+                    requesterid = ? AND relation = 1
+            )
+            ) OR(
+                addresseeid = ? AND requesterid IN(
+                SELECT DISTINCT
+                    requesterid
+                FROM
+                    relationship
+                WHERE
+                    addresseeid = ? AND relation = 1
+            )
+            ) AND relation = 1
+    ) AS common_friends;`
+        let [count, inforC] = await this.db.executeQuery(query, [userId, userIdWGet, userId, userIdWGet]) as QuerySuccessResult
+        return Number(count[0].common_friends_count)
+    }
+
+    async getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<RawDataMysql[]> {
+        let query = `SELECT
+        user.*
+    FROM
+        (
+        SELECT DISTINCT
+            addresseeid
+        FROM
+            relationship
+        WHERE
+            requesterid = ? AND relation = 1 AND addresseeid IN(
+            SELECT DISTINCT
+                addresseeid
+            FROM
+                relationship
+            WHERE
+                requesterid = ? AND relation = 1
+        )
+    UNION ALL
+    SELECT DISTINCT
+        requesterid
+    FROM
+        relationship
+    WHERE
+        addresseeid = ? AND relation = 1 AND requesterid IN(
+        SELECT DISTINCT
+            requesterid
+        FROM
+            relationship
+        WHERE
+            addresseeid = ? AND relation = 1
+    )
+    ) AS c
+    JOIN user ON user.userId = c.addresseeid WHERE user.userId > ? ORDER BY user.userId LIMIT ? `
+        let [data, _] = await this.db.executeQuery(query, [userId, userIdWGet, userId, userIdWGet, cursor, limit]) as QuerySuccessResult
+        return data;
     }
     async deleteMySentInvite(userId: number, idInvite: number): Promise<boolean> {
         const query = 'DELETE FROM relationship WHERE relationship.id = ? AND relationship.requesterid = ? AND relationship.relation = ?'

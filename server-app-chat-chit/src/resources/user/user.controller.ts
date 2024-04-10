@@ -21,7 +21,7 @@ export default class UserController extends MotherController {
   ) {
     super(io);
   }
-  @GET("/user/searchuser")
+  @GET("/searchuser")
   @UseMiddleware(AuthorizeGuard)
   private async searchUser(@Query("phone") phone: string) {
     if (phone) {
@@ -33,14 +33,13 @@ export default class UserController extends MotherController {
     }
     throw new BadRequestException("Agurment is invalid");
   }
-  @GET("/user/:username")
+  @GET("/:username")
   @UseMiddleware(AuthorizeGuard)
   private async inforUser(
     @Params("username") username: string,
     @Headers("userId") userId: number
   ) {
     let data = await this.userSerivce.inforUser(userId, username);
-    // TODO: add status(gồm 4 trạng thái), numberCommonFriend: int}.
     if (username) {
       return new ResponseBody(true, "", data);
     } else throw new BadRequestException("Agurment is invalid");

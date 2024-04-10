@@ -9,6 +9,6 @@ export function Query(propertyKeyGet?: string) {
       type: Type.Query,
       propertyKey: propertyKeyGet
     });
-    Reflect.defineMetadata(requiredMetadataKeyParam, existingRequiredParameters, target[propertyKey], propertyKey)
+    Reflect.defineMetadata(requiredMetadataKeyParam, existingRequiredParameters, target, propertyKey)
   }
 }

@@ -8,6 +8,6 @@ export function Res() {
       parameterIndex: parameterIndex,
       type: Type.Res
     });
-    Reflect.defineMetadata(requiredMetadataKeyParam, existingRequiredParameters, target[propertyKey], propertyKey)
+    Reflect.defineMetadata(requiredMetadataKeyParam, existingRequiredParameters, target, propertyKey)
   }
 } 

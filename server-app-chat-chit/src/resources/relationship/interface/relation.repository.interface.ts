@@ -7,5 +7,6 @@ export interface RelationRepositoryBehavior {
     getAllInvite(userId: number, cursor: number, limit: number): Promise<any[]>;
     inviteToBecomeFriend(userId: number, idReceiver: number): Promise<any>;
     getSomeFriend(userId: number, cursor: number, limit: number): Promise<any>;
-    getSomeFriendCommon(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<any[]>;
+    getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<any[]>;
+    getCountFriendBetWeenUser(userId: number, userIdWGet: number): Promise<number>;
 }

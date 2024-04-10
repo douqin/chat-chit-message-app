@@ -13,6 +13,7 @@ export class ListFriendCommonDTO{
             dto.listFriends.push(user)
             dto.nextCursor = user.userId
         }
+        dto.totalSize = arrRaw.length
         return dto
     }
 }

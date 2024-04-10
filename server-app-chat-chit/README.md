@@ -83,6 +83,13 @@
 - `[DELETE] /invites/me/:invite/` : xóa lời mời kết bạn mà chính bản thân đã gửi
 - `[GET] /friends/online`: lấy tất cả friend online
 - `[GET] /:userId/relation`: lấy ra mối quan hệ giữa user vs user
+- `[GET] /:userId/followers`: lấy ra danh sách người theo dõi user // TODO:
+- `[GET] /:userId/following`: lấy ra danh sách người user đang theo dõi // TODO:
+- `[GET] /:userId/friends/common`: lấy ra danh sách bạn chung
+  - params: {userId: string}
+  - query: {cursor: number, limit: number}
+    - p/s: cursor = -1 lấy mặc định từ đầu
+  - result: [User]
 
 ### Group `/group`
 
@@ -279,7 +286,7 @@
   - body: {content: String, manipulates: [number] (không bắt buộc), replyMessageId: number (không bắt buộc)}.
   - socket: io.emit('new-message', message).
 - `[POST] /:groupId/file`: send tin nhắn dạng file ( video - image - audio) .
-  - req: 
+  - req:
     - form-data: files: [Files]
   - socket: io.emit('new-message', groupId, message).
   - các file hợp lệ gửi cùng lúc nhiều file và tối đa 7 file ( mỗi file tối đa 20MB): chỉ các file là ảnh và video mới được phép gửi không sẽ bị chặn.
@@ -337,21 +344,24 @@
 ### Story `/story`
 
 - `[POST] /upload` upload story.
+
   - req : form-data - { file : File (image or video), visibility : number(Visibility) } .
   - res : { storyId: storyId} .
 
 - `[GET]: /explore` Lấy danh sách story của bạn bè trong 24h gần nhất.
+
   - query : cursor&limit.
   - p/s: cursor = -1 lấy mặc định từ đầu - req : [Story] .
 
 - `[GET] : /":userId/:storyId"`.
+
   - req: params userId và storyId muốn lấy.
   - res: Story.
 
 - `[DELETE] : /me/:storyId` delete story.
   - req: params storyId muốn xóa.
-  
 - `[GET] : /me` lấy danh sách story của mình.
+
   - query : cursor&limit.
   - p/s: cursor = -1 lấy mặc định từ đầu.
   - res: [Story] .
@@ -360,7 +370,7 @@
   - query : cursor&limit.
     - p/s: cursor = -1 lấy mặc định từ đầu.
   - res: [Story] . //TODO:
-  
+
 ### Socket Server nhận
 
 - socket.on('typing', (groupId, me) => {

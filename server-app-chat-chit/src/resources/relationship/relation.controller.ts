@@ -7,7 +7,7 @@ import { isValidNumberVariable } from "@/utils/validate";
 import { User } from "@/models/user.model";
 import { inject } from "tsyringe";
 import { AuthorizeGuard } from "@/middleware/auth.middleware";
-import { Controller, POST, UseMiddleware, GET, PATCH, DELETE, Headers, Params } from "@/lib/decorator";
+import { Controller, POST, UseMiddleware, GET, PATCH, DELETE, Headers, Params, Query } from "@/lib/decorator";
 import { PagingReq } from "@/utils/paging/paging.data";
 
 @Controller("/relationship")
@@ -179,6 +179,29 @@ export default class RelationshipController extends MotherController {
             "",
             {}
         )
+    }
+
+    @GET("/:userId/friends/common")
+    @UseMiddleware(AuthorizeGuard)
+    private async getFriendsCommonBetWeenUser(
+        @Headers("userId") userId: number,
+        @Params("userId") userIdWGet: number,
+        @Query("cursor") cursor: number,
+        @Query("limit") limit: number
+    ) {
+        console.log("🚀 ~ RelationshipController ~ limit:", limit)
+        console.log("🚀 ~ RelationshipController ~ userId:", userId)
+        console.log("🚀 ~ RelationshipController ~ userIdWGet:", userIdWGet)
+        console.log("🚀 ~ RelationshipController ~ cursor:", cursor)
+        if (isValidNumberVariable(cursor) && isValidNumberVariable(limit)) {
+            const data = await this.relationService.getFriendsCommonBetWeenUser(userId, userIdWGet, cursor, limit)
+            return new ResponseBody(
+                true,
+                "",
+                data
+            )
+        }
+        throw (new BadRequestException("Agurment is invalid"))
     }
 }
 

@@ -5,7 +5,7 @@ import { RelationshipUser } from "@/resources/relationship/enums/relationship.en
 export class InforUserDto extends User{
     constructor(
         public status: RelationshipUser,
-        public numberCommonFriend: ListFriendCommonDTO,
+        public numberCommonFriend: number,
         user : User
     ){
         super(user.userId, user.lastName, user.firstName, user.phone, user.birthday, user.gender, user.bio, user.username, user.avatar, user.background, user.email);

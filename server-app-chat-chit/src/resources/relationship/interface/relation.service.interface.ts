@@ -16,5 +16,6 @@ export interface RelationServiceBehavior {
     inviteToBecomeFriend(userId: number, idReceiver: number): Promise<any>;
     getAllFriend(userId: number, cursor: number, limit: number): Promise<ListFriendDTO>;
     getFriendOnline(userId: number): Promise<User[]>
-    getSomeFriendCommon(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO>;
+    getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO>;
+    getCountFriend(userId: number, userIdWGet: number): Promise<number>;
 }

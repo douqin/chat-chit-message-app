@@ -6,12 +6,12 @@ export class ApplicationFactory<T> {
   static createApplication<T, V>(
     moduleClass: TypeClass<V>,
     opts: {
-      initlizeSocket?: boolean,
+      initializeSocket?: boolean,
       baseConfigSocket : Partial<ServerOptions>
     }
   ): App {
     let app = new App();
-    if (opts.initlizeSocket) {
+    if (opts.initializeSocket) {
       app.initSocket(opts.baseConfigSocket);
     }
     app.initilizeController(

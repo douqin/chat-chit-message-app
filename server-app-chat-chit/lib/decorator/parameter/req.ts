@@ -9,6 +9,6 @@ export function Req() {
             parameterIndex: parameterIndex,
             type: Type.Req
         });
-        Reflect.defineMetadata(requiredMetadataKeyParam, existingRequiredParameters, target[propertyKey], propertyKey)
+        Reflect.defineMetadata(requiredMetadataKeyParam, existingRequiredParameters, target, propertyKey)
     }
 }

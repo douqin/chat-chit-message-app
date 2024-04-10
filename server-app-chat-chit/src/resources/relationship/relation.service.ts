@@ -1,7 +1,7 @@
 
 import { RelationServiceBehavior } from "./interface/relation.service.interface"
 import RelationRepostory from "./relation.repository"
-import {  InviteFriendDTO } from "./dto/invite.dto"
+import { InviteFriendDTO } from "./dto/invite.dto"
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface"
 import { RelationshipUser } from "./enums/relationship.enum"
 import { User } from "../../models/user.model"
@@ -23,6 +23,9 @@ export default class RelationService implements RelationServiceBehavior {
 
     constructor(@inject(RelationRepostory) private friendRepostory: RelationRepositoryBehavior) {
     }
+    async getCountFriend(userId: number, userIdWGet: number): Promise<number> {
+        return await this.friendRepostory.getCountFriendBetWeenUser(userId, userIdWGet)
+    }
     async updateRealationship(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean> {
         throw new Error("Method not implemented.")
         //FIXME: !!!
@@ -31,8 +34,8 @@ export default class RelationService implements RelationServiceBehavior {
         //FIXME: !!!
         throw new Error("Method not implemented.")
     }
-    async getSomeFriendCommon(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO> {
-        let friends = (await this.friendRepostory.getSomeFriendCommon(userId, userIdWGet, cursor, limit)).map((value, index) => {
+    async getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO> {
+        let friends = (await this.friendRepostory.getFriendsCommonBetWeenUser(userId, userIdWGet, cursor, limit)).map((value, index) => {
             return User.fromRawData(value)
         });
         return ListFriendCommonDTO.rawToDTO(friends);
