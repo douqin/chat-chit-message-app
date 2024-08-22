@@ -17,7 +17,7 @@ import { ResetPasswordDto } from "./dtos/reset-password.dto";
 import { RegisterAccountDTO } from "./dtos/register.account.dto";
 import { OTPTarget } from "@/services/mail";
 import { LoginSuccessfully } from "@/models/user.model";
-import { HttpCode } from "@/lib/decorator/http.status/http-status-code";
+import { HttpCode } from "@/lib/decorator/http-status/http-status-code";
 @Controller("/auth")
 export default class AuthController extends MotherController {
   constructor(
