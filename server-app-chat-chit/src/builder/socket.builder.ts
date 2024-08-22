@@ -4,7 +4,7 @@ import { iGroupActions } from "@/resources/group/interface/group.service.interfa
 import { Server, Socket } from "socket.io";
 import { container } from "tsyringe";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
-import iSocketBuilder from "@/lib/socker.builder.interface";
+import iSocketBuilder from "@/lib/socket.builder.interface";
 
 export class SocketBuilder implements iSocketBuilder {
   constructor() {}

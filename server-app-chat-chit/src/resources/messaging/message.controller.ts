@@ -9,8 +9,9 @@ import { isValidNumberVariable } from "@/utils/validate";
 import { inject } from "tsyringe";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "./constant/event.io";
-import { Controller, GET, UseMiddleware, POST, FileUpload, PATCH, Params, Query, Headers, Req, Body } from "@/lib/decorator";
+import { Controller, GET, UseGuard, POST, FileUpload, PATCH, Params, Query, Headers, Req, Body } from "@/lib/decorator";
 import { deleteFile, getOptionDefaultForMulter } from "@/utils/extension/file.upload";
+import { AuthorizeMember } from "@/middleware/member.middlerware";
 
 @Controller("/message")
 export default class MessageController extends MotherController {
@@ -20,13 +21,15 @@ export default class MessageController extends MotherController {
 
 
     @GET("/:groupId/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async getMessageFromGroup(
         @Params("groupId") groupId: number,
         @Query("limit") limit: number,
         @Query("cursor") cursor: number,
         @Headers("userId") userId: number
     ) {
+        console.log("🚀 ~ file: message.controller.ts:72 ~ MessageController ~ privateasyncgetMessageFromGroup ~ groupId", groupId)
         if (isValidNumberVariable(groupId) && isValidNumberVariable(limit) && isValidNumberVariable(cursor)) {
             let data = await this.messageService.getAllMessageFromGroup(
                 Number(groupId),
@@ -46,7 +49,7 @@ export default class MessageController extends MotherController {
 
     };
     @POST("/:groupId/file")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     @FileUpload(multer(getOptionDefaultForMulter('message')).array("files", 7))
     private async sendFileMessage(@Params("groupId") groupId: number, @Headers("userId") userId: number, @Req() req: Request) {
         if (isValidNumberVariable(groupId) && req.files) {
@@ -78,7 +81,7 @@ export default class MessageController extends MotherController {
         );
     };
     @POST("/:groupId/text")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async sendTextMessage(@Params("groupId") groupId: number, @Body("replyMessageId") replyMessageId: number, @Body("content") message: string, @Headers("userId") userId: number, @Body("manipulates") tags: Array<number>) {
         if (isValidNumberVariable(groupId) && message) {
             let messageModel = await this.messageService.sendTextMessage(groupId, userId, message, tags, replyMessageId)
@@ -109,7 +112,7 @@ export default class MessageController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     };
     @POST('/:groupId/:messageId/react/:type')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async reactMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("type") type: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(messageId) && isValidNumberVariable(type) && isValidNumberVariable(groupId)) {
             let model = await this.messageService.reactMessage(messageId, type, userId, groupId)
@@ -124,7 +127,7 @@ export default class MessageController extends MotherController {
         } else throw (new BadRequestException("Agurment is invalid"))
     };
     @PATCH("/:groupId/:messageId/recall")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async removeCall(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("messageId") messageId: number) { //FIXME: POSTMAN CHECK
         if (isValidNumberVariable(userId) && isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
             let whowasdel = await this.messageService.removeCall(userId, groupId, messageId)
@@ -145,7 +148,7 @@ export default class MessageController extends MotherController {
     }
 
     @GET("/:groupId/:messageId/one/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getOneMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
             let data = await this.messageService.getOneMessage(messageId)
@@ -160,7 +163,7 @@ export default class MessageController extends MotherController {
     }
 
     @POST("/:groupId/:messageId/forward/:groupIdAddressee/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async forwardMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("groupIdAddressee") groupIdAddressee: number, @Req() req: Request) {
         if (isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
             let data = await this.messageService.forwardMessage(userId, groupId, messageId, groupIdAddressee)
@@ -175,7 +178,7 @@ export default class MessageController extends MotherController {
     }
 
     @POST("/:groupId/gif/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async sendGifMessage(
         @Headers("userId") userId: number,
         @Params("groupId") groupId: number,
@@ -195,7 +198,7 @@ export default class MessageController extends MotherController {
     }
 
     @PATCH("/:groupId/:messageId/pin/:ispin/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async changePinMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("ispin") ispin: boolean, @Headers("userId") userId: number) {
         if (isValidNumberVariable(messageId)) {
             await this.messageService.changePinMessage(groupId, (messageId), (userId), ispin)
@@ -225,7 +228,7 @@ export default class MessageController extends MotherController {
     };
 
     @GET("/pin/:groupId/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getListPinMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.messageService.getListPinMessage(userId, groupId)
@@ -239,7 +242,7 @@ export default class MessageController extends MotherController {
     }
 
     @GET("/:groupId/files/all")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getAllFileFromGroup(
         @Headers("userId") userId: number,
         @Params("groupId") groupId: number,

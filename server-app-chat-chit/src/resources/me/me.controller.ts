@@ -7,7 +7,7 @@ import { NextFunction, Request, Response } from "express";
 import multer from "multer";
 import { ResponseBody } from '@/utils/definition/http.response';
 import { inject } from 'tsyringe';
-import { Controller, PATCH, FileUpload, UseMiddleware, GET, Req, Headers, Body } from '@/lib/decorator';
+import { Controller, PATCH, FileUpload, UseGuard, GET, Req, Headers, Body } from '@/lib/decorator';
 import { AuthorizeGuard } from '@/middleware/auth.middleware';
 
 @Controller("/me")
@@ -17,7 +17,7 @@ export default class MeController extends MotherController {
     }
     @PATCH("/background")
     @FileUpload(multer().single('background'))
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async changeBackground(
         @Headers('userId') userId: number,
         @Req() req: Request
@@ -32,7 +32,7 @@ export default class MeController extends MotherController {
         } else throw (new HttpException(HttpStatus.BAD_REQUEST, "File rỗng !!"))
     }
     @PATCH("/avatar")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async changeAvatar(
         @Headers('userId') userId: number,
         @Req() req: Request
@@ -49,7 +49,7 @@ export default class MeController extends MotherController {
     }
 
     @GET('/profile')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getMyProfile(
         @Headers('userId') userId: number
     ) {
@@ -61,7 +61,7 @@ export default class MeController extends MotherController {
         ))
     }
     @PATCH('/profile')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async updateMyprofile(
         @Headers('userId') userId: number,
         @Body() user : any

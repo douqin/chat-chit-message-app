@@ -7,7 +7,7 @@ import { isValidNumberVariable } from "@/utils/validate";
 import { User } from "@/models/user.model";
 import { inject } from "tsyringe";
 import { AuthorizeGuard } from "@/middleware/auth.middleware";
-import { Controller, POST, UseMiddleware, GET, PATCH, DELETE, Headers, Params, Query } from "@/lib/decorator";
+import { Controller, POST, UseGuard, GET, PATCH, DELETE, Headers, Params, Query } from "@/lib/decorator";
 import { PagingReq } from "@/utils/paging/paging.data";
 
 @Controller("/relationship")
@@ -18,7 +18,7 @@ export default class RelationshipController extends MotherController {
     }
 
     @POST("/:userId/block")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async blockUser(@Headers("userId") userId: number, @Params("userId") userIdBlock: number) {
         if (isValidNumberVariable(userIdBlock) && userId !== userIdBlock) {
             let data = await this.relationService.blockUser(userId, userIdBlock)
@@ -32,7 +32,7 @@ export default class RelationshipController extends MotherController {
         } else throw (new BadRequestException("Agurment is invalid"))
     }
     @GET("/friends")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getAllFriend(
         @Headers("userId") userId: number,
         @Params("cursor") cursor: number,
@@ -56,7 +56,7 @@ export default class RelationshipController extends MotherController {
         )
     }
     @GET("/invites/me")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getAllInvite(
         @Headers("userId") userId: number,
         @Params() paging: PagingReq
@@ -71,7 +71,7 @@ export default class RelationshipController extends MotherController {
         )
     };
     @PATCH("/:userId/unfriend")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async unFriend(
         @Headers("userId") userId: number,
         @Params("userId") userIdUnFriend: number
@@ -86,7 +86,7 @@ export default class RelationshipController extends MotherController {
         )
     };
     @POST("/invites/me/:userId")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async inviteToBecomeFriend(
         @Headers("userId") userId: number,
         @Params("userId") idreceiver: number
@@ -107,7 +107,7 @@ export default class RelationshipController extends MotherController {
         )
     };
     @POST("/accept")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async acceptInviteFriend(
         @Headers("userId") userId: number,
         @Params("idInvite") idInvite: number
@@ -123,7 +123,7 @@ export default class RelationshipController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     };
     @DELETE("/invites/:invite")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async deleteInvite(
         @Headers("userId") userId: number,
         @Params("invite") idInvite: number
@@ -140,7 +140,7 @@ export default class RelationshipController extends MotherController {
 
     };
     @DELETE("/invites/me/:invite/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async deleteMySentInvite(
         @Headers("userId") userId: number,
         @Params("invite") idInvite: number
@@ -156,7 +156,7 @@ export default class RelationshipController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     };
     @GET("/:userId/relation")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getRelationship(@Headers("userId") userId: number, @Params("userId") userIdWGet: number) {
         if (isValidNumberVariable(userIdWGet)) {
             const data = await this.relationService.getRelationship(userId, userIdWGet)
@@ -171,7 +171,7 @@ export default class RelationshipController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @GET("/friends/online")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getFriendOnline(@Headers("userId") userId: number) {
         const data: User[] = await this.relationService.getFriendOnline(userId)
         return new ResponseBody(
@@ -182,7 +182,7 @@ export default class RelationshipController extends MotherController {
     }
 
     @GET("/:userId/friends/common")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getFriendsCommonBetWeenUser(
         @Headers("userId") userId: number,
         @Params("userId") userIdWGet: number,

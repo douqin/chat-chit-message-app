@@ -7,7 +7,7 @@ import { Server } from "socket.io";
 import { convertToObjectDTO, isValidNumberVariable } from "@/utils/validate";
 import { inject } from "tsyringe";
 import StoryService from "./story.service";
-import { Controller, POST, FileUpload, GET, UseMiddleware as UseGuard, DELETE, Params, Headers, Query, Body } from "@/lib/decorator";
+import { Controller, POST, FileUpload, GET, UseGuard as UseGuard, DELETE, Params, Headers, Query, Body } from "@/lib/decorator";
 import { ValidateErrorBuilder } from "@/utils/validate";
 import { OptionUploadStoryDTO } from "./dtos/upload.story";
 import { deleteFile, getOptionDefaultForMulter as getOptionDefaultForMulter } from "@/utils/extension/file.upload";

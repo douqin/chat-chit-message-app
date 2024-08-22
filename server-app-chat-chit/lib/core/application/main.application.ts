@@ -32,7 +32,7 @@ import { convertToObjectDTO } from "../../../src/utils/validate";
 import chalk from "chalk";
 import { TypeClass } from "@/lib/types";
 import { createServer } from "http";
-import iSocketBuilder from "@/lib/socker.builder.interface";
+import iSocketBuilder from "@/lib/socket.builder.interface";
 export class App {
   private server: any;
   private io: Server;
@@ -77,7 +77,7 @@ export class App {
         this.router[route.requestMethod](
           controller.pathMain + route.path,
           multerX,
-          middlewareDecorator(middlewares),
+          ...middlewareDecorator(middlewares),
           async (req: Request, res: Response, next: NextFunction) => {
             try {
               let argsType: any[] = Reflect.getMetadata(

@@ -5,17 +5,14 @@ import { NextFunction, Request, Response } from "express";
 
 export function middlewareDecorator(
   middlewares: TypeClass<BaseMiddleware>[]
-) {
+)  {
   let _middlewares = middlewares;
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (middlewares.length == 0) {
-      next();
-      return;
-    }
+    let a  = []
     for (let i = 0; i < _middlewares.length; i++) {
-      let a = globalContainer.resolve(_middlewares[i]).use(req, res, next);
+      a.push(globalContainer.resolve(_middlewares[i]).use)
     }
-  };
+    // a.push(middlewareVirtual)
+    return a;
 }
 export function middlewareVirtual(
   req: Request,

@@ -10,7 +10,7 @@ import {
   Headers,
   Params,
   Query,
-  UseMiddleware,
+  UseGuard,
 } from "@/lib/decorator";
 
 @Controller("/user")
@@ -22,7 +22,7 @@ export default class UserController extends MotherController {
     super(io);
   }
   @GET("/searchuser")
-  @UseMiddleware(AuthorizeGuard)
+  @UseGuard(AuthorizeGuard)
   private async searchUser(@Query("phone") phone: string) {
     if (phone) {
       return new ResponseBody(
@@ -34,12 +34,12 @@ export default class UserController extends MotherController {
     throw new BadRequestException("Agurment is invalid");
   }
   @GET("/:username")
-  @UseMiddleware(AuthorizeGuard)
+  @UseGuard(AuthorizeGuard)
   private async inforUser(
     @Params("username") username: string,
     @Headers("userId") userId: number
   ) {
-    let data = await this.userSerivce.inforUser(userId, username);
+    let data = await this.userSerivce.infoUser(userId, username);
     if (username) {
       return new ResponseBody(true, "", data);
     } else throw new BadRequestException("Agurment is invalid");

@@ -13,7 +13,7 @@ import { inject } from "tsyringe";
 import { getRoomUserIO } from "@/utils/extension/room.user";
 import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "../messaging/constant/event.io";
-import { Controller, DELETE, FileUpload, GET, PATCH, POST, Params, Headers, UseMiddleware, Query, Body, Req } from "@/lib/decorator";
+import { Controller, DELETE, FileUpload, GET, PATCH, POST, Params, Headers, UseGuard, Query, Body, Req } from "@/lib/decorator";
 import { PagingReq } from "@/utils/paging/paging.data";
 @Controller("/group")
 export default class GroupController extends MotherController {
@@ -22,7 +22,7 @@ export default class GroupController extends MotherController {
     }
 
     @POST('/:id/admin/pending')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getListUserPending(@Params("id") groupId: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.groupService.getListUserPending(userId, groupId)
@@ -35,7 +35,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @POST("/:link/request-join")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async requestJoinFromLink(@Headers("userId") userId: number, @Params("link") link: string) {
         if (link) {
             let data = await this.groupService.requestJoinFromLink(userId, link)
@@ -60,7 +60,7 @@ export default class GroupController extends MotherController {
     }
 
     @GET("/:link")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getBaseInformationGroupFromLink(@Headers("userId") userId: number, @Params("link") link: string) {
         if (link) {
             let data = await this.groupService.getBaseInformationGroupFromLink(link)
@@ -76,7 +76,7 @@ export default class GroupController extends MotherController {
     }
 
     @GET("/")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getSomeGroup(@Query() pagingReq: PagingReq, @Headers("userId") userId: number) {
         let data = await this.groupService.getSomeGroup(userId, pagingReq.cursor, pagingReq.limit)
         return (new ResponseBody(
@@ -87,7 +87,7 @@ export default class GroupController extends MotherController {
     }
 
     @POST('/community-group')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async createCommunityGroup(@Headers("userId") userId: number, @Body("users") users: number[], @Body("name") name: string) {
         if (name) {
             let data = await this.groupService.createCommunityGroup(name, userId, users)
@@ -104,7 +104,7 @@ export default class GroupController extends MotherController {
     }
     //FIXME: change status group to default or stranger
     @POST('/individual-group/:userId')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async createInvidualGroup(@Headers("userId") userId: number, @Params("userId") userIdAddressee: number) {
         if (userIdAddressee) {
             let data = await this.groupService.createInvidualGroup(userId, userIdAddressee)
@@ -120,7 +120,7 @@ export default class GroupController extends MotherController {
     }
     @PATCH('/:id/avatar')
     @FileUpload(multer().single("avatar"))
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async changeAvatarGroup(@Headers("userId") userId: number, @Params("id") id: number, @Req() req: Request) {
         if (await this.groupService.isUserExistInGroup(userId, Number(id))) {
             let file = req.file;
@@ -144,7 +144,7 @@ export default class GroupController extends MotherController {
 
     //FIXME:  logic
     @GET('/:id/lastview')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getLastViewMember(@Headers("userId") userId: number, @Params("id") id: number) {
         if (await this.groupService.isUserExistInGroup(userId, Number(id))) {
             let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
@@ -156,14 +156,14 @@ export default class GroupController extends MotherController {
         }
     }
     @GET('/:id/community-group')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getOneGroup(@Headers("userId") userId: number, @Params("id") id: number) {
         let data = await this.groupService.getOneGroup(userId, Number(id))
         return (new ResponseBody(true, "OK", data))
     }
 
     @GET('/:id/members')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getAllMember(@Headers("userId") userId: number, @Params("id") id: number) {
         if (isValidNumberVariable(id)) {
             let data = await this.groupService.getAllMember(userId, Number(id))
@@ -182,7 +182,7 @@ export default class GroupController extends MotherController {
         return (new ResponseBody(true, "OK", {}))
     }
     @POST('/:id/members/leave')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async leaveGroup(@Headers("userId") userId: number, @Params("id") id: number) {
         if (isValidNumberVariable(userId) && isValidNumberVariable(id)) {
             let message = await this.groupService.leaveGroup(userId, Number(id))
@@ -197,7 +197,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @PATCH('/admin/:id/manager')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async addManager(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("invitee") invitee: number) {
         if (isValidNumberVariable(invitee) && isValidNumberVariable(groupId) && userId !== invitee) {
             let data = await this.groupService.addManager(userId, invitee, groupId)
@@ -214,7 +214,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @DELETE('/admin/:id/manager')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async removeManager(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("manager") manager: number) {
         if (isValidNumberVariable(manager) && isValidNumberVariable(groupId) && userId !== manager) {
             let data = await this.groupService.removeManager(userId, manager, groupId)
@@ -231,7 +231,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @DELETE('/admin/:id/member/:userId')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async removeMember(
         @Headers("userId") userId: number,
         @Params("id") groupId: number,
@@ -252,7 +252,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @PATCH('/admin/:id/rename')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async renameGroup(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("name") name: string) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.groupService.renameGroup(userId, groupId, name)
@@ -268,7 +268,7 @@ export default class GroupController extends MotherController {
         }
     }
     @PATCH('/admin/:id/blockmember')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async blockMember(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("manager") userIdAdd: number) {
         if (userIdAdd && groupId && userId !== userIdAdd) {
             let data = await this.groupService.blockMember(userId, userIdAdd, groupId)
@@ -283,7 +283,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @POST("/admin/:id/approval/:userId")
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async approvalMember(@Headers("userId") userId: number, @Params("id") groupId: number, @Params("userId") userIdAdd: number) {
         if (isValidNumberVariable(userIdAdd) && isValidNumberVariable(groupId) && userId !== userIdAdd) {
             let data = await this.groupService.approvalMember(userId, userIdAdd, groupId)
@@ -301,7 +301,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @GET('/:groupId/member/:userId/')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async getInformationMember(@Headers("userId") myId: number, @Params("groupId") groupId: number, @Params("userId") userIdGet: number) {
         if (isValidNumberVariable(userIdGet) && isValidNumberVariable(groupId)) {
             let data = await this.groupService.getInformationMember(userIdGet, myId, groupId)
@@ -316,7 +316,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Agurment is invalid"))
     }
     @PATCH('/:id/renickname')
-    @UseMiddleware(AuthorizeGuard)
+    @UseGuard(AuthorizeGuard)
     private async changeNickname(@Body("nickname") nickname: string, @Headers("userId") userId: number, @Params("id") groupId: number) {
         if (nickname && isValidNumberVariable(userId) && isValidNumberVariable(groupId)) {
             let data = await this.groupService.changeNickname(userId, userId, groupId, nickname)

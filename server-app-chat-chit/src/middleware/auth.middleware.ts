@@ -17,6 +17,7 @@ export class AuthorizeGuard extends BaseGuard {
                     const { userId } = jwtPayload.payload;
                     if (userId) {
                         req.headers['userId'] = userId;
+                        console.log("🚀 ~ file: auth.middleware.ts:33 ~ AuthMiddleware ~ token", req.headers['userId'])
                         next()
                         return
                     }
