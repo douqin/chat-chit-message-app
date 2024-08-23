@@ -341,36 +341,6 @@
   - body: {options: [String]}.
   - socket: io.emit('update-vote-message', groupId, voteMessage).
 
-### Story `/story`
-
-- `[POST] /upload` upload story.
-
-  - req : form-data - { file : File (image or video), visibility : number(Visibility) } .
-  - res : { storyId: storyId} .
-
-- `[GET]: /explore` Lấy danh sách story của bạn bè trong 24h gần nhất.
-
-  - query : cursor&limit.
-  - p/s: cursor = -1 lấy mặc định từ đầu - req : [Story] .
-
-- `[GET] : /":userId/:storyId"`.
-
-  - req: params userId và storyId muốn lấy.
-  - res: Story.
-
-- `[DELETE] : /me/:storyId` delete story.
-  - req: params storyId muốn xóa.
-- `[GET] : /me` lấy danh sách story của mình.
-
-  - query : cursor&limit.
-  - p/s: cursor = -1 lấy mặc định từ đầu.
-  - res: [Story] .
-
-- `[GET] : /:userId` lấy danh sách story của user.
-  - query : cursor&limit.
-    - p/s: cursor = -1 lấy mặc định từ đầu.
-  - res: [Story] . //TODO:
-
 ### Socket Server nhận
 
 - socket.on('typing', (groupId, me) => {
@@ -382,9 +352,9 @@
   });
 
 - socket.on('get-user-online', (userId, ({isOnline, lastLogin}) => {} ))
--
-- socket.on('group-last-view', (groupId) => {}): để cập nhật lại last view của mình ở group hoặc channel đó (nếu là channel thì phải truyền cả 2 tham số).
 
+- socket.on('group-last-view', (groupId) => {}): để cập nhật lại last view của mình ở group hoặc channel đó (nếu là channel thì phải truyền cả 2 tham số).
+  
 ### Một số quy chuẩn dữ liệu
 
 ```RelationshipUser {

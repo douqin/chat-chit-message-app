@@ -32,10 +32,6 @@ export default class RelationService implements RelationServiceBehavior {
     async updateRelationship(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean> {
         return await this.relationRepository.updateRelationship(userId, userIdBlock, relationship)
     }
-    async createRelationShip(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean> {
-        //FIXME: !!!
-        throw new Error("Method not implemented.")
-    }
     async getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO> {
         let friends = (await this.relationRepository.getFriendsCommonBetWeenUser(userId, userIdWGet, cursor, limit)).map((value, index) => {
             return User.fromRawData(value)

@@ -7,7 +7,6 @@ import { ListFriendCommonDTO } from "../dto/list.friend.common.dto";
 export interface RelationServiceBehavior {
     unBlockUser(userId: number, unBlockingUserId: number): Promise<boolean>;
     updateRelationship(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean>;
-    createRelationShip(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean>;
     getRelationship(userId: number, userIdWGet: number): Promise<RelationshipUser>;
     deleteInvite(userId: number, idInvite: number): Promise<boolean>;
     deleteMySentInvite(userId: number, idInvite: number): Promise<boolean>;
