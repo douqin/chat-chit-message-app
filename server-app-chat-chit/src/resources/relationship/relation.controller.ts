@@ -1,7 +1,6 @@
 import { BadRequestException, HttpException, HttpStatus, MotherController } from "@/lib/common";
 import { Server } from "socket.io";
 import RelationService from "./relation.service";
-import { NextFunction, Request, Response } from "express";
 import { ResponseBody } from "@/utils/definition/http.response";
 import { isValidNumberVariable } from "@/utils/validate";
 import { User } from "@/models/user.model";
@@ -17,7 +16,7 @@ export default class RelationshipController extends MotherController {
         super(io);
     }
 
-    @POST("/:userId/block")
+    @PATCH("/:userId/block")
     @UseGuard(AuthorizeGuard)
     private async blockUser(@Headers("userId") userId: number, @Params("userId") userIdBlock: number) {
         if (isValidNumberVariable(userIdBlock) && userId !== userIdBlock) {
@@ -29,14 +28,28 @@ export default class RelationshipController extends MotherController {
                     data
                 )
             )
-        } else throw (new BadRequestException("Agurment is invalid"))
+        } else throw (new BadRequestException("Argument is invalid"))
+    }
+    @PATCH("/:userId/un-block")
+    @UseGuard(AuthorizeGuard)
+    private async unBlockUser(@Headers("userId") userId: number, @Params("userId") unBlockingUserId: number) {
+        if (isValidNumberVariable(unBlockingUserId) && userId !== unBlockingUserId) {
+            let data = await this.relationService.unBlockUser(userId, unBlockingUserId)
+            return (
+                new ResponseBody(
+                    true,
+                    "",
+                    data
+                )
+            )
+        } else throw (new BadRequestException("Argument is invalid"))
     }
     @GET("/friends")
     @UseGuard(AuthorizeGuard)
     private async getAllFriend(
         @Headers("userId") userId: number,
-        @Params("cursor") cursor: number,
-        @Params("limit") limit: number
+        @Query("cursor") cursor: number,
+        @Query("limit") limit: number
     ) {
         if (isValidNumberVariable(cursor) && isValidNumberVariable(limit)) {
             let data = await this.relationService.getAllFriend(userId, cursor, limit)
@@ -47,13 +60,9 @@ export default class RelationshipController extends MotherController {
                     data
                 )
             )
-        } else return (
-            new ResponseBody(
-                true,
-                "",
-                []
-            )
-        )
+        } 
+        console.log("🚀 ~ RelationshipController ~ getAllFriend: ", cursor, limit)
+        throw (new BadRequestException("Argument is invalid"))
     }
     @GET("/invites/me")
     @UseGuard(AuthorizeGuard)

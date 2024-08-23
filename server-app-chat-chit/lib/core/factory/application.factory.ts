@@ -14,7 +14,7 @@ export class ApplicationFactory<T> {
     if (opts.initializeSocket) {
       app.initSocket(opts.baseConfigSocket);
     }
-    app.initilizeController(
+    app.initializeController(
       ApplicationFactory.getControllerFromModule(moduleClass).map(
         (controller) => globalContainer.resolve(controller)
       ) as MotherController[]

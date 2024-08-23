@@ -1,4 +1,7 @@
+import { RelationshipUser } from "../enums/relationship.enum";
+
 export interface RelationRepositoryBehavior {
+    updateRelationship(userId: number, userIdBlock: number, relationship: RelationshipUser) : Promise<boolean>;
     deleteMySentInvite(userId: number, idInvite: number): boolean | PromiseLike<boolean>;
     deleteInvite(userId: number, idInvite: number): boolean | PromiseLike<boolean>;
     getRelationship(userId: number, userIdWGet: number): Promise<number>;

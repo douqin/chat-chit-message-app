@@ -46,10 +46,10 @@ export class App {
     });
     this.initializeDatabase();
   }
-  public initBaseRequesthandler() {
+  public initBaseRequestHandler() {
     this.express.use(responseSentMiddleware);
   }
-  public initilizeController(controllers: MotherController[]) {
+  public initializeController(controllers: MotherController[]) {
     this.controllers = controllers;
   }
   public startAllControllers() {
@@ -128,7 +128,6 @@ export class App {
                       } else args.push(req.params);
                       break;
                     case Type.Query:
-                      console.log("🚀 ~ data ~ i.propertyKey", i);
                       if (i.propertyKey) {
                         args.push(
                           await convertToObjectDTO(

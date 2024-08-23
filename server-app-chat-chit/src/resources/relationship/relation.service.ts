@@ -1,6 +1,6 @@
 
 import { RelationServiceBehavior } from "./interface/relation.service.interface"
-import RelationRepostory from "./relation.repository"
+import RelationRepository from "./relation.repository"
 import { InviteFriendDTO } from "./dto/invite.dto"
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface"
 import { RelationshipUser } from "./enums/relationship.enum"
@@ -12,30 +12,32 @@ import { BadRequestException } from "@/lib/common"
 @injectable()
 export default class RelationService implements RelationServiceBehavior {
     async blockUser(userId: number, userIdBlock: number): Promise<boolean> {
-        //FIXME: !!!
-        return this.updateRealationship(userId, userIdBlock, RelationshipUser.BLOCKED)
+        return this.updateRelationship(userId, userIdBlock, RelationshipUser.BLOCKED)
     }
     async inviteToBecomeFriend(userIdSend: number, idReceiver: number) {
-        if (await this.friendRepostory.getRelationship(userIdSend, idReceiver) === RelationshipUser.NO_RELATIONSHIP) {
-            await this.friendRepostory.inviteToBecomeFriend(userIdSend, idReceiver)
+        if (await this.relationRepository.getRelationship(userIdSend, idReceiver) === RelationshipUser.NO_RELATIONSHIP) {
+            await this.relationRepository.inviteToBecomeFriend(userIdSend, idReceiver)
         }
     }
 
-    constructor(@inject(RelationRepostory) private friendRepostory: RelationRepositoryBehavior) {
+    constructor(@inject(RelationRepository) private relationRepository: RelationRepositoryBehavior) {
+    }
+
+    async unBlockUser(userId: number, unBlockingUserId: number): Promise<boolean> {
+        return await this.updateRelationship(userId, unBlockingUserId, RelationshipUser.NO_RELATIONSHIP);
     }
     async getCountFriend(userId: number, userIdWGet: number): Promise<number> {
-        return await this.friendRepostory.getCountFriendBetWeenUser(userId, userIdWGet)
+        return await this.relationRepository.getCountFriendBetWeenUser(userId, userIdWGet)
     }
-    async updateRealationship(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean> {
-        throw new Error("Method not implemented.")
-        //FIXME: !!!
+    async updateRelationship(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean> {
+        return await this.relationRepository.updateRelationship(userId, userIdBlock, relationship)
     }
     async createRelationShip(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean> {
         //FIXME: !!!
         throw new Error("Method not implemented.")
     }
     async getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<ListFriendCommonDTO> {
-        let friends = (await this.friendRepostory.getFriendsCommonBetWeenUser(userId, userIdWGet, cursor, limit)).map((value, index) => {
+        let friends = (await this.relationRepository.getFriendsCommonBetWeenUser(userId, userIdWGet, cursor, limit)).map((value, index) => {
             return User.fromRawData(value)
         });
         return ListFriendCommonDTO.rawToDTO(friends);
@@ -64,31 +66,31 @@ export default class RelationService implements RelationServiceBehavior {
         throw new Error("Method not implemented.")
     } // FIXME: TEST POSTMAN
     async deleteInvite(userId: number, idInvite: number): Promise<boolean> {
-        return await this.friendRepostory.deleteInvite(userId, idInvite)
+        return await this.relationRepository.deleteInvite(userId, idInvite)
     }
     async deleteMySentInvite(userId: number, idInvite: number): Promise<boolean> {
-        return await this.friendRepostory.deleteMySentInvite(userId, idInvite)
+        return await this.relationRepository.deleteMySentInvite(userId, idInvite)
     }
     async getAllInvite(userId: number, cursor: number, limit: number): Promise<InviteFriendDTO> {
-        let arrRaw = (await this.friendRepostory.getAllInvite(userId, cursor, limit))
+        let arrRaw = (await this.relationRepository.getAllInvite(userId, cursor, limit))
         return InviteFriendDTO.rawToDTO(arrRaw);
     }
     async acceptInviteFriend(userId: number, idInvite: number): Promise<boolean> {
-        return await this.friendRepostory.acceptInviteFriend(userId, idInvite)
+        return await this.relationRepository.acceptInviteFriend(userId, idInvite)
     }
     async unFriend(userId: number, userIdUnFriend: number): Promise<boolean> {
-        if (await this.friendRepostory.getRelationship(userId, userIdUnFriend) === RelationshipUser.FRIEND) {
+        if (await this.relationRepository.getRelationship(userId, userIdUnFriend) === RelationshipUser.FRIEND) {
             console.log("")
-            return await this.friendRepostory.unFriend(userId, userIdUnFriend)
+            return await this.relationRepository.unFriend(userId, userIdUnFriend)
         }
         throw new BadRequestException("You are not friend")
     }
     async getAllFriend(userId: number, cursor: number, limit: number): Promise<ListFriendDTO> {
-        let arrRaw = (await this.friendRepostory.getSomeFriend(userId, cursor, limit))
+        let arrRaw = (await this.relationRepository.getSomeFriend(userId, cursor, limit))
         return ListFriendDTO.rawToDTO(arrRaw);
     }
     async getRelationship(userId: number, userIdWGet: number) {
-        return this.friendRepostory.getRelationship(userId, userIdWGet)
+        return this.relationRepository.getRelationship(userId, userIdWGet)
     }
 
 }

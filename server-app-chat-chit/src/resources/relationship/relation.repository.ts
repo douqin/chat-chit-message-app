@@ -5,9 +5,14 @@ import { inject, injectable } from 'tsyringe';
 import { RawDataMysql } from '@/models/raw.data';
 
 @injectable()
-export default class RelationRepostory implements RelationRepositoryBehavior {
+export default class RelationRepository implements RelationRepositoryBehavior {
 
     constructor(@inject(Database) private db: iDatabase) { }
+    async updateRelationship(userId: number, userIdBlock: number, relationship: RelationshipUser): Promise<boolean> {
+        const query = 'UPDATE relationship SET relation = ? WHERE requesterid = ? AND addresseeid = ?';
+        await this.db.executeQuery(query, [relationship, userId, userIdBlock]);
+        return true;
+    }
 
     async getCountFriendBetWeenUser(userId: number, userIdWGet: number): Promise<number> {
         const query = `SELECT
