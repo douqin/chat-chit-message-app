@@ -8,7 +8,7 @@ import GroupService from "@/resources/group/group.service";
 import { isValidNumberVariable } from "@/utils/validate";
 
 @Guard()
-export class AuthorizeMember extends BaseGuard {
+export class AuthorizeMemberGuard extends BaseGuard {
     public async use(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const userId = Number(req.headers.userId)

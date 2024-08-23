@@ -133,7 +133,7 @@
       }```
       ````
 
-- `[GET] /:id`: get một group.
+- `[GET] /:groupId`: get một group.
 - `[POST] /individual-group/:userId`: tạo cuộc trò chuyện cá nhân (socket tới userId, nhận được socket này thì bắn socket join-group).
   - result: { groupId : number, isExisted : boolean }
     - p/s: trong trường hợp đã có rồi thì sẽ lấy ra group đã tồn tại
@@ -142,14 +142,14 @@
   - body: {name:String, userIds: [String]}.
   - socket: io.emit('create-group', groupId).
   - result: {\_id: String}.
-- `[PATCH] /:id/renickname`: đổi biệt danh cá nhân
+- `[PATCH] /:groupId/re-nickname`: đổi biệt danh cá nhân
   - body: {name: String}.
   - socket: io.emit('change_nickname', message (mesage type noti) )
-- `[PATCH] /:id/avatar`: thay ảnh nhóm.
+- `[PATCH] /:groupId/avatar`: thay ảnh nhóm.
   - req: {avatar: File}. - form data
   - socket: io.emit('update-avatar-group', groupId, groupAvatar, message).
   - socket: io.emit('new-message', message (Message Noti) ).
-- `[GET] /:id/members`: danh sách thành viên.
+- `[GET] /:groupId/members`: danh sách thành viên.
 
   - res:
 
@@ -164,38 +164,37 @@
         }
     ]```
     ````
-
-- `[POST] /:id/members`: thêm nhiều thành viên.
+- `[POST] /:groupId/members`: thêm nhiều thành viên.
   - p/s: gr private thì chỉ có admin mới add được còn group public thì sẽ cho vô hàng chờ duyệt hoặc duyệt ( phụ thuộc vào group có auto approval hay không) thì ai đều add được //TODO:
   - body: {userIds: [String]}.
   - socket (đối với thành viên trong nhóm) : io.emit('new-message', message).
   - socket (đối với user đc add): io.emit('added-group', groupId).
   - socket: io.emit('update-member', groupId).
-- `[DELETE] /:id/members/:userId`: xóa thành viên.
+- `[DELETE] /:groupId/members/:userId`: xóa thành viên.
   - socket (đối với thành viên trong nhóm) : io.emit('new-message', groupId, message).
   - socket (đối với user bị xóa): io.emit('deleted-group', groupId).
   - socket: io.emit('update-member', groupId).
-- `[DELETE] /:id/members/leave`: Rời nhóm.
+- `[DELETE] /:groupId/members/leave`: Rời nhóm.
   - socket: io.emit('new-message', groupId, message )
   - socket: io.emit('update-member', groupId).
-- `[DELETE] /:id`: xóa nhóm. //TODO:
-- `[POST] /:id/members/join-from-link`: tham gia từ link.
+- `[DELETE] /:groupId`: xóa nhóm. //TODO:
+- `[POST] /:groupId/members/join-from-link`: tham gia từ link.
   - socket (đối với thành viên trong nhóm) : io.emit('new-message', groupId, message) (nội dung: 'Tham gia từ link').
   - socket (đối với user đc add): io.emit('added-group', groupId).
   - socket: io.emit('update-member', groupId).
-- `[GET] /:id/summary`: thông tin khi vào nhóm.
+- `[GET] /:groupId/summary`: thông tin khi vào nhóm.
   - result: {\_id, name, avatar, users: [{name, avatar}] }.
-- `[GET] /:id/last-view`: danh sách last view của danh sách members.
+- `[GET] /:groupId/last-view`: danh sách last view của danh sách members.
   - result: [{ user: {_id, name, avatar}, lastView: Date }].
-- `[POST] /:id/managers`: thêm người quản lý nhóm.
+- `[POST] /:groupId/managers`: thêm người quản lý nhóm.
   - body: {managerIds: [String]}.
   - socket: io.emit('add-managers', {groupId, managerIds})
   - socket: io.emit('new-message', groupId, message) (content: ADD_MANAGERS).
-- `[DELETE] /:id/managers`: xóa người quản lý nhóm.
+- `[DELETE] /:groupId/managers`: xóa người quản lý nhóm.
   - body: {managerIds: [String]}.
   - socket: io.emit('delete-managers', {groupId, managerIds})
   - socket: io.emit('new-message', groupId, message) (content: DELETE_MANAGERS).
-- `[GET] /:id/community-group` get one community group
+- `[GET] /:groupId/community-group` get one community group
 
   - res :
 
@@ -226,7 +225,6 @@
                 "numMessageUnread": number
             }  ```
     ````
-
 - `[GET] /:link` lấy data cơ bản của group
 
   - res:
@@ -242,10 +240,9 @@
               "role": string,
     }
     ```
-
 - `[POST] /:link/request-join`: nếu join thành công thì emit tới group hoặc là vào hàng đợi pending chờ duyệt hoặc là đã tham gia hoặc bị block ở group sẽ trả lỗi
   - io.emit("request-join-from-link", message (notify) )
-- `[GET] /:id/queue-wait`: lấy danh sách đang chờ duyệt
+- `[GET] /:groupId/queue-wait`: lấy danh sách đang chờ duyệt
 
   - res:
 
@@ -260,17 +257,16 @@
         }
     ]
     ```
-
-- `[POST] /admin/:id/approval/:userId`: duyệt thành viên
+- `[POST] /admin/:groupId/approval/:userId`: duyệt thành viên
   - io.emit('approval-member' , {userIds : number})
   - io.emit('new-message', [Message])
 - `[DELETE]` : remove manager
   - io.emit("remove-manager", { userId: number })
   - io.emit("new-message", [Message])
-- `[DELETE] /admin/:id/member/:userId` : remove member
+- `[DELETE] /admin/:groupId/member/:userId` : remove member
   - io.emit("member_was_remove", { userId: number })
   - io.emit("new-message", [Message])
-- `[PATCH] /admin/:id/rename`
+- `[PATCH] /admin/:groupId/rename`
   - io.emit("rename-group", { name: string })
   - io.emit("new-message", [Message])
 

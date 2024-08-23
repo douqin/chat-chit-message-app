@@ -11,7 +11,7 @@ import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "./constant/event.io";
 import { Controller, GET, UseGuard, POST, FileUpload, PATCH, Params, Query, Headers, Req, Body } from "@/lib/decorator";
 import { deleteFile, getOptionDefaultForMulter } from "@/utils/extension/file.upload";
-import { AuthorizeMember } from "@/middleware/member.middlerware";
+import { AuthorizeMemberGuard } from "@/middleware/member.middleware";
 
 @Controller("/message")
 export default class MessageController extends MotherController {
@@ -22,7 +22,7 @@ export default class MessageController extends MotherController {
 
     @GET("/:groupId/")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async getMessageFromGroup(
         @Params("groupId") groupId: number,
         @Query("limit") limit: number,
@@ -51,7 +51,7 @@ export default class MessageController extends MotherController {
     @POST("/:groupId/file")
     @UseGuard(AuthorizeGuard)
     @FileUpload(multer(getOptionDefaultForMulter('message')).array("files", 7))
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async sendFileMessage(@Params("groupId") groupId: number, @Headers("userId") userId: number, @Req() req: Request) {
         if (isValidNumberVariable(groupId) && req.files) {
             const userId = Number(req.headers['userId'] as string)
@@ -83,7 +83,7 @@ export default class MessageController extends MotherController {
     };
     @POST("/:groupId/text")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async sendTextMessage(@Params("groupId") groupId: number, @Body("replyMessageId") replyMessageId: number, @Body("content") message: string, @Headers("userId") userId: number, @Body("manipulates") tags: Array<number>) {
         if (isValidNumberVariable(groupId) && message) {
             let messageModel = await this.messageService.sendTextMessage(groupId, userId, message, tags, replyMessageId)
@@ -115,7 +115,7 @@ export default class MessageController extends MotherController {
     };
     @POST('/:groupId/:messageId/react/:type')
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async reactMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("type") type: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(messageId) && isValidNumberVariable(type) && isValidNumberVariable(groupId)) {
             let model = await this.messageService.reactMessage(messageId, type, userId, groupId)
@@ -131,7 +131,7 @@ export default class MessageController extends MotherController {
     };
     @PATCH("/:groupId/:messageId/recall")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async reCallMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("messageId") messageId: number) { 
         //FIXME: POSTMAN CHECK
         if (isValidNumberVariable(userId) && isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
@@ -154,7 +154,7 @@ export default class MessageController extends MotherController {
 
     @GET("/:groupId/:messageId/one/")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async getOneMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
             let data = await this.messageService.getOneMessage(messageId)
@@ -170,7 +170,7 @@ export default class MessageController extends MotherController {
 
     @POST("/:groupId/:messageId/forward/:groupIdAddressee/")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async forwardMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("groupIdAddressee") groupIdAddressee: number, @Req() req: Request) {
         if (isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
             let data = await this.messageService.forwardMessage(userId, groupId, messageId, groupIdAddressee)
@@ -186,7 +186,7 @@ export default class MessageController extends MotherController {
 
     @POST("/:groupId/gif/")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async sendGifMessage(
         @Headers("userId") userId: number,
         @Params("groupId") groupId: number,
@@ -207,7 +207,7 @@ export default class MessageController extends MotherController {
 
     @PATCH("/:groupId/:messageId/pin/:ispin/")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async changePinMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("ispin") ispin: boolean, @Headers("userId") userId: number) {
         if (isValidNumberVariable(messageId)) {
             await this.messageService.changePinMessage(groupId, (messageId), (userId), ispin)
@@ -238,7 +238,7 @@ export default class MessageController extends MotherController {
 
     @GET("/pin/:groupId/")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async getListPinMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.messageService.getListPinMessage(userId, groupId)
@@ -253,7 +253,7 @@ export default class MessageController extends MotherController {
 
     @GET("/:groupId/files/all")
     @UseGuard(AuthorizeGuard)
-    @UseGuard(AuthorizeMember)
+    @UseGuard(AuthorizeMemberGuard)
     private async getAllFileFromGroup(
         @Headers("userId") userId: number,
         @Params("groupId") groupId: number,

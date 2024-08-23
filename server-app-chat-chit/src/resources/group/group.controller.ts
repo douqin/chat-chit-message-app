@@ -21,9 +21,9 @@ export default class GroupController extends MotherController {
         super(io)
     }
 
-    @POST('/:id/admin/pending')
+    @POST('/:groupId/admin/pending')
     @UseGuard(AuthorizeGuard)
-    private async getListUserPending(@Params("id") groupId: number, @Headers("userId") userId: number) {
+    private async getListUserPending(@Params("groupId") groupId: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.groupService.getListUserPending(userId, groupId)
             return (new ResponseBody(
@@ -118,16 +118,16 @@ export default class GroupController extends MotherController {
             ))
         }
     }
-    @PATCH('/:id/avatar')
+    @PATCH('/:groupId/avatar')
     @FileUpload(multer().single("avatar"))
     @UseGuard(AuthorizeGuard)
-    private async changeAvatarGroup(@Headers("userId") userId: number, @Params("id") id: number, @Req() req: Request) {
-        if (await this.groupService.isUserExistInGroup(userId, Number(id))) {
+    private async changeAvatarGroup(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Req() req: Request) {
+        if (await this.groupService.isUserExistInGroup(userId, Number(groupId))) {
             let file = req.file;
             if (file && file.mimetype.includes("image")) {
-                let data = await this.groupService.changeAvatarGroup(userId, (id), file)
-                this.io.to(getRoomGroupIO(id)).emit(EventGroupIO.CHANGE_AVATAR, { url: data?.url })
-                this.io.to(getRoomGroupIO(id)).emit(EventMessageIO.NEW_MESSAGE, [data?.message])
+                let data = await this.groupService.changeAvatarGroup(userId, (groupId), file)
+                this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.CHANGE_AVATAR, { url: data?.url })
+                this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [data?.message])
                 return (new ResponseBody(
                     true,
                     "",
@@ -143,11 +143,11 @@ export default class GroupController extends MotherController {
     }
 
     //FIXME:  logic
-    @GET('/:id/lastview')
+    @GET('/:groupId/lastview')
     @UseGuard(AuthorizeGuard)
-    private async getLastViewMember(@Headers("userId") userId: number, @Params("id") id: number) {
-        if (await this.groupService.isUserExistInGroup(userId, Number(id))) {
-            let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(id))
+    private async getLastViewMember(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
+        if (await this.groupService.isUserExistInGroup(userId, Number(groupId))) {
+            let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(groupId))
             return (new ResponseBody(
                 true,
                 "OK",
@@ -155,24 +155,24 @@ export default class GroupController extends MotherController {
             ))
         }
     }
-    @GET('/:id/community-group')
+    @GET('/:groupId/community-group')
     @UseGuard(AuthorizeGuard)
-    private async getOneGroup(@Headers("userId") userId: number, @Params("id") id: number) {
-        let data = await this.groupService.getOneGroup(userId, Number(id))
+    private async getOneGroup(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
+        let data = await this.groupService.getOneGroup(userId, Number(groupId))
         return (new ResponseBody(true, "OK", data))
     }
 
-    @GET('/:id/members')
+    @GET('/:groupId/members')
     @UseGuard(AuthorizeGuard)
-    private async getAllMember(@Headers("userId") userId: number, @Params("id") id: number) {
-        if (isValidNumberVariable(id)) {
-            let data = await this.groupService.getAllMember(userId, Number(id))
+    private async getAllMember(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
+        if (isValidNumberVariable(groupId)) {
+            let data = await this.groupService.getAllMember(userId, Number(groupId))
             return (new ResponseBody(true, "OK", data))
         }
         throw (new BadRequestException("Argument is invalid"))
     }
-    @POST('/:id/invite-members')
-    private async inviteMember(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("userIds") userIds: number[]) {
+    @POST('/:groupId/invite-members')
+    private async inviteMember(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("userIds") userIds: number[]) {
         let message = await this.groupService.inviteMember(userId, groupId, userIds)
         if (message.length > 0) {
             this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [message])
@@ -181,13 +181,13 @@ export default class GroupController extends MotherController {
         }
         return (new ResponseBody(true, "OK", {}))
     }
-    @POST('/:id/members/leave')
+    @POST('/:groupId/members/leave')
     @UseGuard(AuthorizeGuard)
-    private async leaveGroup(@Headers("userId") userId: number, @Params("id") id: number) {
-        if (isValidNumberVariable(userId) && isValidNumberVariable(id)) {
-            let message = await this.groupService.leaveGroup(userId, Number(id))
-            this.io.to(getRoomGroupIO(id)).emit(EventGroupIO.LEAVE_GROUP, userId);
-            this.io.to(getRoomGroupIO(id)).emit(EventMessageIO.NEW_MESSAGE, [message]);
+    private async leaveGroup(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
+        if (isValidNumberVariable(userId) && isValidNumberVariable(groupId)) {
+            let message = await this.groupService.leaveGroup(userId, Number(groupId))
+            this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.LEAVE_GROUP, userId);
+            this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.NEW_MESSAGE, [message]);
             return (new ResponseBody(
                 true,
                 "OK",
@@ -196,9 +196,9 @@ export default class GroupController extends MotherController {
         }
         throw (new BadRequestException("Argument is invalid"))
     }
-    @PATCH('/admin/:id/manager')
+    @PATCH('/admin/:groupId/manager')
     @UseGuard(AuthorizeGuard)
-    private async addManager(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("invitee") invitee: number) {
+    private async addManager(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("invitee") invitee: number) {
         if (isValidNumberVariable(invitee) && isValidNumberVariable(groupId) && userId !== invitee) {
             let data = await this.groupService.addManager(userId, invitee, groupId)
             this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.ADD_MANAGER, { userIds: invitee })
@@ -213,9 +213,9 @@ export default class GroupController extends MotherController {
         }
         throw (new BadRequestException("Argument is invalid"))
     }
-    @DELETE('/admin/:id/manager')
+    @DELETE('/admin/:groupId/manager')
     @UseGuard(AuthorizeGuard)
-    private async removeManager(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("manager") manager: number) {
+    private async removeManager(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("manager") manager: number) {
         if (isValidNumberVariable(manager) && isValidNumberVariable(groupId) && userId !== manager) {
             let data = await this.groupService.removeManager(userId, manager, groupId)
             this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.REMOVE_MANAGER, { userId: manager })
@@ -230,11 +230,11 @@ export default class GroupController extends MotherController {
         }
         throw (new BadRequestException("Argument is invalid"))
     }
-    @DELETE('/admin/:id/member/:userId')
+    @DELETE('/admin/:groupId/member/:userId')
     @UseGuard(AuthorizeGuard)
     private async removeMember(
         @Headers("userId") userId: number,
-        @Params("id") groupId: number,
+        @Params("groupId") groupId: number,
         @Params("userId") userIdAdd: number,
     ) {
         if (isValidNumberVariable(userIdAdd) && isValidNumberVariable(groupId) && userId !== userIdAdd) {
@@ -251,9 +251,9 @@ export default class GroupController extends MotherController {
         }
         throw (new BadRequestException("Argument is invalid"))
     }
-    @PATCH('/admin/:id/rename')
+    @PATCH('/admin/:groupId/rename')
     @UseGuard(AuthorizeGuard)
-    private async renameGroup(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("name") name: string) {
+    private async renameGroup(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("name") name: string) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.groupService.renameGroup(userId, groupId, name)
             this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.RENAME_GROUP, { name: name })
@@ -267,9 +267,9 @@ export default class GroupController extends MotherController {
             )
         }
     }
-    @PATCH('/admin/:id/blockmember')
+    @PATCH('/admin/:groupId/blockmember')
     @UseGuard(AuthorizeGuard)
-    private async blockMember(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("manager") userIdAdd: number) {
+    private async blockMember(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("manager") userIdAdd: number) {
         if (userIdAdd && groupId && userId !== userIdAdd) {
             let data = await this.groupService.blockMember(userId, userIdAdd, groupId)
             return (
@@ -282,9 +282,9 @@ export default class GroupController extends MotherController {
         }
         throw (new BadRequestException("Argument is invalid"))
     }
-    @POST("/admin/:id/approval/:userId")
+    @POST("/admin/:groupId/approval/:userId")
     @UseGuard(AuthorizeGuard)
-    private async approvalMember(@Headers("userId") userId: number, @Params("id") groupId: number, @Params("userId") userIdAdd: number) {
+    private async approvalMember(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("userId") userIdAdd: number) {
         if (isValidNumberVariable(userIdAdd) && isValidNumberVariable(groupId) && userId !== userIdAdd) {
             let data = await this.groupService.approvalMember(userId, userIdAdd, groupId)
             this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.APPROVAL_MEMBER, { userIds: userIdAdd })
@@ -315,9 +315,9 @@ export default class GroupController extends MotherController {
         }
         throw (new BadRequestException("Argument is invalid"))
     }
-    @PATCH('/:id/renickname')
+    @PATCH('/:groupId/re-nickname')
     @UseGuard(AuthorizeGuard)
-    private async changeNickname(@Body("nickname") nickname: string, @Headers("userId") userId: number, @Params("id") groupId: number) {
+    private async changeNickname(@Body("nickname") nickname: string, @Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (nickname && isValidNumberVariable(userId) && isValidNumberVariable(groupId)) {
             let data = await this.groupService.changeNickname(userId, userId, groupId, nickname)
             this.io.to(getRoomGroupIO(groupId)).emit(EventGroupIO.CHANGE_NICKNAME, data)
@@ -331,9 +331,9 @@ export default class GroupController extends MotherController {
         }
     }
     // TODO: delete group
-    private async deleteGroup(@Params("id") id: number, @Headers("userId") userId: number) {
-        if (isValidNumberVariable(id)) {
-            let data = await this.groupService.deleteGroup(userId, id)
+    private async deleteGroup(@Params("groupId") groupId: number, @Headers("userId") userId: number) {
+        if (isValidNumberVariable(groupId)) {
+            let data = await this.groupService.deleteGroup(userId, groupId)
             return (
                 new ResponseBody(
                     true,
