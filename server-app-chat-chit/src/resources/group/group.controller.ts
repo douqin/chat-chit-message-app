@@ -15,6 +15,7 @@ import { getRoomGroupIO } from "@/utils/extension/room.group";
 import { EventMessageIO } from "../messaging/constant/event.io";
 import { Controller, DELETE, FileUpload, GET, PATCH, POST, Params, Headers, UseGuard, Query, Body, Req } from "@/lib/decorator";
 import { PagingReq } from "@/utils/paging/paging.data";
+import { AuthorizeMemberGuard } from "@/middleware/member.middleware";
 @Controller("/group")
 export default class GroupController extends MotherController {
     constructor(@inject(Server) io: Server, @inject(GroupService) private groupService: GroupService) {
@@ -23,6 +24,7 @@ export default class GroupController extends MotherController {
 
     @POST('/:groupId/admin/pending')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async getListUserPending(@Params("groupId") groupId: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.groupService.getListUserPending(userId, groupId)
@@ -105,7 +107,7 @@ export default class GroupController extends MotherController {
     //FIXME: change status group to default or stranger
     @POST('/individual-group/:userId')
     @UseGuard(AuthorizeGuard)
-    private async createInvidualGroup(@Headers("userId") userId: number, @Params("userId") userIdAddressee: number) {
+    private async createIndividualGroup(@Headers("userId") userId: number, @Params("userId") userIdAddressee: number) {
         if (userIdAddressee) {
             let data = await this.groupService.createInvidualGroup(userId, userIdAddressee)
             if (!data.isExisted) {
@@ -121,6 +123,7 @@ export default class GroupController extends MotherController {
     @PATCH('/:groupId/avatar')
     @FileUpload(multer().single("avatar"))
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async changeAvatarGroup(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Req() req: Request) {
         if (await this.groupService.isUserExistInGroup(userId, Number(groupId))) {
             let file = req.file;
@@ -143,8 +146,9 @@ export default class GroupController extends MotherController {
     }
 
     //FIXME:  logic
-    @GET('/:groupId/lastview')
+    @GET('/:groupId/last-view')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async getLastViewMember(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (await this.groupService.isUserExistInGroup(userId, Number(groupId))) {
             let data: LastViewGroup[] = await this.groupService.getLastViewMember(Number(groupId))
@@ -164,6 +168,7 @@ export default class GroupController extends MotherController {
 
     @GET('/:groupId/members')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async getAllMember(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.groupService.getAllMember(userId, Number(groupId))
@@ -172,6 +177,7 @@ export default class GroupController extends MotherController {
         throw (new BadRequestException("Argument is invalid"))
     }
     @POST('/:groupId/invite-members')
+    @UseGuard(AuthorizeMemberGuard)
     private async inviteMember(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("userIds") userIds: number[]) {
         let message = await this.groupService.inviteMember(userId, groupId, userIds)
         if (message.length > 0) {
@@ -183,6 +189,7 @@ export default class GroupController extends MotherController {
     }
     @POST('/:groupId/members/leave')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async leaveGroup(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (isValidNumberVariable(userId) && isValidNumberVariable(groupId)) {
             let message = await this.groupService.leaveGroup(userId, Number(groupId))
@@ -198,6 +205,7 @@ export default class GroupController extends MotherController {
     }
     @PATCH('/admin/:groupId/manager')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async addManager(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("invitee") invitee: number) {
         if (isValidNumberVariable(invitee) && isValidNumberVariable(groupId) && userId !== invitee) {
             let data = await this.groupService.addManager(userId, invitee, groupId)
@@ -215,6 +223,7 @@ export default class GroupController extends MotherController {
     }
     @DELETE('/admin/:groupId/manager')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async removeManager(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("manager") manager: number) {
         if (isValidNumberVariable(manager) && isValidNumberVariable(groupId) && userId !== manager) {
             let data = await this.groupService.removeManager(userId, manager, groupId)
@@ -232,6 +241,7 @@ export default class GroupController extends MotherController {
     }
     @DELETE('/admin/:groupId/member/:userId')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async removeMember(
         @Headers("userId") userId: number,
         @Params("groupId") groupId: number,
@@ -253,6 +263,7 @@ export default class GroupController extends MotherController {
     }
     @PATCH('/admin/:groupId/rename')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async renameGroup(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("name") name: string) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.groupService.renameGroup(userId, groupId, name)
@@ -267,8 +278,9 @@ export default class GroupController extends MotherController {
             )
         }
     }
-    @PATCH('/admin/:groupId/blockmember')
+    @PATCH('/admin/:groupId/block-member')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async blockMember(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Body("manager") userIdAdd: number) {
         if (userIdAdd && groupId && userId !== userIdAdd) {
             let data = await this.groupService.blockMember(userId, userIdAdd, groupId)
@@ -284,6 +296,7 @@ export default class GroupController extends MotherController {
     }
     @POST("/admin/:groupId/approval/:userId")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async approvalMember(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("userId") userIdAdd: number) {
         if (isValidNumberVariable(userIdAdd) && isValidNumberVariable(groupId) && userId !== userIdAdd) {
             let data = await this.groupService.approvalMember(userId, userIdAdd, groupId)
@@ -302,6 +315,7 @@ export default class GroupController extends MotherController {
     }
     @GET('/:groupId/member/:userId/')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async getInformationMember(@Headers("userId") myId: number, @Params("groupId") groupId: number, @Params("userId") userIdGet: number) {
         if (isValidNumberVariable(userIdGet) && isValidNumberVariable(groupId)) {
             let data = await this.groupService.getInformationMember(userIdGet, myId, groupId)
@@ -317,6 +331,7 @@ export default class GroupController extends MotherController {
     }
     @PATCH('/:groupId/re-nickname')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMemberGuard)
     private async changeNickname(@Body("nickname") nickname: string, @Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (nickname && isValidNumberVariable(userId) && isValidNumberVariable(groupId)) {
             let data = await this.groupService.changeNickname(userId, userId, groupId, nickname)
