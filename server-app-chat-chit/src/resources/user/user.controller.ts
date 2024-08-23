@@ -31,7 +31,7 @@ export default class UserController extends MotherController {
         await this.userSerivce.searchUser(phone)
       );
     }
-    throw new BadRequestException("Agurment is invalid");
+    throw new BadRequestException("Argument is invalid");
   }
   @GET("/:username")
   @UseGuard(AuthorizeGuard)
@@ -42,6 +42,6 @@ export default class UserController extends MotherController {
     let data = await this.userSerivce.infoUser(userId, username);
     if (username) {
       return new ResponseBody(true, "", data);
-    } else throw new BadRequestException("Agurment is invalid");
+    } else throw new BadRequestException("Argument is invalid");
   }
 }

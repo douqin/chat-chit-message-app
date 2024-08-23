@@ -43,7 +43,7 @@ export default class MessageController extends MotherController {
         } else throw (
             new HttpException(
                 HttpStatus.BAD_REQUEST,
-                "Error Agurment"
+                "Error Argument"
             )
         );
 
@@ -51,6 +51,7 @@ export default class MessageController extends MotherController {
     @POST("/:groupId/file")
     @UseGuard(AuthorizeGuard)
     @FileUpload(multer(getOptionDefaultForMulter('message')).array("files", 7))
+    @UseGuard(AuthorizeMember)
     private async sendFileMessage(@Params("groupId") groupId: number, @Headers("userId") userId: number, @Req() req: Request) {
         if (isValidNumberVariable(groupId) && req.files) {
             const userId = Number(req.headers['userId'] as string)
@@ -82,6 +83,7 @@ export default class MessageController extends MotherController {
     };
     @POST("/:groupId/text")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async sendTextMessage(@Params("groupId") groupId: number, @Body("replyMessageId") replyMessageId: number, @Body("content") message: string, @Headers("userId") userId: number, @Body("manipulates") tags: Array<number>) {
         if (isValidNumberVariable(groupId) && message) {
             let messageModel = await this.messageService.sendTextMessage(groupId, userId, message, tags, replyMessageId)
@@ -109,10 +111,11 @@ export default class MessageController extends MotherController {
             );
             return
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     };
     @POST('/:groupId/:messageId/react/:type')
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async reactMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("type") type: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(messageId) && isValidNumberVariable(type) && isValidNumberVariable(groupId)) {
             let model = await this.messageService.reactMessage(messageId, type, userId, groupId)
@@ -124,13 +127,15 @@ export default class MessageController extends MotherController {
                     model
                 )
             );
-        } else throw (new BadRequestException("Agurment is invalid"))
+        } else throw (new BadRequestException("Argument is invalid"))
     };
     @PATCH("/:groupId/:messageId/recall")
     @UseGuard(AuthorizeGuard)
-    private async removeCall(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("messageId") messageId: number) { //FIXME: POSTMAN CHECK
+    @UseGuard(AuthorizeMember)
+    private async reCallMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("messageId") messageId: number) { 
+        //FIXME: POSTMAN CHECK
         if (isValidNumberVariable(userId) && isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
-            let whowasdel = await this.messageService.removeCall(userId, groupId, messageId)
+            let whowasdel = await this.messageService.reCallMessage(userId, groupId, messageId)
             this.io.to(getRoomGroupIO(groupId)).emit(EventMessageIO.RECALL_MESSAGE,
                 {
                     "userId": userId,
@@ -144,11 +149,12 @@ export default class MessageController extends MotherController {
                 {}
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 
     @GET("/:groupId/:messageId/one/")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async getOneMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Headers("userId") userId: number) {
         if (isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
             let data = await this.messageService.getOneMessage(messageId)
@@ -159,11 +165,12 @@ export default class MessageController extends MotherController {
             ))
             return
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 
     @POST("/:groupId/:messageId/forward/:groupIdAddressee/")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async forwardMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("groupIdAddressee") groupIdAddressee: number, @Req() req: Request) {
         if (isValidNumberVariable(groupId) && isValidNumberVariable(messageId)) {
             let data = await this.messageService.forwardMessage(userId, groupId, messageId, groupIdAddressee)
@@ -174,11 +181,12 @@ export default class MessageController extends MotherController {
                 data
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 
     @POST("/:groupId/gif/")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async sendGifMessage(
         @Headers("userId") userId: number,
         @Params("groupId") groupId: number,
@@ -194,11 +202,12 @@ export default class MessageController extends MotherController {
                 data
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 
     @PATCH("/:groupId/:messageId/pin/:ispin/")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async changePinMessage(@Params("groupId") groupId: number, @Params("messageId") messageId: number, @Params("ispin") ispin: boolean, @Headers("userId") userId: number) {
         if (isValidNumberVariable(messageId)) {
             await this.messageService.changePinMessage(groupId, (messageId), (userId), ispin)
@@ -224,11 +233,12 @@ export default class MessageController extends MotherController {
             ));
 
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     };
 
     @GET("/pin/:groupId/")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async getListPinMessage(@Headers("userId") userId: number, @Params("groupId") groupId: number) {
         if (isValidNumberVariable(groupId)) {
             let data = await this.messageService.getListPinMessage(userId, groupId)
@@ -238,11 +248,12 @@ export default class MessageController extends MotherController {
                 data
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 
     @GET("/:groupId/files/all")
     @UseGuard(AuthorizeGuard)
+    @UseGuard(AuthorizeMember)
     private async getAllFileFromGroup(
         @Headers("userId") userId: number,
         @Params("groupId") groupId: number,
@@ -257,7 +268,7 @@ export default class MessageController extends MotherController {
                 data
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 }
 

@@ -60,7 +60,7 @@ export default class GroupService implements iGroupServiceBehavior {
         if ((await this.groupRepsitory.isContainInGroup(userId, groupId, MemberStatus.DEFAULT) && await this.groupRepsitory.getPosition(groupId, userId) == PositionInGrop.ADMIN || PositionInGrop.CREATOR) || userId === userIdChange) {
             await this.groupRepsitory.changeNickname(userId, userIdChange, groupId, nickname)
             let messageBehavior: iMessageServiceBehavior = container.resolve(MessageService)
-            let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " change nickname {{@}} to " + nickname, [userIdChange])
+            let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " change nickname {{@}} to " + nickname, [userIdChange])
             return await messageBehavior.getOneMessage(mess.messageId)
         }
         else {
@@ -144,7 +144,7 @@ export default class GroupService implements iGroupServiceBehavior {
         if (await this.groupRepsitory.isContainInGroup(userIdAdd, groupId, MemberStatus.PENDING) && (await this.groupRepsitory.getPosition(groupId, userId) == PositionInGrop.CREATOR || PositionInGrop.ADMIN)) {
             await this.groupRepsitory.changeStatusMember(userIdAdd, groupId, MemberStatus.DEFAULT)
             let messageBehavior: iMessageAction = container.resolve(MessageService)
-            let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " approved member {{@}}", [userIdAdd])
+            let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " approved member {{@}}", [userIdAdd])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
             return await iMessageInformation.getOneMessage(mess.messageId)
         }
@@ -156,7 +156,7 @@ export default class GroupService implements iGroupServiceBehavior {
         if (await this.isUserExistInGroup(userIdRemove, groupId) && (await this.groupRepsitory.getPosition(groupId, userId) == PositionInGrop.CREATOR || PositionInGrop.ADMIN)) {
             await this.groupRepsitory.removeMember(groupId, userIdRemove)
             let messageBehavior: iMessageAction = container.resolve(MessageService)
-            let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " removed member {{@}}", [userIdRemove])
+            let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " removed member {{@}}", [userIdRemove])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
             return await iMessageInformation.getOneMessage(mess.messageId)
         }
@@ -168,7 +168,7 @@ export default class GroupService implements iGroupServiceBehavior {
         if (await this.isUserExistInGroup(manager, groupId) && await this.groupRepsitory.getPosition(groupId, userId) == PositionInGrop.CREATOR) {
             await this.groupRepsitory.removeManager(groupId, manager)
             let messageBehavior: iMessageAction = container.resolve(MessageService)
-            let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " removed manager {{@}}", [manager])
+            let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " removed manager {{@}}", [manager])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
             return await iMessageInformation.getOneMessage(mess.messageId)
         }
@@ -180,7 +180,7 @@ export default class GroupService implements iGroupServiceBehavior {
         if (await this.groupRepsitory.isContainInGroup(invitee, groupId, MemberStatus.DEFAULT) && await this.groupRepsitory.getPosition(groupId, userId) == PositionInGrop.CREATOR) {
             await this.groupRepsitory.addManager(groupId, invitee)
             let messageBehavior: iMessageAction = container.resolve(MessageService)
-            let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " added manager {{@}}", [invitee])
+            let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " added manager {{@}}", [invitee])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
             return await iMessageInformation.getOneMessage(mess.messageId)
         }
@@ -192,7 +192,7 @@ export default class GroupService implements iGroupServiceBehavior {
         if (await this.groupRepsitory.isContainInGroup(userId, groupId, MemberStatus.DEFAULT) && await this.groupRepsitory.checkMemberPermisstion(MemberPermisstion.RENAME_GROUP, userId, groupId) || (await this.groupRepsitory.getPosition(groupId, userId) == PositionInGrop.ADMIN || PositionInGrop.CREATOR)) {
             await this.groupRepsitory.renameGroup(groupId, name)
             let messageBehavior: iMessageAction = container.resolve(MessageService)
-            let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " renamed group to " + name, [])
+            let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " renamed group to " + name, [])
             let iMessageInformation: iMessageInformation = container.resolve(MessageService)
             return await iMessageInformation.getOneMessage(mess.messageId)
         }
@@ -207,7 +207,7 @@ export default class GroupService implements iGroupServiceBehavior {
                 if (await this.groupRepsitory.checkMemberPermisstion(MemberPermisstion.AUTO_APPROVAL, userId, data.groupId)) {
                     await this.groupRepsitory.joinGroup(userId, data.groupId)
                     let messageBehavior: iMessageAction = container.resolve(MessageService)
-                    let mess = await messageBehavior.sendNotitfyMessage(data.groupId, userId, " joined group", [])
+                    let mess = await messageBehavior.sendNotifyMessage(data.groupId, userId, " joined group", [])
                     let messInfor: iMessageInformation = container.resolve(MessageService)
                     return {
                         isJoin: true,
@@ -234,7 +234,7 @@ export default class GroupService implements iGroupServiceBehavior {
             let data = await this.groupRepsitory.changeAvatarGroup(userId, groupId, file)
             if (data) {
                 let messageBehavior: iMessageAction = container.resolve(MessageService)
-                let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, "change avatar group", [])
+                let mess = await messageBehavior.sendNotifyMessage(groupId, userId, "change avatar group", [])
                 let messageBehavior2: iMessageInformation = container.resolve(MessageService)
                 return {
                     url: data.url,
@@ -285,7 +285,7 @@ export default class GroupService implements iGroupServiceBehavior {
                 let messageBehavior2 = container.resolve(MessageService)
                 for (let _userId of userIDs) {
                     await this.groupRepsitory.joinGroup(_userId, groupId)
-                    let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " invited member {{@}}", userIDs)
+                    let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " invited member {{@}}", userIDs)
                     message.push(await messageBehavior2.getOneMessage(mess.messageId))
                 }
                 // return await messageBehavior.getOneMessage(mess.messageId)
@@ -300,7 +300,7 @@ export default class GroupService implements iGroupServiceBehavior {
                         }
                     }
                     let messageBehavior: iMessageAction = container.resolve(MessageService)
-                    let mess = await messageBehavior.sendNotitfyMessage(groupId, userId, " invited member {{" + userIDs.length + "}}", userIDs)
+                    let mess = await messageBehavior.sendNotifyMessage(groupId, userId, " invited member {{" + userIDs.length + "}}", userIDs)
                     for (let _userId of userIDs) {
                         await this.groupRepsitory.addUserToApprovalQueue(_userId, groupId)
                     }
@@ -316,7 +316,7 @@ export default class GroupService implements iGroupServiceBehavior {
             if (position != PositionInGrop.ADMIN && position != PositionInGrop.CREATOR) {
                 await this.groupRepsitory.leaveGroup(userId, groupId)
                 let messageBehavior: iMessageAction = container.resolve(MessageService)
-                return messageBehavior.sendNotitfyMessage(groupId, userId, " was left group ", [])
+                return messageBehavior.sendNotifyMessage(groupId, userId, " was left group ", [])
             }
             else throw new MyException("You can't leave group, you is admin !!! ").withExceptionCode(HttpStatus.BAD_REQUEST)
         }
@@ -340,13 +340,13 @@ export default class GroupService implements iGroupServiceBehavior {
         }
         let group = Group.fromRawData(await this.groupRepsitory.createGroup(name, userId, users))
         let messageBehavior: iMessageAction = container.resolve(MessageService)
-        await messageBehavior.sendNotitfyMessage(group.groupId, userId, "created group", [])
+        await messageBehavior.sendNotifyMessage(group.groupId, userId, "created group", [])
         if (users.length > 0) {
             let strMessage = "added member "
             for (let i = 0; i < users.length; i++) {
                 strMessage += "{{@}}"
             }
-            await messageBehavior.sendNotitfyMessage(group.groupId, userId, strMessage, users)
+            await messageBehavior.sendNotifyMessage(group.groupId, userId, strMessage, users)
         } else throw new MyException("Total users > 2").withExceptionCode(HttpStatus.BAD_GATEWAY)
         return group;
     }

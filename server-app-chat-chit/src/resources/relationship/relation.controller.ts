@@ -101,7 +101,7 @@ export default class RelationshipController extends MotherController {
         @Params("userId") idreceiver: number
     ) {
         if (idreceiver) {
-            if (userId === idreceiver) throw (new BadRequestException("Agurment is invalid"))
+            if (userId === idreceiver) throw (new BadRequestException("Argument is invalid"))
             await this.relationService.inviteToBecomeFriend(userId, idreceiver);
             return (new ResponseBody(
                 true,
@@ -111,7 +111,7 @@ export default class RelationshipController extends MotherController {
         } else throw (
             new HttpException(
                 HttpStatus.BAD_REQUEST,
-                "Error Agurment"
+                "Error Argument"
             )
         )
     };
@@ -129,7 +129,7 @@ export default class RelationshipController extends MotherController {
                 {}
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     };
     @DELETE("/invites/:invite")
     @UseGuard(AuthorizeGuard)
@@ -145,7 +145,7 @@ export default class RelationshipController extends MotherController {
                 {}
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
 
     };
     @DELETE("/invites/me/:invite/")
@@ -162,7 +162,7 @@ export default class RelationshipController extends MotherController {
                 {}
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     };
     @GET("/:userId/relation")
     @UseGuard(AuthorizeGuard)
@@ -177,7 +177,7 @@ export default class RelationshipController extends MotherController {
                 }
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @GET("/friends/online")
     @UseGuard(AuthorizeGuard)
@@ -210,7 +210,7 @@ export default class RelationshipController extends MotherController {
                 data
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 }
 

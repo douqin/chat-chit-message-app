@@ -53,7 +53,7 @@ export default class AuthController extends MotherController {
           )
         );
       }
-    } else throw (new BadRequestException("Agurment is invalid"));
+    } else throw (new BadRequestException("Argument is invalid"));
   }
 
   @HttpCode(HttpStatus.CREATED)
@@ -105,7 +105,7 @@ export default class AuthController extends MotherController {
     if (refreshToken) {
       let isOK = await this.authService.loguot(userId, refreshToken);
       return new ResponseBody(isOK, "", {});
-    } else throw (new BadRequestException("Agurment is invalid"));
+    } else throw (new BadRequestException("Argument is invalid"));
   }
 
   @POST("/refreshtoken")
@@ -127,6 +127,6 @@ export default class AuthController extends MotherController {
         accessToken: newAccessToken,
       })
     }
-    throw new BadRequestException("Agurment is invalid");
+    throw new BadRequestException("Argument is invalid");
   }
 }

@@ -1,7 +1,7 @@
 import { PagingRes } from "@/utils/paging/paging.data";
 import Message from "../../../models/message.model";
 
-export class dataResponseDTO  extends PagingRes<Message, number | null>{
+export class ListMessagePagingResponseDTO  extends PagingRes<Message, number | null>{
     constructor(
         data: Array<Message>,
         nextCursor: number | null,
@@ -9,8 +9,8 @@ export class dataResponseDTO  extends PagingRes<Message, number | null>{
     ) {
         super(data, nextCursor, totalSize)
     }
-    static rawToData(raws: Message[]): dataResponseDTO {
-        let dto = new dataResponseDTO([], null)
+    static rawToData(raws: Message[]): ListMessagePagingResponseDTO {
+        let dto = new ListMessagePagingResponseDTO([], null)
         for (let dtoMessage of raws) {
             dto.data.push(dtoMessage)
             dto.nextCursor = dtoMessage.messageId

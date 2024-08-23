@@ -1,4 +1,4 @@
-import { PositionInGrop } from "../group/enum/group.position.enum";
+import { PositionInGrop as PositionInGroup } from "../group/enum/group.position.enum";
 import { ReactMessage } from "./enum/message.react.enum";
 import iMessageServiceBehavior from "./interface/message.service.interface";
 import MessageRepository from "./message.repository";
@@ -9,32 +9,28 @@ import { CloudDrive } from "../../services/cloud/drive.service";
 import Reaction from "./dtos/react.dto";
 import { iInformationMember } from "../group/interface/group.service.interface";
 import GroupService from "../group/group.service";
-import { dataResponseDTO } from "./dtos/list.message.dto";
+import { ListMessagePagingResponseDTO } from "./dtos/list.message.dto";
 import { container, inject, injectable } from "tsyringe";
 import { TransformMessage, TransformReaction } from "@/utils/transform";
 import { iDrive } from "@/services/cloud/drive.interface";
 import { getTypeFile, isValidTypeFileToUpload } from "@/utils/extension/is-file-valid-to-save";
-import { MyException, HttpStatus } from "@/lib/common";
+import { MyException, HttpStatus, ForbiddenException } from "@/lib/common";
 
 @injectable()
 export default class MessageService implements iMessageServiceBehavior {
-    async getAllFileFromGroup(groupId: number, cursor: number, limit: number): Promise<dataResponseDTO> {
+    async getAllFileFromGroup(groupId: number, cursor: number, limit: number): Promise<ListMessagePagingResponseDTO> {
         let data = await this.messageRepository.getAllFileFromGroup(groupId, cursor, limit)
         let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
             return await this.cloudDrive.getUrlFile(id)
         })
-        return dataResponseDTO.rawToData(messages)
+        return ListMessagePagingResponseDTO.rawToData(messages)
     }
     async getListPinMessage(userId: number, groupId: number): Promise<Message[]> {
-        let memberInfor: iInformationMember = container.resolve(GroupService)
-        if (await memberInfor.isUserExistInGroup(userId, groupId)) {
             let data = await this.messageRepository.getListPinMessage(groupId)
             let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
                 return await this.cloudDrive.getUrlFile(id);
             })
             return messages
-        }
-        else throw new MyException("You don't in group").withExceptionCode(HttpStatus.NOT_FOUND)
     }
     async sendGifMessage(groupId: number, userId: number, content: string, replyMessageId: number | null): Promise<Message> {
         let group: iInformationMember = container.resolve(GroupService)
@@ -100,50 +96,50 @@ export default class MessageService implements iMessageServiceBehavior {
             return await this.cloudDrive.getUrlFile(id);
         })
     }
-    async sendNotitfyMessage(groupId: number, userId: number, content: string, manipulates: Array<number>): Promise<Message> {
+    async sendNotifyMessage(groupId: number, userId: number, content: string, manipulates: Array<number>): Promise<Message> {
         let regex2 = /\{\{@\}\}/g;
         let matches = content.match(regex2);
         let count = matches ? matches.length : 0; // Số lần xuất hiện của chuỗi `{{@}}`
         if (count != manipulates.length) throw new MyException("Wrong argument").withExceptionCode(HttpStatus.BAD_REQUEST)
         return this.messageRepository.sendNotitfyMessage(groupId, userId, content, manipulates)
     }
-    async removeCall(userId: number, groupId: number, idmessgae: number): Promise<number> {
-        let memberInfor: iInformationMember = container.resolve(GroupService)
-        if (await this.messageRepository.isMessageContainInGroup(idmessgae, groupId)) {
-            if (await this.isMessageOfUser(idmessgae, userId)) {
-                await this.changeStatusMessage(idmessgae, MessageStatus.DEL_BY_OWNER)
+    async reCallMessage(userId: number, groupId: number, messageId: number): Promise<number> {
+        let memberInfo: iInformationMember = container.resolve(GroupService)
+        if (await this.messageRepository.isMessageContainInGroup(messageId, groupId)) {
+            if (await this.isMessageOfUser(messageId, userId)) {
+                await this.changeStatusMessage(messageId, MessageStatus.DEL_BY_OWNER)
                 return MessageStatus.DEL_BY_OWNER;
             }
-            else if (await memberInfor.getPosition(groupId, userId) == PositionInGrop.CREATOR || PositionInGrop.ADMIN) {
-                await this.changeStatusMessage(idmessgae, MessageStatus.DEL_BY_ADMIN)
+            else if (await memberInfo.getPosition(groupId, userId) == PositionInGroup.CREATOR || PositionInGroup.ADMIN) {
+                await this.changeStatusMessage(messageId, MessageStatus.DEL_BY_ADMIN)
                 return MessageStatus.DEL_BY_ADMIN;
             }
         }
         throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async changePinMessage(groupId: number, messageId: number, userId: number, isPin: boolean): Promise<boolean> {
-        let memberInfor: iInformationMember = container.resolve(GroupService)
+        let memberInfo: iInformationMember = container.resolve(GroupService)
         if (isPin) {
             const messages = await this.getListPinMessage(userId, groupId)
             if (messages.length >= 5) {
                 throw new MyException("You can't pin more than 5 messages").withExceptionCode(HttpStatus.BAD_REQUEST)
             }
         }
-        if (await memberInfor.getPosition(groupId, userId) == PositionInGrop.CREATOR || PositionInGrop.ADMIN) {
+        if (await memberInfo.getPosition(groupId, userId) == PositionInGroup.CREATOR || PositionInGroup.ADMIN) {
             return await this.messageRepository.changePinMessage(messageId, userId, isPin ? 1 : 0)
         }
         else throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async reactMessage(messageId: number, react: ReactMessage, userId: number, groupId: number): Promise<Reaction> {
-        let memberInfor: iInformationMember = container.resolve(GroupService)
+        let memberInfo: iInformationMember = container.resolve(GroupService)
         if (await this.messageRepository.isMessageContainInGroup(messageId, groupId)) {
-            if (await memberInfor.isUserExistInGroup(userId, groupId)) {
+            if (await memberInfo.isUserExistInGroup(userId, groupId)) {
                 return TransformReaction.rawToModel(
                     await this.messageRepository.reactMessage(messageId, react, userId, groupId)
                 )
             }
         }
-        throw new MyException("You don't have permisson for action").withExceptionCode(HttpStatus.FORBIDDEN)
+        throw new ForbiddenException("You don't have permission for action")
     }
     async sendFileMessage(groupId: number, userId: number, contents: Express.Multer.File[]): Promise<Message[]> {
         for (let i = 0; i < contents.length; i++) {
@@ -175,21 +171,16 @@ export default class MessageService implements iMessageServiceBehavior {
         return raw
     }
     //FIXME: edit logic bigO
-    async getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<dataResponseDTO> {
+    async getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<ListMessagePagingResponseDTO> {
         let groupAuthor: iInformationMember = container.resolve(GroupService)
-        if (await groupAuthor.isUserExistInGroup(userId, groupId)) {
-            let data = await this.messageRepository.getMessagesFromGroup(groupId, cursor, limit)
-            let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
-                return await this.cloudDrive.getUrlFile(id);
-            })
-            for (let message of messages) {
-                message.reacts = await this.getAllReactFromMessage(message.messageId)
-                message.manipulates = await this.getAllManipulateUser(message.messageId)
-            }
-            return dataResponseDTO.rawToData(messages)
+        let data = await this.messageRepository.getMessagesFromGroup(groupId, cursor, limit)
+        let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
+            return await this.cloudDrive.getUrlFile(id);
+        })
+        for (let message of messages) {
+            message.reacts = await this.getAllReactFromMessage(message.messageId)
+            message.manipulates = await this.getAllManipulateUser(message.messageId)
         }
-        else {
-            throw new MyException("Bạn không có quyền truy cập")
-        }
+        return ListMessagePagingResponseDTO.rawToData(messages)
     }
 }

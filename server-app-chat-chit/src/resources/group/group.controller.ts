@@ -32,7 +32,7 @@ export default class GroupController extends MotherController {
                 data
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @POST("/:link/request-join")
     @UseGuard(AuthorizeGuard)
@@ -56,7 +56,7 @@ export default class GroupController extends MotherController {
                 )
             }
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 
     @GET("/:link")
@@ -72,7 +72,7 @@ export default class GroupController extends MotherController {
                 )
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
 
     @GET("/")
@@ -169,7 +169,7 @@ export default class GroupController extends MotherController {
             let data = await this.groupService.getAllMember(userId, Number(id))
             return (new ResponseBody(true, "OK", data))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @POST('/:id/invite-members')
     private async inviteMember(@Headers("userId") userId: number, @Params("id") groupId: number, @Body("userIds") userIds: number[]) {
@@ -194,7 +194,7 @@ export default class GroupController extends MotherController {
                 null
             ))
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @PATCH('/admin/:id/manager')
     @UseGuard(AuthorizeGuard)
@@ -211,7 +211,7 @@ export default class GroupController extends MotherController {
                 )
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @DELETE('/admin/:id/manager')
     @UseGuard(AuthorizeGuard)
@@ -228,7 +228,7 @@ export default class GroupController extends MotherController {
                 )
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @DELETE('/admin/:id/member/:userId')
     @UseGuard(AuthorizeGuard)
@@ -249,7 +249,7 @@ export default class GroupController extends MotherController {
                 )
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @PATCH('/admin/:id/rename')
     @UseGuard(AuthorizeGuard)
@@ -280,7 +280,7 @@ export default class GroupController extends MotherController {
                 )
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @POST("/admin/:id/approval/:userId")
     @UseGuard(AuthorizeGuard)
@@ -298,7 +298,7 @@ export default class GroupController extends MotherController {
                 )
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @GET('/:groupId/member/:userId/')
     @UseGuard(AuthorizeGuard)
@@ -313,7 +313,7 @@ export default class GroupController extends MotherController {
                 )
             )
         }
-        throw (new BadRequestException("Agurment is invalid"))
+        throw (new BadRequestException("Argument is invalid"))
     }
     @PATCH('/:id/renickname')
     @UseGuard(AuthorizeGuard)

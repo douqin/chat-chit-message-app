@@ -1,6 +1,6 @@
 import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express"
-import { BadRequestException, BaseMiddleware as BaseGuard, UnAuthorizedException } from "@/lib/common";
+import { BadRequestException, BaseMiddleware as BaseGuard, ForbiddenException, UnAuthorizedException } from "@/lib/common";
 import { Middleware as Guard } from "@/lib/decorator";
 import { container } from "tsyringe";
 import { iInformationMember } from "@/resources/group/interface/group.service.interface";
@@ -17,9 +17,9 @@ export class AuthorizeMember extends BaseGuard {
                 next(new BadRequestException("Invalid group id"))
                 return;
             }
-            let groupAuthor: iInformationMember = container.resolve(GroupService)
-            if (!await groupAuthor.isUserExistInGroup(userId, groupId))
-                next(new UnAuthorizedException("You're not a member of this group"))
+            let groupService: iInformationMember = container.resolve(GroupService)
+            if (!await groupService.isUserExistInGroup(userId, groupId))
+                next(new ForbiddenException("You're not a member of this group"))
             next()
         }
         catch (e: any) {
