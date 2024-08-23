@@ -1,0 +1,59 @@
+{
+  "jsc": {
+    
+    "parser": {
+      "syntax": "typescript",
+      "decorators": true
+    },
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true,
+      "useDefineForClassFields": true
+    },
+    "target": "es2022",
+    "loose": false,
+    "keepClassNames": true,
+    "baseUrl": "./",
+    // "paths": {
+    //   "@resources/*": [
+    //     "src/resources/*"
+    //   ],
+    //   "@builder/*": [
+    //     "src/builder/*"
+    //   ],
+    //   "@utils/*": [
+    //     "src/utils/*"
+    //   ],
+    //   "@middleware/*": [
+    //     "src/middleware/*"
+    //   ],
+    //   "@models/*": [
+    //     "src/models/*"
+    //   ],
+    //   "@lib/*": [
+    //     "lib/*"
+    //   ],
+    //   "@services/*": [
+    //     "src/services/*"
+    //   ]
+    // }
+  },
+  "module": {
+    "type": "commonjs",
+    "strict": true,
+    "strictMode": true,
+    "lazy": false,
+    "noInterop": false
+  },
+  "sourceMaps": true,
+  // "env": {
+  //   "coreJs": "3"
+  // },
+  "minify": false,
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-swc",
+    "public"
+  ]
+}

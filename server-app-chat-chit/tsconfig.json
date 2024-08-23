@@ -47,7 +47,6 @@
       "@/services/*": [
         "src/services/*"
       ],
-      
     }, /* Specify a set of entries that re-map imports to additional lookup locations. */
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like `./node_modules/@types`. */
@@ -63,7 +62,7 @@
     // "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
     // "declarationMap": true,                           /* Create sourcemaps for d.ts files. */
     // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
-    "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
+    "sourceMap": true, /* Create source map files for emitted JavaScript files. */
     // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If `declaration` is true, also designates a file that bundles all .d.ts output. */
     "outDir": "dist", /* Specify an output folder for all emitted files. */
     // "removeComments": true,                           /* Disable emitting comments. */
@@ -95,7 +94,7 @@
     // "strictNullChecks": true,                         /* When type checking, take into account `null` and `undefined`. */
     // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
     // "strictBindCallApply": true,                      /* Check that the arguments for `bind`, `call`, and `apply` methods match the original function. */
-    "strictPropertyInitialization": false,             /* Check for class properties that are declared but not set in the constructor. */
+    "strictPropertyInitialization": false, /* Check for class properties that are declared but not set in the constructor. */
     // "noImplicitThis": true,                           /* Enable error reporting when `this` is given the type `any`. */
     // "useUnknownInCatchVariables": true,               /* Type catch clause variables as 'unknown' instead of 'any'. */
     // "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
@@ -117,9 +116,16 @@
     "server.ts",
     "./src/",
     "json-typings.d.ts",
-    "test/test.js"
-, "lib/decorator", "lib/database", "lib/common", "lib/core/application/main.application.ts", "lib/types", "lib/socket.builder.interface.ts"  ],
+    "test/test.js",
+    "lib/decorator",
+    "lib/database",
+    "lib/common",
+    "lib/core/application/main.application.ts",
+    "lib/types",
+    "lib/socket.builder.interface.ts"
+  ],
   "exclude": [
     "./node_modules"
-  ]
+  ],
+  
 }

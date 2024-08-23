@@ -1,4 +1,6 @@
 /dist
+/node_modules
+/dist-swc
 # Logs
 logs
 *.log

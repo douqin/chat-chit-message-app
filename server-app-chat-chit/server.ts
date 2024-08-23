@@ -1,15 +1,6 @@
-// import 'module-alias/register';
-import moduleAlias from "module-alias";
 import "reflect-metadata";
-moduleAlias.addAliases({
-  "@/resources": `${__dirname}/src/resources`,
-  "@/builder": `${__dirname}/src/builder`,
-  "@/utils": `${__dirname}/src/utils`,
-  "@/middleware": `${__dirname}/src/middleware`,
-  "@/models": `${__dirname}/src/models`,
-  "@/lib": `${__dirname}/lib`,
-  "@/services": `${__dirname}/src/services`,
-});
+import "./module-alias.local";
+import "dotenv/config";
 import { App, ApplicationFactory } from "@/lib/core";
 import validateEnv from "./src/utils/validate/validate.env";
 import ModuleController from "@/resources/module.controller";
@@ -20,7 +11,6 @@ import cors from "cors";
 import express from "express";
 import morgan from "morgan";
 import { ConfigService } from "@/lib/config";
-import "dotenv/config";
 import { SocketBuilder } from "@/builder/socket.builder";
 
 validateEnv();
@@ -52,5 +42,4 @@ function startServer() {
   app.listen(Number(config.get("PORT")));
   App.logAllRoute(app);
 }
-
-startServer();
+startServer()
