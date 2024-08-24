@@ -1,12 +1,12 @@
 import { requiredMetadataKeyParam } from "./definition/metadata-param";
-import { Type, iParam } from "./definition/params.interface";
+import { TypeParam, iParam } from "./definition/params.interface";
 
 export function Params(propertyKeyGet?: string) {
     return function (target: any, propertyKey: string, parameterIndex: number) {
         let existingRequiredParameters: iParam[] = Reflect.getMetadata(requiredMetadataKeyParam, target, propertyKey) || [];
         existingRequiredParameters.unshift({
             parameterIndex: parameterIndex,
-            type: Type.Params,
+            type: TypeParam.Params,
             propertyKey: propertyKeyGet
         });
         // if(Reflect.hasMetadata(requiredMetadataKeyParam, target[propertyKey], propertyKey)){

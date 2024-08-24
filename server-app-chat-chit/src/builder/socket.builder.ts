@@ -11,15 +11,15 @@ export class SocketBuilder implements iSocketBuilder {
 
   private io: Server;
 
-  intializeBaseSocket(io: Server): iSocketBuilder {
+  initializeBaseSocket(io: Server): iSocketBuilder {
     this.io = io;
     return this;
   }
-  initalizeMiddleware(): iSocketBuilder {
+  initializeMiddleware(): iSocketBuilder {
     this.io.use(SocketMiddleware.validateIncomingConnect);
     return this;
   }
-  initalizeServer(): iSocketBuilder {
+  initializeServer(): iSocketBuilder {
     this.io.on("connection", this.initConnection);
     return this;
   }
@@ -27,8 +27,8 @@ export class SocketBuilder implements iSocketBuilder {
     return this.io;
   }
   async joinGroup(userId: number, socket: Socket): Promise<void> {
-    let serivce: iGroupActions = container.resolve(GroupService);
-    let groups = await serivce.getAllGroup(userId);
+    let service: iGroupActions = container.resolve(GroupService);
+    let groups = await service.getAllGroup(userId);
     for (let group of groups) {
       socket.join(getRoomGroupIO(group.groupId));
     }

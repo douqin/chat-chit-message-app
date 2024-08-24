@@ -1,8 +1,8 @@
 import { User } from "@/models/user.model"
-import { InforUserDto } from "../dtos/infor.user.dto"
+import { InfoUserDto } from "../dtos/infor.user.dto"
 
 
 export interface UserServiceBehavior {
     searchUser(phone: string): Promise<User>
-    infoUser(userId : number, username : string): Promise<InforUserDto>
+    infoUser(userId : number, username : string): Promise<InfoUserDto>
 }

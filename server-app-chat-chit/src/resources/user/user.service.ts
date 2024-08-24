@@ -3,7 +3,7 @@ import { User } from "../../models/user.model";
 import { RelationshipUser } from "../relationship/enums/relationship.enum";
 import { RelationServiceBehavior } from "../relationship/interface/relation.service.interface";
 import RelationService from "../relationship/relation.service";
-import { InforUserDto as InfoUserDto } from "./dtos/infor.user.dto";
+import { InfoUserDto as InfoUserDto } from "./dtos/infor.user.dto";
 import { iUserRepositoryBehavior } from "./interface/user.repository.interface";
 import { UserServiceBehavior } from "./interface/user.service.interface";
 import UserRepository from "./user.repository";
@@ -15,7 +15,7 @@ export default class UserService implements UserServiceBehavior {
     constructor(@inject(UserRepository) private userRepository: iUserRepositoryBehavior) {
     }
     async infoUser(userId: number, username: string): Promise<InfoUserDto> {
-        let dataUser = await this.userRepository.inforUser(username)
+        let dataUser = await this.userRepository.infoUser(username)
         if (dataUser) {
             let user = User.fromRawData(
                 dataUser

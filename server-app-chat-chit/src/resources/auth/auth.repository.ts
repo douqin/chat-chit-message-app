@@ -66,10 +66,10 @@ export default class AuthRepository {
         if (count == 1) {
             throw new MyException("Phone is exist").withExceptionCode(HttpStatus.BAD_REQUEST)
         }
-        let query2 = `INSERT INTO user( firstname, phone, password, birthday, gender, username, lastname, email, address) VALUES (?,?,?,?,?,?,?,?,?);`
+        let query2 = `INSERT INTO user( firstname, phone, password, birthday, gender, username, lastName, email, address) VALUES (?,?,?,?,?,?,?,?,?);`
         let _username = crypto.randomUUID().toString();
         let [dataUser, C] = await this.db.executeQuery(
-            query2, [registerAccount.firstname, registerAccount.phone, registerAccount.password, dateJSToMysql(registerAccount.birthday), registerAccount.gender, _username, registerAccount.lastname, registerAccount.email, registerAccount.address]
+            query2, [registerAccount.firstname, registerAccount.phone, registerAccount.password, dateJSToMysql(registerAccount.birthday), registerAccount.gender, _username, registerAccount.lastName, registerAccount.email, registerAccount.address]
         ) as [ResultSetHeader, FieldPacket[]]
         return true;
     }

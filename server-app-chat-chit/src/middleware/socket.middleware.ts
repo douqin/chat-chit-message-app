@@ -3,7 +3,7 @@ import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { Socket } from "socket.io";
 import { container } from "tsyringe";
 import { JwtAuthService } from "../services/jwt/jwt.service";
-import { HttpException, HttpStatus } from "@/lib/common";
+import { HttpException, HttpStatus, UnAuthorizedException } from "@/lib/common";
 class SocketMiddleware {
     static validateIncomingConnect = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap>, next: any) => {
         try {
@@ -17,15 +17,16 @@ class SocketMiddleware {
                         socket.handshake.headers.userId = userId
                         // DatabaseCache.getInstance().sadd(ConstantRedis.KEY_USER_ONLINE, userId)
                         socket.join(`${userId}_user`)
+                        next()
+                        return
                     }
-                    next()
-                    return
                 }
             }
         }
         catch (e: any) {
+            console.log(e)
         }
-        next(new HttpException(HttpStatus.NON_AUTHORITATIVE_INFORMATION, "Bạn không có quyền kết nối"))
+        next(new UnAuthorizedException("Invalid token"))
         console.log(socket.id + "-> DISCONNECT BY MIDDLEWARE")
     };
 }

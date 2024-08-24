@@ -108,12 +108,10 @@ export default class GroupService implements iGroupServiceBehavior {
     async getPosition(groupId: Number, userId: Number): Promise<PositionInGrop> {
         return await this.groupRepsitory.getPosition(groupId, userId)
     }
-    async getInformationMember(userIdWantGet: number, userId: number, groupId: number): Promise<any> {
-        if (await this.isUserExistInGroup(userId, groupId)) {
-            if (await this.isUserExistInGroup(userId, groupId))
+    async getInformationMember(userIdWantGet: number,  groupId: number): Promise<any> {
+            if (await this.isUserExistInGroup(userIdWantGet, groupId))
                 return MemberDTO.fromRawData(await this.groupRepsitory.getInformationMember(userIdWantGet, groupId))
             else throw new MyException("User don't contain in group").withExceptionCode(HttpStatus.BAD_REQUEST)
-        } throw new MyException("You don't contain in group").withExceptionCode(HttpStatus.FORBIDDEN)
     }
     async getTotalMember(groupId: number): Promise<number> {
         return await this.groupRepsitory.getTotalMember(groupId)

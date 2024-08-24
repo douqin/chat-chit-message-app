@@ -92,9 +92,9 @@ export default class GroupRepository implements GroupRepositoryBehavior {
         return groupId;
     }
 
-    async getInformationMember(memberId: number, groupId: number): Promise<any> {
+    async getInformationMember(userId: number, groupId: number): Promise<any> {
         const query = 'SELECT * from (user JOIN member ON user.userId = member.userId) WHERE user.userId = ? AND member.groupId = ? AND member.status = ?'
-        const [data, inforC] = await this.db.executeQuery(query, [memberId, groupId, MemberStatus.DEFAULT]) as any
+        const [data, inforC] = await this.db.executeQuery(query, [userId, groupId, MemberStatus.DEFAULT]) as any
         return data[0]
     }
     async getTotalMember(groupId: number): Promise<number> {
@@ -329,8 +329,8 @@ export default class GroupRepository implements GroupRepositoryBehavior {
             ) as any
             groupId = data[0].insertId
             await this.joinGroup(userId, groupId, PositionInGrop.CREATOR)
-            for (let usermemberId of users) {
-                await this.joinGroup(usermemberId, groupId, PositionInGrop.MEMBER)
+            for (let userId of users) {
+                await this.joinGroup(userId, groupId, PositionInGrop.MEMBER)
             }
             group = await this.getOneGroup(groupId);
         }

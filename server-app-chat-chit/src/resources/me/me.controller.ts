@@ -66,7 +66,7 @@ export default class MeController extends MotherController {
         @Headers('userId') userId: number,
         @Body() user : any
     ) {
-        await this.meSerivce.updateMyprofile(userId, user.firstname, user.lastname, user.gender, user.birthday, user.bio, user.username)
+        await this.meSerivce.updateMyprofile(userId, user.firstname, user.lastName, user.gender, user.birthday, user.bio, user.username)
         return (new ResponseBody(
             true,
             "",

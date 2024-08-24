@@ -1,10 +1,10 @@
 export interface iParam {
     parameterIndex: number,
-    type: Type,
+    type: TypeParam,
     propertyKey?: string
 }
 
-export enum Type{
+export enum TypeParam{
     Body,
     Query,
     Params,

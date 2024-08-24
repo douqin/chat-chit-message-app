@@ -28,7 +28,7 @@ export interface iMessageInformation {
     isMessageContainInGroup(messageId: Number, groupId: Number): Promise<boolean>
     isMessageOfUser(messageId: Number, userId: Number): Promise<boolean>
     getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<ListMessagePagingResponseDTO>
-    getAllReactFromMessage(messageId: number): Promise<any[]>
+    getAllReactFromMessage(messageId: number): Promise<Reaction[]>
     getAllManipulateUser(messageId: number): Promise<number[]>
     getOneMessage(messageId: number): Promise<Message>
 }

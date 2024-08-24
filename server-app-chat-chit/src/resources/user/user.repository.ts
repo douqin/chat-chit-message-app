@@ -7,7 +7,7 @@ export default class UserRepository implements iUserRepositoryBehavior {
 
     constructor(@inject(Database) private db: iDatabase) { }
 
-    async inforUser(username: string): Promise<any> {
+    async infoUser(username: string): Promise<any> {
         console.log("🚀 ~ UserRepository ~ inforUser ~ username:", username)
         const query = "SELECT * FROM user WHERE user.username = ?"
         let [data, inforColumn] = await this.db.executeQuery(query, [username]) as QuerySuccessResult

@@ -6,7 +6,7 @@
 
 - `[POST] /login`: login.
   - body: {username: String, password: String}.
-  - result: {user : {userId","lastname","firstname","phone": "0842943637","birthday","gender","bio","username","avatar","background","email"} , token : {token: String, refreshToken: String}}.
+  - result: {user : {userId","lastName","firstname","phone": "0842943637","birthday","gender","bio","username","avatar","background","email"} , token : {token: String, refreshToken: String}}.
 - `[POST] /refresh-token`: refresh token.
   - body: {accessToken: String}.
   - result: {token: String}.

@@ -1,6 +1,12 @@
 {
+  "exclude": [
+    "node_modules/",
+    "dist/",
+    "dist-swc/",
+    "public/",
+    ".vscode/"
+  ],
   "jsc": {
-    
     "parser": {
       "syntax": "typescript",
       "decorators": true
@@ -13,30 +19,7 @@
     "target": "es2022",
     "loose": false,
     "keepClassNames": true,
-    "baseUrl": "./",
-    // "paths": {
-    //   "@resources/*": [
-    //     "src/resources/*"
-    //   ],
-    //   "@builder/*": [
-    //     "src/builder/*"
-    //   ],
-    //   "@utils/*": [
-    //     "src/utils/*"
-    //   ],
-    //   "@middleware/*": [
-    //     "src/middleware/*"
-    //   ],
-    //   "@models/*": [
-    //     "src/models/*"
-    //   ],
-    //   "@lib/*": [
-    //     "lib/*"
-    //   ],
-    //   "@services/*": [
-    //     "src/services/*"
-    //   ]
-    // }
+    "baseUrl": "./"
   },
   "module": {
     "type": "commonjs",
@@ -46,14 +29,5 @@
     "noInterop": false
   },
   "sourceMaps": true,
-  // "env": {
-  //   "coreJs": "3"
-  // },
-  "minify": false,
-  "exclude": [
-    "node_modules",
-    "dist",
-    "dist-swc",
-    "public"
-  ]
+  "minify": false
 }

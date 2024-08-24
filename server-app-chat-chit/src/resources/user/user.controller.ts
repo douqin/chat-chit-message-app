@@ -17,7 +17,7 @@ import {
 export default class UserController extends MotherController {
   constructor(
     @inject(Server) io: Server,
-    @inject(UserService) private userSerivce: UserService
+    @inject(UserService) private userService: UserService
   ) {
     super(io);
   }
@@ -28,7 +28,7 @@ export default class UserController extends MotherController {
       return new ResponseBody(
         true,
         "",
-        await this.userSerivce.searchUser(phone)
+        await this.userService.searchUser(phone)
       );
     }
     throw new BadRequestException("Argument is invalid");
@@ -39,7 +39,7 @@ export default class UserController extends MotherController {
     @Params("username") username: string,
     @Headers("userId") userId: number
   ) {
-    let data = await this.userSerivce.infoUser(userId, username);
+    let data = await this.userService.infoUser(userId, username);
     if (username) {
       return new ResponseBody(true, "", data);
     } else throw new BadRequestException("Argument is invalid");

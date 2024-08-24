@@ -40,6 +40,6 @@ function startServer() {
   app.use(compression());
   app.configSocket(new SocketBuilder());
   app.listen(Number(config.get("PORT")));
-  App.logAllRoute(app);
+  // App.logAllRoute(app);
 }
 startServer()

@@ -17,7 +17,7 @@ export class RegisterAccountDTO {
   address: string;
   @IsString()
   @IsNotEmpty()
-  lastname: string;
+  lastName: string;
   @IsNotEmpty()
   @Type(() => Number)
   @IsEnum(Gender)

@@ -318,7 +318,7 @@ export default class GroupController extends MotherController {
     @UseGuard(AuthorizeMemberGuard)
     private async getInformationMember(@Headers("userId") myId: number, @Params("groupId") groupId: number, @Params("userId") userIdGet: number) {
         if (isValidNumberVariable(userIdGet) && isValidNumberVariable(groupId)) {
-            let data = await this.groupService.getInformationMember(userIdGet, myId, groupId)
+            let data = await this.groupService.getInformationMember(userIdGet, groupId)
             return (
                 new ResponseBody<User>(
                     true,

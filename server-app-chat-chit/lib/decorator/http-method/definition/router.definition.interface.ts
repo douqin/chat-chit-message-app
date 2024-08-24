@@ -14,5 +14,5 @@ export interface IRouteDefinition {
     // Phương thức http
     requestMethod: RequestMethod;
     // Tên phương thức của class controller để xử lý request
-    methodName: string | symbol;
+    methodName: string;
 }

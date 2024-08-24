@@ -26,11 +26,11 @@ export default class MessageService implements iMessageServiceBehavior {
         return ListMessagePagingResponseDTO.rawToData(messages)
     }
     async getListPinMessage(userId: number, groupId: number): Promise<Message[]> {
-            let data = await this.messageRepository.getListPinMessage(groupId)
-            let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
-                return await this.cloudDrive.getUrlFile(id);
-            })
-            return messages
+        let data = await this.messageRepository.getListPinMessage(groupId)
+        let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
+            return await this.cloudDrive.getUrlFile(id);
+        })
+        return messages
     }
     async sendGifMessage(groupId: number, userId: number, content: string, replyMessageId: number | null): Promise<Message> {
         let group: iInformationMember = container.resolve(GroupService)
@@ -82,7 +82,7 @@ export default class MessageService implements iMessageServiceBehavior {
     async getAllManipulateUser(messageId: number): Promise<number[]> {
         return await this.messageRepository.getAllManipulateUser(messageId);
     }
-    async getAllReactFromMessage(messageId: number): Promise<any[]> {
+    async getAllReactFromMessage(messageId: number): Promise<Reaction[]> {
         return (await this.messageRepository.getAllReactFromMessage(messageId)).map((value: any, index: number, array: any[]) => {
             return TransformReaction.rawToModel(value)
         })
@@ -170,17 +170,18 @@ export default class MessageService implements iMessageServiceBehavior {
         let raw = await this.getOneMessage(_raw)
         return raw
     }
-    //FIXME: edit logic bigO
     async getAllMessageFromGroup(groupId: number, userId: number, cursor: number, limit: number): Promise<ListMessagePagingResponseDTO> {
         let groupAuthor: iInformationMember = container.resolve(GroupService)
         let data = await this.messageRepository.getMessagesFromGroup(groupId, cursor, limit)
         let messages = await TransformMessage.fromRawsData(data, async (id: string) => {
             return await this.cloudDrive.getUrlFile(id);
         })
-        for (let message of messages) {
-            message.reacts = await this.getAllReactFromMessage(message.messageId)
-            message.manipulates = await this.getAllManipulateUser(message.messageId)
-        }
+        await Promise.all(messages.map(async (message) => {
+            [message.reacts, message.manipulates] = await Promise.all([
+                this.getAllReactFromMessage(message.messageId),
+                this.getAllManipulateUser(message.messageId)
+            ]);
+        }));
         return ListMessagePagingResponseDTO.rawToData(messages)
     }
 }

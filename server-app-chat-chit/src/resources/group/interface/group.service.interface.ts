@@ -33,7 +33,7 @@ export interface iMemberActions {
 export interface iGroupActions {
   getAllRoom(userId: number): Promise<Array<string>>;
   createInvidualGroup(userId: number, users: number): Promise<CreateIndividualGroup>;
-  getInformationMember(userId: number, memberId: number, groupId: number): Promise<User>;
+  getInformationMember(userId: number, groupId: number): Promise<User>;
   getTotalMember(groupId: number): Promise<number>
   getAllGroup(userId: number): Promise<Array<Group>>;
   getSomeGroup(userId: number, cursor: number, limit: number): Promise<dataDTO>;

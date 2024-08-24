@@ -13,8 +13,8 @@ export default class MeService {
         //TODO: check password 
         this.meRepository.changePassword(userId, password)
     }
-    async updateMyprofile(userId: number, firstname: any, lastname: any, gender: any, birthday: any, bio: any, username: any) {
-        this.meRepository.updateMyProfile(userId, firstname, lastname, gender, birthday, bio, username)
+    async updateMyprofile(userId: number, firstname: any, lastName: any, gender: any, birthday: any, bio: any, username: any) {
+        this.meRepository.updateMyProfile(userId, firstname, lastName, gender, birthday, bio, username)
     }
     async changeBackground(userId: number, file: Express.Multer.File) {
         if (file.mimetype.includes('image')) {

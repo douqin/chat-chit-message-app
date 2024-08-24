@@ -2,7 +2,7 @@ import { User } from "@/models/user.model";
 import { ListFriendCommonDTO } from "@/resources/relationship/dto/list.friend.common.dto";
 import { RelationshipUser } from "@/resources/relationship/enums/relationship.enum";
 
-export class InforUserDto extends User{
+export class InfoUserDto extends User {
     constructor(
         public status: RelationshipUser,
         public numberCommonFriend: number,

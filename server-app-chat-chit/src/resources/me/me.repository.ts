@@ -11,7 +11,7 @@ export default class MeRepository {
     constructor(@inject(CloudDrive) private drive: iDrive, @inject(Database) private db: iDatabase) { }
 
     async getMyProfile(userId: number) {
-        const query = 'SELECT user.phone, user.firstname, user.lastname, user.gender,user.birthday, user.bio, user.username, user.avatar, user.background FROM user WHERE user.userId = ?'
+        const query = 'SELECT user.phone, user.firstname, user.lastName, user.gender,user.birthday, user.bio, user.username, user.avatar, user.background FROM user WHERE user.userId = ?'
         let [data, inforC] = await this.db.executeQuery(query, [userId]) as any
         if (data[0]) {
             const {
@@ -27,10 +27,10 @@ export default class MeRepository {
         const query = 'UPDATE user SET user.password = ? WHERE user.userId = ?'
         await this.db.executeQuery(query, [password, userId])
     }
-    async updateMyProfile(userId: number, firstname: any, lastname: string, gender: any, birthday: any, bio: any, username: any) {
+    async updateMyProfile(userId: number, firstname: any, lastName: string, gender: any, birthday: any, bio: any, username: any) {
         const queryUpdate = 'UPDATE user SET' +
             (firstname != null ? ` user.firstname  =  '${firstname}' ` : "") +
-            (lastname != null && lastname.length > 0 ? `,user.lastname = '${lastname}' ` : ``) +
+            (lastName != null && lastName.length > 0 ? `,user.lastName = '${lastName}' ` : ``) +
             (gender != null ? ` ,user.gender = ${gender} ` : ``) +
             (birthday != null ? ` ,user.birthday = '${(dateStrJSToMysql(birthday))}' ` : ``) +
             (bio != null ? ` ,user.bio = '${bio}' ,` : ``) +
