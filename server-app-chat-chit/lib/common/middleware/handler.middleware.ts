@@ -23,8 +23,7 @@ export class MiddlewareHandler {
                 try {
                     let oHandler = globalContainer.resolve(guard)
                     const handler = oHandler.handle;
-                    const name = handler.name
-                    let args = await ParamHandler.handle(oHandler, name, req, res, customNext)
+                    let args = await ParamHandler.handle(oHandler, handler.name, req, res, customNext)
                     let result = await handler(...args)
                     console.log("🚀 ~ MiddlewareHandler ~ listHandler.push ~ result:", result)
                     if (!nextCalled && !res.locals.responseSent) {

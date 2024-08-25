@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ResponseBody } from "@/utils/definition/http.response";
 import { HttpException, HttpStatus } from "@/lib/common";
+import chalk from "chalk";
 
 export default function errorMiddlewareHTTP(
     error: Error,
@@ -21,6 +22,7 @@ export default function errorMiddlewareHTTP(
         )
         return
     } 
+    console.log(chalk.red("INTERNAL SERVER ERROR: ", error))
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).send(
         new ResponseBody(
             false,
