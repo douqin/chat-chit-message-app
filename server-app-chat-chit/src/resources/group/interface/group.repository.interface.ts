@@ -5,7 +5,7 @@ import { GroupStatus } from '../enum/group.status.dto.enum';
 import Group from '@/models/group.model';
 import { GroupAccess } from '../enum/group.access';
 import DataFileDrive from 'src/services/cloud/dtos/file.drive.dtos';
-import { RawDataMysql } from '@/models/raw.data';
+import { RawDatabaseData } from '@/models/raw.data';
 
 export interface GroupRepositoryBehavior extends GroupManagement, GroupInfo, GroupActionMember, MemberInfo {
 }

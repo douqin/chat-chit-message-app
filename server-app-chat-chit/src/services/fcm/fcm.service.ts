@@ -6,7 +6,7 @@ import { getRoomGroupIO } from "@/utils/extension/room.group";
 
 @singleton()
 export class FCMService implements iNotificationService {
-    private firebase: typeof firebase = firebase;
+    private firebase = firebase;
     async sendNotificationToGroupDevice(data: any, groupId: string): Promise<void> {
         const message: TopicMessage = {
             data: data,

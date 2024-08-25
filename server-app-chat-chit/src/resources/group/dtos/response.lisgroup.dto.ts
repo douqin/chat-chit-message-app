@@ -2,7 +2,7 @@ import Message from "@/models/message.model";
 import Group from "../../../models/group.model";
 import { num } from "envalid";
 import { PagingRes } from "@/utils/paging/paging.data";
-import { RawDataMysql } from "@/models/raw.data";
+import { RawDatabaseData } from "@/models/raw.data";
 
 export class dataDTO extends PagingRes<GroupChatDTO, number | null>{
     constructor(
@@ -12,7 +12,7 @@ export class dataDTO extends PagingRes<GroupChatDTO, number | null>{
     ) { 
         super(data, nextCursor, totalSize)
     }
-    static async rawToDTO(raw: RawDataMysql[], getlastMessage : (groupId : number) => Promise<Message> , totalMember : (groupId : number) => Promise<number>, numMessageUnread : (groupId : number) => Promise<number> ) {
+    static async rawToDTO(raw: RawDatabaseData[], getlastMessage : (groupId : number) => Promise<Message> , totalMember : (groupId : number) => Promise<number>, numMessageUnread : (groupId : number) => Promise<number> ) {
         let dto = new dataDTO([], null)
         for (let userRaw of raw) {
             let gr = Group.fromRawData(userRaw);

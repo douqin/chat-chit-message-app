@@ -2,7 +2,7 @@ import { Database, QuerySuccessResult, iDatabase } from '@/lib/database';
 import { RelationshipUser } from './enums/relationship.enum';
 import { RelationRepositoryBehavior } from "./interface/relation.repository.interface";
 import { inject, injectable } from 'tsyringe';
-import { RawDataMysql } from '@/models/raw.data';
+import { RawDatabaseData } from '@/models/raw.data';
 
 @injectable()
 export default class RelationRepository implements RelationRepositoryBehavior {
@@ -48,7 +48,7 @@ export default class RelationRepository implements RelationRepositoryBehavior {
         return Number(count[0].common_friends_count)
     }
 
-    async getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<RawDataMysql[]> {
+    async getFriendsCommonBetWeenUser(userId: number, userIdWGet: number, cursor: number, limit: number): Promise<RawDatabaseData[]> {
         let query = `SELECT
         user.*
     FROM

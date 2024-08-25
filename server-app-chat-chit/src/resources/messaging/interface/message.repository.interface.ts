@@ -1,7 +1,7 @@
 import Message from "@/models/message.model";
 import { ReactMessage } from "../enum/message.react.enum";
 import { MessageStatus } from "../enum/message.status.enum";
-import { RawDataMysql } from "@/models/raw.data";
+import { RawDatabaseData } from "@/models/raw.data";
 import { MessageType } from "../enum/message.type.enum";
 
 export interface iMessageRepositoryBehavior extends iMessageInformation, iMessageAction {
@@ -22,7 +22,7 @@ export interface iMessageAction {
     sendNotitfyMessage(groupId: number, userId: number, content: string, manipulates: Array<number>): Promise<any>
     changeStatusMessage(messageId: number, status: MessageStatus): Promise<boolean>
     sendGiftMessage(groupId: number, userId: number, content: string): Promise<boolean>
-    sendFileMessage(groupId: number, userId: number, content: Express.Multer.File, typeFile : MessageType) : Promise<RawDataMysql>
+    sendFileMessage(groupId: number, userId: number, content: Express.Multer.File, typeFile : MessageType) : Promise<RawDatabaseData>
     sendTextMessage(groupId: number, userId: number, content: string, tag: Array<Number>, replyMessageId: number | null): Promise<number>
     changePinMessage(messageId: number, userId: number, isPin: number): boolean | PromiseLike<boolean>;
     reactMessage(messageId: number, react: ReactMessage, userId: number, groupId: number): boolean | PromiseLike<any>;

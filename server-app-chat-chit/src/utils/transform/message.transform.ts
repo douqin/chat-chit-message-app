@@ -1,11 +1,11 @@
 import Message from "@/models/message.model";
 
 import { MessageType } from "@/resources/messaging/enum/message.type.enum";
-import { RawDataMysql } from "@/models/raw.data";
+import { RawDatabaseData } from "@/models/raw.data";
 import { HttpStatus, MyException } from "@/lib/common";
 
 export class TransformMessage {
-    static async fromRawsData(raws: RawDataMysql[], callback?: (id: string) => Promise<string | null | undefined>): Promise<Message[]> {
+    static async fromRawsData(raws: RawDatabaseData[], callback?: (id: string) => Promise<string | null | undefined>): Promise<Message[]> {
         let arrMessage: Array<Message> = [];
         for (let raw of raws) {
             const { content,

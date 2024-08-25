@@ -21,8 +21,7 @@ export class DatabaseCache {
       }
     );
     console.log(
-      chalk.black(`Redis:`),
-      chalk.green(`Initialization successful`)
+      chalk.green(`[Redis]: `, `Initialization successful`)
     );
     return DatabaseCache.redis;
   }

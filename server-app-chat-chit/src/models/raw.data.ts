@@ -1,3 +1,3 @@
-export class RawDataMysql{
+export class RawDatabaseData{
     [key : string] : any
 }

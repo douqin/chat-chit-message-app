@@ -1,9 +1,9 @@
 import Story from "@/models/story.model";
-import { RawDataMysql } from "@/models/raw.data";
+import { RawDatabaseData } from "@/models/raw.data";
 import { HttpStatus, MyException } from "@/lib/common";
 
 export class TransformStory {
-    static async rawToModel(data: RawDataMysql, callback: (id: string) => Promise<string | null | undefined>): Promise<Story> {
+    static async rawToModel(data: RawDatabaseData, callback: (id: string) => Promise<string | null | undefined>): Promise<Story> {
         const {
             storyId, userIdOwner, createAt, content, viewed
         } = data;
@@ -15,7 +15,7 @@ export class TransformStory {
         } else throw new MyException("Error when handling file").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR)
         return value
     }
-    static async rawsToModels(data: RawDataMysql[], callback: (id: string) => Promise<string | null | undefined>): Promise<Story[]> {
+    static async rawsToModels(data: RawDatabaseData[], callback: (id: string) => Promise<string | null | undefined>): Promise<Story[]> {
         let value = [];
         for(let raw  of data){
             value.push(await TransformStory.rawToModel(raw, callback))

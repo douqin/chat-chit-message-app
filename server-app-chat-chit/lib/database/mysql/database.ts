@@ -26,11 +26,10 @@ class Database implements iDatabase {
   ): Promise<
     [
       (
-        | mysql.OkPacket
         | mysql.ResultSetHeader
         | mysql.RowDataPacket[]
         | mysql.RowDataPacket[][]
-        | mysql.OkPacket[]
+        | mysql.ResultSetHeader[]
       ),
       mysql.FieldPacket[]
     ]
@@ -47,8 +46,7 @@ interface iDatabase {
       (
         | mysql.RowDataPacket[]
         | mysql.RowDataPacket[][]
-        | mysql.OkPacket
-        | mysql.OkPacket[]
+        | mysql.ResultSetHeader[]
         | mysql.ResultSetHeader
       ),
       mysql.FieldPacket[]
@@ -70,8 +68,7 @@ class DatabaseBuilder {
       password: configService.get("DATABASE_PASSWORD"),
     });
     console.log(
-      chalk.black(`Mysql: `),
-      chalk.green(`Initialization successful`),
+      chalk.green('[Mysql]: ',`Initialization successful`),
     );
     return this;
   }
@@ -89,9 +86,8 @@ class DB implements iDatabase {
       (
         | mysql.RowDataPacket[]
         | mysql.RowDataPacket[][]
-        | mysql.OkPacket
-        | mysql.OkPacket[]
         | mysql.ResultSetHeader
+        | mysql.ResultSetHeader[]
       ),
       mysql.FieldPacket[]
     ]

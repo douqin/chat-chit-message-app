@@ -9,7 +9,7 @@ import { inject, injectable } from "tsyringe";
 import { OkPacket } from "mysql2";
 import Message from "@/models/message.model";
 import { Database, iDatabase } from "@/lib/database";
-import { RawDataMysql } from "@/models/raw.data";
+import { RawDatabaseData } from "@/models/raw.data";
 import { HttpStatus, MyException } from "@/lib/common";
 
 @injectable()
@@ -118,7 +118,7 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         let date = new Date();
         const sql = `INSERT INTO message (memberId,content, createAt, type, status, replyMessageId) VALUES ( ?, ?, ?, ?, ?, ?)`;
         const values = [memberId, content, date, MessageType.TEXT, MessageStatus.DEFAULT, replyMessageId]
-        const [rows] = await this.database.executeQuery(sql, values) as OkPacket[]
+        const [rows] = await this.database.executeQuery(sql, values) as RawDatabaseData[]
         const queryInsertMan = `
             INSERT INTO manipulate_user (messageId, userId) VALUE(
                 ?, ?
@@ -129,21 +129,21 @@ export default class MessageRepository implements iMessageRepositoryBehavior {
         }
         return rows.insertId;
     }
-    async sendFileMessage(groupId: number, userId: number, content: Express.Multer.File, typeFile: MessageType): Promise<RawDataMysql> {
-        let array  : RawDataMysql;
+    async sendFileMessage(groupId: number, userId: number, content: Express.Multer.File, typeFile: MessageType): Promise<RawDatabaseData> {
+        let array  : RawDatabaseData;
         let inforFile = await this.drive.uploadFile(content.filename, content.stream)
         if (!inforFile) {
             throw new MyException("Can't upload file").withExceptionCode(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         try {
-            array = await this.database.transaction<RawDataMysql>(async (connection) => {
+            array = await this.database.transaction<RawDatabaseData>(async (connection) => {
                 const queryGetIDMem = "SELECT member.id FROM member WHERE member.groupId = ? AND member.userId = ? "
                 const [[{ 'id': memberId }], column1] = await connection.executeQuery(queryGetIDMem, [groupId, userId]) as any;
                 const querySaveId = `INSERT INTO message (memberId,content, createAt, type, status) VALUES ( ?, ?, now(), ?, ?)`
                 let [data] = await connection.executeQuery(querySaveId, [memberId, inforFile!.id, typeFile, MessageStatus.DEFAULT]) as any
                 const [dataQuery, inforColumn] = await connection.executeQuery(
                     "SELECT message.* FROM (member INNER JOIN message ON member.id = message.memberId AND member.groupId = ? AND message.messageId = ? AND member.id = ?)", [groupId, data.insertId, memberId]
-                ) as RawDataMysql[]
+                ) as RawDatabaseData[]
                 return dataQuery[0];
             })
         }
