@@ -25,9 +25,3 @@ export class AuthorizeMemberGuard extends BaseGuard {
         }
     }
 }
-class X extends BaseGuard {
-    public handle<T extends any[]>(req: Request, res: Response, next: NextFunction): Promise<any> {
-        throw new Error("Method not implemented.");
-    }
-
-}

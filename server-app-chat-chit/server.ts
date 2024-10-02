@@ -12,9 +12,6 @@ import express from "express";
 import morgan from "morgan";
 import { ConfigService } from "@/lib/config";
 import { SocketBuilder } from "@/builder/socket.builder";
-import { iNotificationService } from "@/services/fcm/fcm.service.interface";
-import { globalContainer } from "./lib/common";
-import { FCMService } from "@/services/fcm/fcm.service";
 
 validateEnv();
 function startServer() {
